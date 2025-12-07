@@ -1,0 +1,41 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv
+venv/
+env/
+.env
+
+# IDE
+.vscode
+.idea
+*.swp
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Tests
+tests/
+
+# Data (will be created at runtime)
+data/uploads/*
+data/sessions/*
+data/logs/*
+
+# Claude configuration
+.claude/
+
+# Misc
+*.log
+*.tmp
+agent/
+c:Users*

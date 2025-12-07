@@ -1,0 +1,8 @@
+{
+  "build": {
+    "type": "dockerfile"
+  },
+  "start": {
+    "port": 5000
+  }
+}

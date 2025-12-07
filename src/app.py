@@ -539,4 +539,7 @@ def health_check():
     return jsonify({'status': 'healthy', 'message': 'Flask backend is running'})
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # 生产环境通过环境变量控制 debug 模式
+    debug_mode = os.getenv('FLASK_DEBUG', 'false').lower() == 'true'
+    port = int(os.getenv('PORT', 5000))
+    app.run(debug=debug_mode, host='0.0.0.0', port=port)
