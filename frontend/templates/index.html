@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>名侦探作业帮 | 智慧解题</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome 图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- 自定义样式 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
+    <!-- Tailwind 配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        teitanBlue: '#0047AB',
+                        conanRed: '#E31D2B',
+                        paperWhite: '#F8F9FA',
+                        mysteryBlack: '#1a1a2e',
+                        moonlightBlue: '#16213e',
+                        neonCyan: '#00d4ff',
+                        detectiveGold: '#ffd700',
+                        deepPurple: '#0f0c29',
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'glow-pulse': 'glow-pulse 2s ease-in-out infinite',
+                        'twinkle': 'twinkle 3s ease-in-out infinite',
+                        'slide-up': 'slide-up 0.8s ease-out',
+                        'gradient-flow': 'gradient-flow 3s ease infinite',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="min-h-screen font-sans text-white">
+
+    <!-- ========== 背景装饰层 ========== -->
+
+    <!-- 星星容器 -->
+    <div class="stars" id="stars"></div>
+
+    <!-- 月亮 -->
+    <div class="moon"></div>
+
+    <!-- 城市剪影 SVG -->
+    <svg class="city-silhouette" viewBox="0 0 1440 200" preserveAspectRatio="none">
+        <path fill="rgba(0,0,0,0.6)" d="M0,200 L0,150 L50,150 L50,120 L80,120 L80,100 L100,100 L100,80 L120,80 L120,100 L150,100 L150,70 L170,70 L170,90 L200,90 L200,60 L220,60 L220,40 L240,40 L240,60 L280,60 L280,80 L300,80 L300,50 L320,50 L320,30 L340,30 L340,50 L360,50 L360,70 L400,70 L400,90 L420,90 L420,110 L450,110 L450,80 L480,80 L480,60 L500,60 L500,80 L530,80 L530,100 L560,100 L560,70 L590,70 L590,50 L620,50 L620,80 L650,80 L650,100 L680,100 L680,130 L720,130 L720,90 L750,90 L750,70 L780,70 L780,50 L810,50 L810,30 L840,30 L840,50 L870,50 L870,70 L900,70 L900,100 L930,100 L930,80 L960,80 L960,60 L990,60 L990,80 L1020,80 L1020,100 L1050,100 L1050,70 L1080,70 L1080,90 L1110,90 L1110,110 L1140,110 L1140,80 L1170,80 L1170,100 L1200,100 L1200,120 L1230,120 L1230,90 L1260,90 L1260,70 L1290,70 L1290,100 L1320,100 L1320,130 L1350,130 L1350,150 L1380,150 L1380,170 L1410,170 L1410,150 L1440,150 L1440,200 Z"/>
+        <!-- 窗户灯光 -->
+        <rect x="225" y="45" width="8" height="10" fill="rgba(255,215,0,0.6)"/>
+        <rect x="325" y="35" width="8" height="10" fill="rgba(0,212,255,0.6)"/>
+        <rect x="505" y="65" width="8" height="10" fill="rgba(255,215,0,0.6)"/>
+        <rect x="815" y="35" width="8" height="10" fill="rgba(255,107,107,0.6)"/>
+        <rect x="1055" y="75" width="8" height="10" fill="rgba(0,212,255,0.6)"/>
+    </svg>
+
+    <!-- 粒子效果容器 -->
+    <div class="particles" id="particles"></div>
+
+    <!-- 暗角效果 -->
+    <div class="vignette"></div>
+
+    <!-- 蝴蝶结装饰 -->
+    <div class="bowtie-decoration">
+        <i class="fa-solid fa-bow-tie"></i>
+    </div>
+
+    <!-- 侦探徽章 -->
+    <div class="detective-badge">
+        <i class="fa-solid fa-magnifying-glass"></i>
+    </div>
+
+    <!-- 柯南图片 -->
+    <img src="{{ url_for('static', filename='images/67a99ed6f3db4z2m7bdnw17636.jpg') }}" alt="柯南" class="conan-silhouette">
+
+    <!-- ========== 顶部导航栏 ========== -->
+    <nav class="nav-gradient shadow-2xl text-white sticky top-0 z-50 relative">
+        <div class="nav-glow-line"></div>
+        <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center relative z-10">
+            <div class="flex items-center gap-4">
+                <!-- Logo -->
+                <div class="logo-container">
+                    <div class="logo-inner">
+                        <i class="fa-solid fa-magnifying-glass text-neonCyan text-xl"></i>
+                    </div>
+                </div>
+                <div>
+                    <h1 class="font-bold text-xl tracking-wide flex items-center gap-2">
+                        名侦探作业帮
+                        <span class="text-detectiveGold text-sm">★</span>
+                    </h1>
+                    <p class="text-[10px] opacity-60 uppercase tracking-widest">Detective Study Tool</p>
+                </div>
+            </div>
+            <!-- 用户头像 -->
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-neonCyan to-teitanBlue flex items-center justify-center border-2 border-white/30 shadow-lg hover:scale-110 transition-transform cursor-pointer">
+                <i class="fa-solid fa-user-secret text-sm"></i>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ========== 主要内容区 ========== -->
+    <main class="max-w-3xl mx-auto p-6 mt-8 relative z-20">
+
+        <!-- 欢迎语 -->
+        <div class="text-center mb-10">
+            <h2 class="text-3xl font-bold mb-3 inline-block">
+                <span class="bg-gradient-to-r from-neonCyan via-white to-detectiveGold bg-clip-text text-transparent">
+                    今天遇到了什么难题？
+                </span>
+            </h2>
+            <p class="text-white/60 text-sm welcome-subtitle">
+                <i class="fa-solid fa-quote-left text-xs mr-2 text-neonCyan"></i>
+                像侦探处理案件一样，逻辑清晰地解决它吧
+                <i class="fa-solid fa-quote-right text-xs ml-2 text-neonCyan"></i>
+            </p>
+        </div>
+
+        <!-- 核心功能卡片 -->
+        <div id="mainCard" class="glass-card glow-border-blue">
+
+            <!-- 学科切换 Tabs -->
+            <div class="tab-container flex rounded-t-xl overflow-hidden">
+                <button onclick="switchTab('physics')" id="btnPhysics" class="tab-btn flex-1 py-5 text-center font-bold transition-all duration-300 flex items-center justify-center gap-3 tab-active-phy">
+                    <i class="fa-solid fa-atom tab-icon text-lg"></i>
+                    <span>物理 Physics</span>
+                </button>
+                <button onclick="switchTab('chemistry')" id="btnChemistry" class="tab-btn flex-1 py-5 text-center font-bold transition-all duration-300 flex items-center justify-center gap-3 tab-inactive">
+                    <i class="fa-solid fa-flask tab-icon text-lg"></i>
+                    <span>化学 Chemistry</span>
+                </button>
+            </div>
+
+            <div class="p-8">
+                <!-- 题目输入区 -->
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold text-white/80 mb-3 flex justify-between items-center">
+                        <span class="flex items-center gap-2">
+                            <i class="fa-solid fa-pen-fancy text-neonCyan"></i>
+                            题目描述
+                        </span>
+                        <span class="text-xs text-white/40 font-normal flex items-center gap-1">
+                            <i class="fa-solid fa-keyboard"></i>
+                            支持输入公式和文本
+                        </span>
+                    </label>
+                    <div class="relative">
+                        <textarea
+                            id="problemInput"
+                            class="input-area w-full h-44 p-4 pl-10 text-base resize-none"
+                            placeholder="在这里输入题目内容... 侦探正在等待你的案件"></textarea>
+                        <!-- 装饰图标 -->
+                        <div class="input-decoration">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <i class="fa-solid fa-lightbulb"></i>
+                            <i class="fa-solid fa-brain"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 图片上传区 -->
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold text-white/80 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-image text-neonCyan"></i>
+                        上传题目图片
+                    </label>
+
+                    <div class="flex gap-4 items-start">
+                        <!-- 上传按钮 -->
+                        <label id="uploadArea" class="upload-area flex-shrink-0 cursor-pointer w-36 h-36 flex flex-col items-center justify-center text-white/50 hover:text-neonCyan group relative">
+                            <i class="fa-solid fa-cloud-arrow-up text-3xl mb-2 group-hover:scale-125 transition-transform"></i>
+                            <span class="text-xs">点击或粘贴</span>
+                            <input type="file" class="hidden" accept="image/*" onchange="previewImage(this)">
+                            <!-- 背景装饰 -->
+                            <i class="fa-solid fa-fingerprint absolute -bottom-2 -right-2 text-5xl opacity-10"></i>
+                        </label>
+
+                        <!-- 预览区 -->
+                        <div id="previewContainer" class="hidden flex-1 h-36 bg-black/30 rounded-xl border border-white/10 relative overflow-hidden flex items-center justify-center backdrop-blur">
+                            <img id="imgPreview" class="h-full object-contain">
+                            <button onclick="clearImage()" class="absolute top-2 right-2 bg-conanRed/80 hover:bg-conanRed rounded-full w-8 h-8 flex items-center justify-center shadow-lg transition-all hover:scale-110">
+                                <i class="fa-solid fa-xmark text-white text-sm"></i>
+                            </button>
+                        </div>
+
+                        <!-- 提示文案 -->
+                        <div id="uploadHint" class="flex-1 text-sm text-white/50 self-center">
+                            <p class="flex items-center gap-2">
+                                <i class="fa-solid fa-circle-info text-neonCyan"></i>
+                                复杂的电路图或化学方程式？
+                            </p>
+                            <p class="mt-2 text-white/40">直接拍下来上传，或 <kbd class="px-1.5 py-0.5 bg-white/10 rounded text-xs">Ctrl+V</kbd> 粘贴截图</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 深度思考开关 -->
+                <div class="mb-8">
+                    <div class="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-brain text-xl text-purple-400"></i>
+                            <div>
+                                <span class="text-sm font-semibold text-white/90">深度思考模式</span>
+                                <p class="text-xs text-white/50 mt-0.5">启用后AI会进行更深入的分析，但耗时更长</p>
+                            </div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="deepThinkToggle" class="sr-only peer">
+                            <div class="w-14 h-7 bg-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-purple-500"></div>
+                            <span id="deepThinkLabel" class="ms-3 text-sm font-medium text-white/70 w-8">关闭</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 提交按钮 -->
+                <button id="submitBtn" class="submit-btn w-full py-5 text-white rounded-xl font-bold text-lg flex items-center justify-center gap-3 relative">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <span>开始解题</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+
+            </div>
+
+            <!-- 底部状态栏 -->
+            <div class="status-bar px-8 py-3 flex justify-between items-center text-xs text-white/50 rounded-b-xl">
+                <div class="flex items-center gap-3">
+                    <div class="status-dot"></div>
+                    <span>系统运行正常</span>
+                </div>
+                <div class="font-mono flex items-center gap-2">
+                    <i class="fa-solid fa-shield-halved text-neonCyan"></i>
+                    VER 2.0.0
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ========== 页脚 ========== -->
+    <footer class="text-center py-8 relative z-20">
+        <p class="footer-text text-xs mb-2">&copy; 2025 Detective Study Group</p>
+        <p class="footer-quote text-sm">
+            <i class="fa-solid fa-star mr-2"></i>
+            真相永远只有一个
+            <i class="fa-solid fa-star ml-2"></i>
+        </p>
+    </footer>
+
+    <!-- JavaScript 脚本 -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+</body>
+</html>

@@ -1,0 +1,565 @@
+/* ============================================
+   名侦探作业帮 - 柯南风格样式表
+   ============================================ */
+
+/* ========== 基础动画关键帧 ========== */
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+}
+
+@keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(0, 212, 255, 0.3); }
+    50% { box-shadow: 0 0 40px rgba(0, 212, 255, 0.6), 0 0 60px rgba(0, 71, 171, 0.3); }
+}
+
+@keyframes twinkle {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes fade-in-up {
+    0% {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slide-up {
+    from { opacity: 0; transform: translateY(50px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes gradient-flow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@keyframes particle-fall {
+    0% { transform: translateY(-100px) rotate(0deg); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+}
+
+@keyframes scan-line {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+@keyframes neon-flicker {
+    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+        text-shadow:
+            0 0 5px #fff,
+            0 0 10px #fff,
+            0 0 20px #00d4ff,
+            0 0 40px #00d4ff;
+    }
+    20%, 24%, 55% {
+        text-shadow: none;
+    }
+}
+
+@keyframes rotate-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes ripple {
+    0% { transform: scale(0); opacity: 1; }
+    100% { transform: scale(4); opacity: 0; }
+}
+
+@keyframes moon-glow {
+    0%, 100% { box-shadow: 0 0 60px 30px rgba(255, 215, 0, 0.3); }
+    50% { box-shadow: 0 0 80px 40px rgba(255, 215, 0, 0.5); }
+}
+
+@keyframes typewriter {
+    from { width: 0; }
+    to { width: 100%; }
+}
+
+@keyframes blink {
+    50% { border-color: transparent; }
+}
+
+/* ========== 星空背景 ========== */
+body {
+    background: linear-gradient(135deg, #0f0c29 0%, #1a1a2e 50%, #16213e 100%);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* ========== 星星 ========== */
+.stars {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.star {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background: white;
+    border-radius: 50%;
+    animation: twinkle 3s ease-in-out infinite;
+}
+
+/* ========== 月亮 ========== */
+.moon {
+    position: fixed;
+    top: 80px;
+    right: 50px;
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #ffd700 0%, #fff8dc 100%);
+    border-radius: 50%;
+    animation: moon-glow 4s ease-in-out infinite;
+    z-index: 1;
+    box-shadow: 0 0 60px 30px rgba(255, 215, 0, 0.3);
+}
+
+.moon::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 15px;
+    width: 20px;
+    height: 20px;
+    background: rgba(0,0,0,0.1);
+    border-radius: 50%;
+}
+
+/* ========== 城市剪影 ========== */
+.city-silhouette {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 200px;
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* ========== 粒子容器 ========== */
+.particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2;
+    overflow: hidden;
+}
+
+.particle {
+    position: absolute;
+    font-size: 20px;
+    animation: particle-fall linear infinite;
+    opacity: 0.6;
+}
+
+/* ========== 柯南图片 ========== */
+.conan-silhouette {
+    position: fixed;
+    bottom: 20px;
+    right: 30px;
+    width: 220px;
+    height: auto;
+    z-index: 10;
+    opacity: 1;
+    /* 反转+增强对比度+发光，让线稿清晰可见 */
+    filter:
+        invert(1)
+        brightness(2)
+        contrast(1.5)
+        drop-shadow(0 0 3px #00d4ff)
+        drop-shadow(0 0 10px #00d4ff)
+        drop-shadow(0 0 20px rgba(0, 212, 255, 0.5));
+    animation: float 6s ease-in-out infinite;
+    border-radius: 10px;
+    pointer-events: none;
+}
+
+/* ========== 蝴蝶结装饰 ========== */
+.bowtie-decoration {
+    position: fixed;
+    top: 100px;
+    left: 30px;
+    font-size: 40px;
+    color: #E31D2B;
+    z-index: 10;
+    animation: float 5s ease-in-out infinite;
+    filter: drop-shadow(0 0 15px rgba(227, 29, 43, 0.6));
+}
+
+/* ========== 暗角效果 ========== */
+.vignette {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 3;
+    background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.4) 100%);
+}
+
+/* ========== 导航栏样式 ========== */
+.nav-gradient {
+    background: linear-gradient(135deg, #0047AB 0%, #1a1a2e 50%, #302b63 100%);
+    background-size: 200% 200%;
+    animation: gradient-flow 8s ease infinite;
+    border-bottom: 2px solid transparent;
+    border-image: linear-gradient(90deg, transparent, #00d4ff, transparent) 1;
+}
+
+.nav-glow-line {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #00d4ff, #ffd700, #00d4ff, transparent);
+    box-shadow: 0 0 10px #00d4ff, 0 0 20px #00d4ff;
+}
+
+/* ========== Logo容器 ========== */
+.logo-container {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #ffd700, #ff6b6b, #00d4ff);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: glow-pulse 3s ease-in-out infinite;
+}
+
+.logo-inner {
+    width: 44px;
+    height: 44px;
+    background: #1a1a2e;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ========== 毛玻璃卡片 ========== */
+.glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        inset 0 0 80px rgba(255, 255, 255, 0.05);
+    animation: slide-up 0.8s ease-out, glow-pulse 4s ease-in-out infinite;
+    position: relative;
+    overflow: hidden;
+}
+
+.glass-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    animation: scan-line 4s linear infinite;
+}
+
+/* ========== 发光边框效果 ========== */
+.glow-border-blue {
+    box-shadow:
+        0 0 20px rgba(0, 71, 171, 0.5),
+        0 0 40px rgba(0, 71, 171, 0.3),
+        inset 0 0 60px rgba(0, 71, 171, 0.1);
+    border: 2px solid rgba(0, 212, 255, 0.3);
+}
+
+.glow-border-red {
+    box-shadow:
+        0 0 20px rgba(227, 29, 43, 0.5),
+        0 0 40px rgba(227, 29, 43, 0.3),
+        inset 0 0 60px rgba(227, 29, 43, 0.1);
+    border: 2px solid rgba(227, 29, 43, 0.3);
+}
+
+/* ========== Tab样式 ========== */
+.tab-container {
+    background: rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tab-btn {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s ease;
+}
+
+.tab-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.tab-btn:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.tab-active-phy {
+    background: linear-gradient(135deg, #0047AB, #00d4ff);
+    color: white;
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+}
+
+.tab-active-chem {
+    background: linear-gradient(135deg, #E31D2B, #ff6b6b);
+    color: white;
+    box-shadow: 0 0 20px rgba(227, 29, 43, 0.5);
+}
+
+.tab-inactive {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.tab-inactive:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.tab-icon {
+    transition: transform 0.3s ease;
+}
+
+.tab-btn:hover .tab-icon {
+    transform: rotate(360deg) scale(1.2);
+}
+
+/* ========== 输入区样式 ========== */
+.input-area {
+    background: rgba(0, 0, 0, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    color: white;
+}
+
+.input-area:focus {
+    border-color: #00d4ff;
+    box-shadow:
+        0 0 20px rgba(0, 212, 255, 0.3),
+        0 0 40px rgba(0, 212, 255, 0.1);
+    outline: none;
+}
+
+.input-area.chem-mode:focus {
+    border-color: #E31D2B;
+    box-shadow:
+        0 0 20px rgba(227, 29, 43, 0.3),
+        0 0 40px rgba(227, 29, 43, 0.1);
+}
+
+.input-area::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* ========== 装饰元素 ========== */
+.input-decoration {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    opacity: 0.3;
+}
+
+.input-decoration i {
+    font-size: 12px;
+    color: #00d4ff;
+}
+
+/* ========== 炫酷按钮 ========== */
+.submit-btn {
+    background: linear-gradient(135deg, #0047AB, #00d4ff, #0047AB);
+    background-size: 200% 200%;
+    animation: gradient-flow 3s ease infinite;
+    border: none;
+    border-radius: 15px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 20px rgba(0, 71, 171, 0.4);
+}
+
+.submit-btn:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow:
+        0 10px 40px rgba(0, 71, 171, 0.6),
+        0 0 60px rgba(0, 212, 255, 0.3);
+}
+
+.submit-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s;
+}
+
+.submit-btn:hover::before {
+    left: 100%;
+}
+
+.submit-btn.chem-mode {
+    background: linear-gradient(135deg, #E31D2B, #ff6b6b, #E31D2B);
+    box-shadow: 0 5px 20px rgba(227, 29, 43, 0.4);
+}
+
+.submit-btn.chem-mode:hover {
+    box-shadow:
+        0 10px 40px rgba(227, 29, 43, 0.6),
+        0 0 60px rgba(255, 107, 107, 0.3);
+}
+
+/* ========== 上传区域 ========== */
+.upload-area {
+    background: rgba(0, 0, 0, 0.2);
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    transition: all 0.3s ease;
+}
+
+.upload-area:hover {
+    border-color: #00d4ff;
+    background: rgba(0, 212, 255, 0.1);
+    box-shadow: 0 0 30px rgba(0, 212, 255, 0.2);
+}
+
+/* ========== 状态栏 ========== */
+.status-bar {
+    background: rgba(0, 0, 0, 0.4);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    background: #00ff88;
+    border-radius: 50%;
+    animation: glow-pulse 2s ease-in-out infinite;
+    box-shadow: 0 0 10px #00ff88;
+}
+
+/* ========== 页脚 ========== */
+.footer-text {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.footer-quote {
+    background: linear-gradient(90deg, #00d4ff, #ffd700, #00d4ff);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradient-flow 3s ease infinite;
+    font-weight: bold;
+}
+
+/* ========== 侦探徽章 ========== */
+.detective-badge {
+    position: fixed;
+    bottom: 100px;
+    left: 30px;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: float 4s ease-in-out infinite, rotate-slow 20s linear infinite;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+    z-index: 10;
+}
+
+.detective-badge i {
+    font-size: 24px;
+    color: #1a1a2e;
+}
+
+/* ========== 欢迎区动画 ========== */
+.welcome-title {
+    overflow: hidden;
+    white-space: nowrap;
+    animation: typewriter 2s steps(20) forwards;
+    border-right: 3px solid #00d4ff;
+}
+
+.welcome-subtitle {
+    opacity: 0;
+    animation: slide-up 1s ease-out 1.5s forwards;
+}
+
+/* ========== 响应式设计 ========== */
+@media (max-width: 768px) {
+    .moon {
+        width: 50px;
+        height: 50px;
+        top: 70px;
+        right: 20px;
+    }
+
+    .conan-silhouette {
+        width: 80px;
+        height: 120px;
+        right: 10px;
+    }
+
+    .bowtie-decoration {
+        font-size: 25px;
+        left: 10px;
+    }
+
+    .detective-badge {
+        width: 40px;
+        height: 40px;
+        left: 10px;
+    }
+
+    .detective-badge i {
+        font-size: 16px;
+    }
+}

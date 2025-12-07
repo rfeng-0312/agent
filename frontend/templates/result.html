@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI解答结果 | 名侦探作业帮</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome 图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- 自定义样式 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
+    <!-- Tailwind 配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        teitanBlue: '#0047AB',
+                        conanRed: '#E31D2B',
+                        paperWhite: '#F8F9FA',
+                        mysteryBlack: '#1a1a2e',
+                        moonlightBlue: '#16213e',
+                        neonCyan: '#00d4ff',
+                        detectiveGold: '#ffd700',
+                        deepPurple: '#0f0c29',
+                        thinkingPurple: '#8b5cf6',
+                        answerBlue: '#3b82f6'
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'slide-up': 'slideUp 0.5s ease-out',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* 思考过程样式 */
+        .thinking-process {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+            border-left: 4px solid #8b5cf6;
+            position: relative;
+        }
+
+        .thinking-process::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(139, 92, 246, 0.2)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+
+        /* 答案样式 */
+        .answer-box {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(0, 212, 255, 0.1) 100%);
+            border-left: 4px solid #3b82f6;
+        }
+
+        /* 流式文本动画 - 思考过程保留pre-wrap */
+        #thinkingText {
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+
+        #thinkingText::after {
+            content: '▊';
+            animation: blink 1s infinite;
+            color: #8b5cf6;
+        }
+
+        #thinkingText.complete::after {
+            display: none;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        /* Markdown光标动画 */
+        .cursor-blink {
+            animation: blink 1s infinite;
+            color: #00D9FF;
+            font-weight: bold;
+        }
+
+        /* ===== 答案区域Markdown样式 ===== */
+        #answerText {
+            line-height: 1.8;
+            font-size: 1.05rem;
+        }
+
+        #answerText h1, #answerText h2, #answerText h3, #answerText h4, #answerText h5, #answerText h6 {
+            color: #00D9FF;
+            margin-top: 1.2em;
+            margin-bottom: 0.6em;
+            font-weight: 600;
+        }
+
+        #answerText h1 { font-size: 1.6em; }
+        #answerText h2 { font-size: 1.4em; }
+        #answerText h3 { font-size: 1.25em; }
+        #answerText h4 { font-size: 1.1em; }
+
+        #answerText p {
+            margin: 0.6em 0;
+            line-height: 1.8;
+        }
+
+        #answerText ul, #answerText ol {
+            margin: 0.8em 0;
+            padding-left: 1.5em;
+        }
+
+        #answerText li {
+            margin: 0.4em 0;
+            line-height: 1.7;
+        }
+
+        #answerText li > p {
+            margin: 0.3em 0;
+        }
+
+        #answerText code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.15em 0.4em;
+            border-radius: 3px;
+            font-family: 'Courier New', Consolas, monospace;
+            color: #FFD700;
+            font-size: 0.9em;
+        }
+
+        #answerText pre {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 1em;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1em 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #answerText pre code {
+            background: none;
+            padding: 0;
+            color: #e0e0e0;
+        }
+
+        #answerText blockquote {
+            border-left: 4px solid #00D9FF;
+            padding-left: 1em;
+            margin: 1em 0;
+            color: rgba(255, 255, 255, 0.85);
+            background: rgba(0, 217, 255, 0.05);
+            padding: 0.5em 1em;
+            border-radius: 0 8px 8px 0;
+        }
+
+        #answerText table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+
+        #answerText th, #answerText td {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0.5em 1em;
+            text-align: left;
+        }
+
+        #answerText th {
+            background: rgba(0, 217, 255, 0.2);
+        }
+
+        #answerText strong {
+            color: #00D9FF;
+            font-weight: 600;
+        }
+
+        #answerText em {
+            color: #FFD700;
+            font-style: italic;
+        }
+
+        #answerText a {
+            color: #00D9FF;
+            text-decoration: underline;
+        }
+
+        #answerText a:hover {
+            color: #FFD700;
+        }
+
+        /* 水平分割线 */
+        #answerText hr {
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            margin: 1.5em 0;
+        }
+
+        /* ===== KaTeX公式样式 ===== */
+        .katex {
+            font-size: 1.1em;
+            color: #fff;
+        }
+
+        /* 块级公式 - 居中显示，带背景 */
+        .katex-display {
+            display: block;
+            text-align: center;
+            margin: 1.2em 0;
+            padding: 1em;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 8px;
+            border: 1px solid rgba(0, 217, 255, 0.2);
+            overflow-x: auto;
+        }
+
+        .katex-display > .katex {
+            font-size: 1.2em;
+        }
+
+        /* 行内公式 */
+        .katex-inline {
+            padding: 0 0.1em;
+        }
+
+        /* LaTeX渲染失败时的回退样式 */
+        .latex-fallback {
+            background: rgba(255, 215, 0, 0.15);
+            color: #FFD700;
+            padding: 0.2em 0.5em;
+            border-radius: 4px;
+            font-family: 'Courier New', Consolas, monospace;
+            font-size: 0.95em;
+            border: 1px dashed rgba(255, 215, 0, 0.3);
+        }
+
+        /* 步骤标题样式 */
+        #answerText strong:first-child {
+            display: inline-block;
+            margin-top: 0.5em;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-mysteryBlack via-deepPurple to-moonlightBlue text-white">
+    <!-- 背景星星 -->
+    <div id="stars" class="fixed inset-0 overflow-hidden pointer-events-none"></div>
+
+    <!-- 顶部导航栏 -->
+    <nav class="nav-gradient shadow-2xl text-white sticky top-0 z-50 relative">
+        <div class="nav-glow-line"></div>
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <i class="fa-solid fa-user-tie text-2xl text-neonCyan animate-pulse"></i>
+                    <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-neonCyan-to-white">
+                        名侦探作业帮 - AI解答结果
+                    </h1>
+                </div>
+                <a href="/" class="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-300 hover:scale-105">
+                    <i class="fa-solid fa-arrow-left mr-2"></i>返回首页
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <main class="container mx-auto px-4 py-8 relative z-10">
+        <!-- 问题卡片 -->
+        <div class="max-w-4xl mx-auto mb-8 animate-fade-in">
+            <div class="glass-card p-6 rounded-xl shadow-2xl border border-white/20">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-bold text-neonCyan">
+                        <i class="fa-solid fa-question-circle mr-2"></i>你的问题
+                    </h2>
+                    <span class="px-3 py-1 rounded-full text-sm font-medium
+                        {% if data.subject == 'physics' %}
+                            bg-blue-500/20 text-blue-300 border border-blue-400/30
+                        {% else %}
+                            bg-red-500/20 text-red-300 border border-red-400/30
+                        {% endif %}">
+                        {% if data.subject == 'physics' %}物理{% else %}化学{% endif %}
+                    </span>
+                </div>
+                <p class="text-white/90 text-lg leading-relaxed">{{ data.question }}</p>
+                <p class="text-xs text-white/50 mt-3">
+                    <i class="fa-solid fa-clock mr-1"></i>
+                    提问时间：{{ data.timestamp }}
+                </p>
+            </div>
+        </div>
+
+        <!-- AI思考过程 -->
+        <div class="max-w-4xl mx-auto mb-6 animate-slide-up" style="animation-delay: 0.2s">
+            <div class="thinking-process p-6 rounded-xl shadow-2xl backdrop-blur-md relative">
+                <button id="toggleThinking" class="flex items-center justify-between w-full text-left">
+                    <h3 class="text-lg font-bold text-thinkingPurple">
+                        <i class="fa-solid fa-brain mr-2"></i>AI思考过程
+                        <span class="text-sm font-normal ml-2 text-purple-300">(点击展开/收起)</span>
+                    </h3>
+                    <i id="thinkingIcon" class="fa-solid fa-chevron-down transition-transform duration-300"></i>
+                </button>
+
+                <div id="thinkingContent" class="hidden mt-4 relative z-10">
+                    <div id="thinkingText" class="text-white/90"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI答案 -->
+        <div class="max-w-4xl mx-auto animate-slide-up" style="animation-delay: 0.4s">
+            <div class="answer-box p-6 rounded-xl shadow-2xl backdrop-blur-md">
+                <h3 class="text-lg font-bold text-answerBlue mb-4">
+                    <i class="fa-solid fa-lightbulb mr-2"></i>AI解答
+                </h3>
+                <div id="answerText" class="text-white/90"></div>
+
+                <!-- 加载动画 -->
+                <div id="loadingIndicator" class="flex items-center justify-center py-8">
+                    <div class="relative">
+                        <div class="w-16 h-16 border-4 border-blue-500/20 rounded-full animate-spin"></div>
+                        <div class="absolute top-0 left-0 w-16 h-16 border-4 border-transparent border-t-blue-500 rounded-full animate-spin"></div>
+                    </div>
+                    <span id="loadingText" class="ml-4 text-blue-300">AI正在思考中...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 深度思考模式：答案验证部分（初始隐藏） -->
+        <div id="verificationSection" class="hidden max-w-4xl mx-auto mt-6 animate-slide-up">
+            <!-- 验证思考过程 -->
+            <div class="mb-6">
+                <div class="p-6 rounded-xl shadow-2xl backdrop-blur-md relative" style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%); border-left: 4px solid #22c55e;">
+                    <button id="toggleVerifyThinking" class="flex items-center justify-between w-full text-left">
+                        <h3 class="text-lg font-bold text-green-400">
+                            <i class="fa-solid fa-check-double mr-2"></i>验证思考过程
+                            <span class="text-sm font-normal ml-2 text-green-300">(点击展开/收起)</span>
+                        </h3>
+                        <i id="verifyThinkingIcon" class="fa-solid fa-chevron-down transition-transform duration-300"></i>
+                    </button>
+
+                    <div id="verifyThinkingContent" class="hidden mt-4 relative z-10">
+                        <div id="verifyThinkingText" class="text-white/90 whitespace-pre-wrap"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 验证结果 -->
+            <div class="p-6 rounded-xl shadow-2xl backdrop-blur-md" style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%); border-left: 4px solid #22c55e;">
+                <h3 class="text-lg font-bold text-green-400 mb-4">
+                    <i class="fa-solid fa-clipboard-check mr-2"></i>验证结果
+                </h3>
+                <div id="verifyAnswerText" class="text-white/90"></div>
+
+                <!-- 验证加载动画 -->
+                <div id="verifyLoadingIndicator" class="hidden flex items-center justify-center py-8">
+                    <div class="relative">
+                        <div class="w-16 h-16 border-4 border-green-500/20 rounded-full animate-spin"></div>
+                        <div class="absolute top-0 left-0 w-16 h-16 border-4 border-transparent border-t-green-500 rounded-full animate-spin"></div>
+                    </div>
+                    <span class="ml-4 text-green-300">正在验证答案...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 深度思考进度指示器（初始隐藏） -->
+        <div id="deepThinkProgress" class="hidden max-w-4xl mx-auto mb-6">
+            <div class="glass-card p-4 rounded-xl border border-purple-400/30">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-brain text-purple-400 animate-pulse"></i>
+                        <span class="text-purple-300 font-medium">深度思考模式</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div id="stage1Indicator" class="flex items-center gap-1">
+                            <div class="w-3 h-3 rounded-full bg-purple-500 animate-pulse"></div>
+                            <span class="text-xs text-purple-300">解答中</span>
+                        </div>
+                        <i class="fa-solid fa-arrow-right text-white/30 mx-2"></i>
+                        <div id="stage2Indicator" class="flex items-center gap-1 opacity-30">
+                            <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                            <span class="text-xs text-green-300">待验证</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="max-w-4xl mx-auto mt-8 flex justify-center space-x-4 animate-slide-up" style="animation-delay: 0.6s">
+            <button onclick="copyAnswer()" class="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-300 hover:scale-105">
+                <i class="fa-solid fa-copy mr-2"></i>复制答案
+            </button>
+            <button onclick="printAnswer()" class="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-300 hover:scale-105">
+                <i class="fa-solid fa-print mr-2"></i>打印
+            </button>
+            <button onclick="shareAnswer()" class="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-300 hover:scale-105">
+                <i class="fa-solid fa-share-alt mr-2"></i>分享
+            </button>
+        </div>
+    </main>
+
+    <!-- 返回顶部按钮 -->
+    <button id="backToTop" class="fixed bottom-8 right-8 w-12 h-12 bg-neonCyan/20 hover:bg-neonCyan/30 rounded-full flex items-center justify-center transition-all duration-300 opacity-0 pointer-events-none hover:scale-110 z-50">
+        <i class="fa-solid fa-arrow-up text-neonCyan"></i>
+    </button>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <!-- Add marked.js for markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Add KaTeX for math/chemistry formulas -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script>
+        // 页面配置
+        const sessionId = "{{ session_id }}";
+        const subject = "{{ data.subject }}";
+
+        // 用于存储完整内容的缓冲区
+        let thinkingBuffer = "";
+        let answerBuffer = "";
+
+        // 配置marked选项
+        marked.setOptions({
+            breaks: false,  // 不自动换行，让Markdown自然处理段落
+            gfm: true       // GitHub风格 Markdown
+        });
+
+        // HTML转义函数
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 渲染Markdown函数 - 支持豆包LaTeX格式
+        function renderMarkdown(elementId, markdownText) {
+            const element = document.getElementById(elementId);
+
+            // 预处理文本
+            let text = markdownText;
+
+            // 保护LaTeX公式的占位符数组
+            const latexPatterns = [];
+            let patternIndex = 0;
+
+            // 辅助函数：添加公式到数组
+            function addFormula(formula, display) {
+                const placeholder = `%%LATEX${patternIndex}%%`;
+                latexPatterns.push({ placeholder, formula: formula.trim(), display });
+                patternIndex++;
+                return placeholder;
+            }
+
+            // ===== 第1步：标准化文本 =====
+            text = text.replace(/\r\n/g, '\n');
+
+            // ===== 第2步：处理LaTeX定界符（按优先级顺序）=====
+
+            // 2.1 处理 \[...\] 块级公式（LaTeX标准格式）
+            text = text.replace(/\\\[([\s\S]+?)\\\]/g, (match, formula) => {
+                return '\n' + addFormula(formula, true) + '\n';
+            });
+
+            // 2.2 处理 \(...\) 行内公式（LaTeX标准格式）
+            // 使用非贪婪匹配，确保匹配到 \) 结尾
+            // 注意：公式内可能包含普通括号，如 n(S_2O_3^{2-})
+            text = text.replace(/\\\(([\s\S]+?)\\\)/g, (match, formula) => {
+                return addFormula(formula, false);
+            });
+
+            // 2.3 处理 $$...$$ 块级公式
+            text = text.replace(/\$\$([\s\S]+?)\$\$/g, (match, formula) => {
+                return '\n' + addFormula(formula, true) + '\n';
+            });
+
+            // 2.4 处理 $...$ 行内公式
+            // 更严格的匹配：$后不能是空格，$前不能是空格，内容不能包含换行
+            text = text.replace(/\$([^\s$][^$\n]*?[^\s$])\$/g, (match, formula) => {
+                return addFormula(formula, false);
+            });
+            // 也处理单字符公式如 $n$
+            text = text.replace(/\$([^\s$])\$/g, (match, formula) => {
+                return addFormula(formula, false);
+            });
+
+            // 2.5 处理独立的 \boxed{} 命令
+            text = text.replace(/\\boxed\{([^}]+)\}/g, (match, content) => {
+                return addFormula(`\\boxed{${content}}`, false);
+            });
+
+            // 2.6 处理 (\boxed{...}) 格式（带括号的boxed）
+            text = text.replace(/\(\\boxed\{([^}]+)\}\)/g, (match, content) => {
+                return addFormula(`\\boxed{${content}}`, false);
+            });
+
+            // ===== 第3步：清理多余空行 =====
+            text = text.replace(/\n{3,}/g, '\n\n');
+
+            // ===== 第4步：使用marked渲染Markdown =====
+            let html = marked.parse(text);
+
+            // ===== 第5步：恢复并渲染LaTeX公式 =====
+            latexPatterns.forEach(({ placeholder, formula, display }) => {
+                try {
+                    const rendered = katex.renderToString(formula, {
+                        throwOnError: false,
+                        displayMode: display,
+                        trust: true,
+                        strict: false
+                    });
+                    if (display) {
+                        html = html.replace(placeholder, `<div class="katex-display">${rendered}</div>`);
+                    } else {
+                        html = html.replace(placeholder, `<span class="katex-inline">${rendered}</span>`);
+                    }
+                } catch (e) {
+                    console.warn('KaTeX渲染失败:', formula, e);
+                    html = html.replace(placeholder, `<code class="latex-fallback">${escapeHtml(formula)}</code>`);
+                }
+            });
+
+            // ===== 第6步：后处理HTML =====
+            html = html.replace(/<p>\s*<\/p>/g, '');
+
+            // 插入光标动画
+            element.innerHTML = html + '<span class="cursor-blink">|</span>';
+
+            // 滚动到底部
+            element.scrollTop = element.scrollHeight;
+        }
+
+        // 检查是否有预先存在的答案（对于图片查询）
+        const existingAnswer = {{ data.answer|tojson if data.answer is defined else 'null' }};
+        if (existingAnswer) {
+            // 隐藏加载动画
+            document.getElementById('loadingIndicator').style.display = 'none';
+            // 直接渲染完整的markdown答案
+            renderMarkdown('answerText', existingAnswer);
+            // 标记为已完成
+            const answerElement = document.getElementById('answerText');
+            const cursorSpan = answerElement.querySelector('.cursor-blink');
+            if (cursorSpan) {
+                cursorSpan.remove();
+            }
+        }
+
+        // 深度思考模式配置
+        const isDeepThink = {{ data.deep_think|tojson if data.deep_think is defined else 'false' }};
+        let verifyThinkingBuffer = "";
+        let verifyAnswerBuffer = "";
+
+        // 如果是深度思考模式，显示进度指示器
+        if (isDeepThink) {
+            document.getElementById('deepThinkProgress').classList.remove('hidden');
+        }
+
+        // 思考过程展开/收起
+        document.getElementById('toggleThinking').addEventListener('click', function() {
+            const content = document.getElementById('thinkingContent');
+            const icon = document.getElementById('thinkingIcon');
+
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            } else {
+                content.classList.add('hidden');
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+            }
+        });
+
+        // 验证思考过程展开/收起
+        const toggleVerifyThinking = document.getElementById('toggleVerifyThinking');
+        if (toggleVerifyThinking) {
+            toggleVerifyThinking.addEventListener('click', function() {
+                const content = document.getElementById('verifyThinkingContent');
+                const icon = document.getElementById('verifyThinkingIcon');
+
+                if (content.classList.contains('hidden')) {
+                    content.classList.remove('hidden');
+                    icon.classList.remove('fa-chevron-down');
+                    icon.classList.add('fa-chevron-up');
+                } else {
+                    content.classList.add('hidden');
+                    icon.classList.remove('fa-chevron-up');
+                    icon.classList.add('fa-chevron-down');
+                }
+            });
+        }
+
+        // 更新深度思考进度指示器
+        function updateDeepThinkProgress(stage) {
+            const stage1 = document.getElementById('stage1Indicator');
+            const stage2 = document.getElementById('stage2Indicator');
+
+            if (stage === 'solving') {
+                stage1.classList.remove('opacity-30');
+                stage1.querySelector('div').classList.add('animate-pulse');
+                stage2.classList.add('opacity-30');
+            } else if (stage === 'verifying') {
+                stage1.classList.add('opacity-30');
+                stage1.querySelector('div').classList.remove('animate-pulse');
+                stage1.innerHTML = '<div class="w-3 h-3 rounded-full bg-green-500"></div><span class="text-xs text-green-300">已完成</span>';
+                stage2.classList.remove('opacity-30');
+                stage2.querySelector('div').classList.add('animate-pulse');
+            }
+        }
+
+        // 建立EventSource连接获取流式响应
+        const eventSource = new EventSource(`/api/stream/${sessionId}`);
+        let thinkingReceived = false;
+        let answerReceived = false;
+        let verifyThinkingReceived = false;
+        let verifyAnswerReceived = false;
+
+        eventSource.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+
+            switch(data.type) {
+                // ===== 深度思考模式：阶段切换 =====
+                case 'stage':
+                    if (data.stage === 'solving') {
+                        updateDeepThinkProgress('solving');
+                        document.getElementById('loadingText').textContent = '正在深度分析问题...';
+                    } else if (data.stage === 'verifying') {
+                        updateDeepThinkProgress('verifying');
+                        // 显示验证部分
+                        document.getElementById('verificationSection').classList.remove('hidden');
+                        document.getElementById('verifyLoadingIndicator').classList.remove('hidden');
+                    }
+                    break;
+
+                case 'thinking':
+                    if (!thinkingReceived) {
+                        thinkingReceived = true;
+                        document.getElementById('thinkingContent').classList.remove('hidden');
+                        document.getElementById('thinkingIcon').classList.remove('fa-chevron-down');
+                        document.getElementById('thinkingIcon').classList.add('fa-chevron-up');
+                    }
+                    // 对于思考过程，我们仍然使用纯文本（因为它通常不包含markdown）
+                    appendText('thinkingText', data.content, false);
+                    break;
+
+                case 'answer':
+                    if (!answerReceived) {
+                        answerReceived = true;
+                        document.getElementById('loadingIndicator').style.display = 'none';
+                    }
+                    // 对于答案，我们缓冲内容并渲染为markdown
+                    answerBuffer += data.content;
+                    renderMarkdown('answerText', answerBuffer);
+                    break;
+
+                // ===== 深度思考模式：验证阶段 =====
+                case 'verify_thinking':
+                    if (!verifyThinkingReceived) {
+                        verifyThinkingReceived = true;
+                        document.getElementById('verifyThinkingContent').classList.remove('hidden');
+                        document.getElementById('verifyThinkingIcon').classList.remove('fa-chevron-down');
+                        document.getElementById('verifyThinkingIcon').classList.add('fa-chevron-up');
+                    }
+                    appendText('verifyThinkingText', data.content, false);
+                    break;
+
+                case 'verify_answer':
+                    if (!verifyAnswerReceived) {
+                        verifyAnswerReceived = true;
+                        document.getElementById('verifyLoadingIndicator').classList.add('hidden');
+                    }
+                    verifyAnswerBuffer += data.content;
+                    renderMarkdown('verifyAnswerText', verifyAnswerBuffer);
+                    break;
+
+                case 'done':
+                    // 标记完成，移除光标动画
+                    document.getElementById('thinkingText').classList.add('complete');
+
+                    // 隐藏深度思考进度指示器
+                    if (isDeepThink) {
+                        document.getElementById('deepThinkProgress').classList.add('hidden');
+                        // 更新验证思考文本完成状态
+                        const verifyThinkingText = document.getElementById('verifyThinkingText');
+                        if (verifyThinkingText) {
+                            verifyThinkingText.classList.add('complete');
+                        }
+                        // 移除验证答案的光标
+                        const verifyAnswerElement = document.getElementById('verifyAnswerText');
+                        if (verifyAnswerElement) {
+                            const verifyCursor = verifyAnswerElement.querySelector('.cursor-blink');
+                            if (verifyCursor) verifyCursor.remove();
+                        }
+                    }
+
+                    // 对于答案，移除光标span
+                    const answerElement = document.getElementById('answerText');
+                    const cursorSpan = answerElement.querySelector('.cursor-blink');
+                    if (cursorSpan) {
+                        cursorSpan.remove();
+                    }
+                    eventSource.close();
+                    break;
+
+                case 'error':
+                    console.error('Stream error:', data.message);
+                    showError(data.message);
+                    eventSource.close();
+                    break;
+            }
+        };
+
+        eventSource.onerror = function(event) {
+            console.error('EventSource failed:', event);
+            showError('连接服务器失败，请刷新页面重试');
+            eventSource.close();
+        };
+
+        // 追加文本函数
+        function appendText(elementId, text, isHTML = false) {
+            const element = document.getElementById(elementId);
+            if (isHTML) {
+                element.innerHTML += text;
+            } else {
+                element.textContent += text;
+            }
+            // 滚动到底部
+            element.scrollTop = element.scrollHeight;
+        }
+
+        // 显示错误
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'max-w-4xl mx-auto mt-6 p-4 bg-red-500/20 backdrop-blur-md rounded-lg border border-red-400/30';
+            errorDiv.innerHTML = `
+                <h3 class="text-lg font-bold mb-2 text-red-300">
+                    <i class="fa-solid fa-exclamation-triangle mr-2"></i>错误
+                </h3>
+                <p class="text-red-200">${message}</p>
+            `;
+            document.querySelector('main').appendChild(errorDiv);
+        }
+
+        // 复制答案
+        function copyAnswer() {
+            const answerText = document.getElementById('answerText').innerText;
+            navigator.clipboard.writeText(answerText).then(() => {
+                showToast('答案已复制到剪贴板');
+            });
+        }
+
+        // 打印答案
+        function printAnswer() {
+            window.print();
+        }
+
+        // 分享答案
+        function shareAnswer() {
+            const url = window.location.href;
+            if (navigator.share) {
+                navigator.share({
+                    title: '名侦探作业帮 - AI解答',
+                    text: '来看看这道题的解答吧！',
+                    url: url
+                });
+            } else {
+                navigator.clipboard.writeText(url).then(() => {
+                    showToast('链接已复制到剪贴板');
+                });
+            }
+        }
+
+        // 显示提示
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-4 left-1/2 transform -translate-x-1/2 px-6 py-3 bg-neonCyan/90 text-white rounded-lg shadow-lg z-50 animate-fade-in';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'transition-opacity', 'duration-500');
+                setTimeout(() => toast.remove(), 500);
+            }, 2000);
+        }
+
+        // 返回顶部按钮
+        const backToTopBtn = document.getElementById('backToTop');
+
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                backToTopBtn.classList.remove('opacity-0', 'pointer-events-none');
+            } else {
+                backToTopBtn.classList.add('opacity-0', 'pointer-events-none');
+            }
+        });
+
+        backToTopBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    </script>
+</body>
+</html>

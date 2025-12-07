@@ -1,0 +1,11 @@
+Flask==2.3.3
+Flask-CORS==4.0.0
+Werkzeug==2.3.7
+openai>=1.40.0
+python-dotenv==1.0.0
+Pillow>=10.0.0
+volcengine-python-sdk[ark]
+# 生产环境依赖
+waitress>=2.1.2
+# gunicorn>=20.1.0  # 可选，Linux生产环境推荐
+# gevent>=22.10.0  # 可选，配合gunicorn使用
