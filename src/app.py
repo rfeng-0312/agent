@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, Response, session
+from flask import Flask, request, jsonify, render_template, Response, session, redirect, url_for
 from flask_cors import CORS
 import os
 import time
@@ -11,6 +11,7 @@ from openai import OpenAI
 from dotenv import load_dotenv
 from prompts import get_subject_prompt, get_competition_prompt, get_verification_prompt
 from doubao_api import DoubaoClient
+from database import init_database, register_user, login_user, check_account_exists, reset_password, get_user_by_id
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -64,6 +65,156 @@ def allowed_file(filename):
 def index():
     """Serve the main application page"""
     return render_template('index.html')
+
+
+# ==================== 认证相关页面路由 ====================
+
+@app.route('/login')
+def login_page():
+    """登录页面"""
+    return render_template('login.html')
+
+
+@app.route('/register')
+def register_page():
+    """注册页面"""
+    return render_template('register.html')
+
+
+@app.route('/reset-password')
+def reset_password_page():
+    """重置密码页面"""
+    return render_template('reset_password.html')
+
+
+# ==================== 认证 API 路由 ====================
+
+@app.route('/api/auth/register', methods=['POST'])
+def api_register():
+    """用户注册 API"""
+    try:
+        data = request.get_json()
+        name = data.get('name', '').strip()
+        email = data.get('email')
+        phone = data.get('phone')
+        password = data.get('password', '')
+        physics_score = data.get('physics_score')
+        chemistry_score = data.get('chemistry_score')
+
+        # 验证必填字段
+        if not name:
+            return jsonify({'success': False, 'message': '请输入姓名'})
+        if not password or len(password) < 6:
+            return jsonify({'success': False, 'message': '密码长度至少6位'})
+        if not email and not phone:
+            return jsonify({'success': False, 'message': '请提供邮箱或手机号'})
+
+        # 调用注册函数
+        result = register_user(
+            name=name,
+            password=password,
+            email=email,
+            phone=phone,
+            physics_score=physics_score,
+            chemistry_score=chemistry_score
+        )
+
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Registration API error: {e}")
+        return jsonify({'success': False, 'message': f'注册失败: {str(e)}'})
+
+
+@app.route('/api/auth/login', methods=['POST'])
+def api_login():
+    """用户登录 API"""
+    try:
+        data = request.get_json()
+        account = data.get('account', '').strip()
+        password = data.get('password', '')
+
+        if not account or not password:
+            return jsonify({'success': False, 'message': '请输入账号和密码'})
+
+        result = login_user(account, password)
+
+        if result['success']:
+            # 将用户信息存入 session
+            session['user_id'] = result['user']['id']
+            session['user_name'] = result['user']['name']
+            session['user_email'] = result['user'].get('email')
+            session['user_phone'] = result['user'].get('phone')
+            session['physics_score'] = result['user'].get('physics_score')
+            session['chemistry_score'] = result['user'].get('chemistry_score')
+
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Login API error: {e}")
+        return jsonify({'success': False, 'message': f'登录失败: {str(e)}'})
+
+
+@app.route('/api/auth/logout', methods=['POST'])
+def api_logout():
+    """用户登出 API"""
+    session.clear()
+    return jsonify({'success': True, 'message': '已登出'})
+
+
+@app.route('/api/auth/check-account', methods=['POST'])
+def api_check_account():
+    """检查账号是否存在 API"""
+    try:
+        data = request.get_json()
+        account = data.get('account', '').strip()
+
+        if not account:
+            return jsonify({'exists': False})
+
+        result = check_account_exists(account)
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Check account API error: {e}")
+        return jsonify({'exists': False})
+
+
+@app.route('/api/auth/reset-password', methods=['POST'])
+def api_reset_password():
+    """重置密码 API"""
+    try:
+        data = request.get_json()
+        account = data.get('account', '').strip()
+        new_password = data.get('new_password', '')
+
+        if not account:
+            return jsonify({'success': False, 'message': '账号不能为空'})
+        if not new_password or len(new_password) < 6:
+            return jsonify({'success': False, 'message': '新密码长度至少6位'})
+
+        result = reset_password(account, new_password)
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Reset password API error: {e}")
+        return jsonify({'success': False, 'message': f'重置失败: {str(e)}'})
+
+
+@app.route('/api/auth/user', methods=['GET'])
+def api_get_current_user():
+    """获取当前登录用户信息 API"""
+    if 'user_id' not in session:
+        return jsonify({'logged_in': False})
+
+    return jsonify({
+        'logged_in': True,
+        'user': {
+            'id': session.get('user_id'),
+            'name': session.get('user_name'),
+            'email': session.get('user_email'),
+            'phone': session.get('user_phone'),
+            'physics_score': session.get('physics_score'),
+            'chemistry_score': session.get('chemistry_score')
+        }
+    })
+
 
 @app.route('/api/query/text', methods=['POST'])
 def handle_text_query():
@@ -545,6 +696,13 @@ def health_check():
     return jsonify({'status': 'healthy', 'message': 'Flask backend is running'})
 
 if __name__ == '__main__':
+    # 初始化数据库
+    try:
+        init_database()
+        logger.info("Database initialized")
+    except Exception as e:
+        logger.warning(f"Database initialization skipped: {e}")
+
     # 生产环境通过环境变量控制 debug 模式
     debug_mode = os.getenv('FLASK_DEBUG', 'false').lower() == 'true'
     port = int(os.getenv('PORT', 5000))

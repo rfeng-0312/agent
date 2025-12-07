@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册 | 名侦探作业帮</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome 图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- 自定义样式 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
+    <!-- Tailwind 配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        teitanBlue: '#0047AB',
+                        conanRed: '#E31D2B',
+                        paperWhite: '#F8F9FA',
+                        mysteryBlack: '#1a1a2e',
+                        moonlightBlue: '#16213e',
+                        neonCyan: '#00d4ff',
+                        detectiveGold: '#ffd700',
+                        deepPurple: '#0f0c29',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .auth-card {
+            background: rgba(22, 33, 62, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            box-shadow: 0 0 40px rgba(0, 212, 255, 0.1);
+        }
+        .auth-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        .auth-input:focus {
+            border-color: #00d4ff;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+            outline: none;
+        }
+        .auth-btn {
+            background: linear-gradient(135deg, #0047AB 0%, #00d4ff 100%);
+            transition: all 0.3s ease;
+        }
+        .auth-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+        }
+        .auth-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .error-message {
+            background: rgba(227, 29, 43, 0.2);
+            border: 1px solid rgba(227, 29, 43, 0.5);
+        }
+        .success-message {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.5);
+        }
+        .optional-section {
+            background: rgba(255, 215, 0, 0.05);
+            border: 1px dashed rgba(255, 215, 0, 0.3);
+        }
+        .score-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .score-input:focus {
+            border-color: #ffd700;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+            outline: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen font-sans text-white flex items-center justify-center p-4">
+
+    <!-- 星星容器 -->
+    <div class="stars" id="stars"></div>
+
+    <!-- 月亮 -->
+    <div class="moon"></div>
+
+    <!-- 暗角效果 -->
+    <div class="vignette"></div>
+
+    <!-- 注册卡片 -->
+    <div class="auth-card rounded-2xl p-8 w-full max-w-md relative z-10 my-8">
+        <!-- Logo -->
+        <div class="text-center mb-6">
+            <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-neonCyan to-teitanBlue mb-3">
+                <i class="fa-solid fa-user-plus text-xl"></i>
+            </div>
+            <h1 class="text-2xl font-bold bg-gradient-to-r from-neonCyan to-detectiveGold bg-clip-text text-transparent">
+                加入名侦探
+            </h1>
+            <p class="text-white/50 text-sm mt-1">创建你的专属账户</p>
+        </div>
+
+        <!-- 错误/成功消息 -->
+        <div id="messageBox" class="hidden rounded-lg p-3 mb-4 text-sm"></div>
+
+        <!-- 注册表单 -->
+        <form id="registerForm" class="space-y-4">
+            <!-- 姓名 -->
+            <div>
+                <label class="block text-sm font-medium text-white/70 mb-2">
+                    <i class="fa-solid fa-user mr-2 text-neonCyan"></i>姓名 <span class="text-conanRed">*</span>
+                </label>
+                <input type="text" id="name" name="name" required
+                    class="auth-input w-full px-4 py-3 rounded-xl text-white placeholder-white/30"
+                    placeholder="请输入你的姓名">
+            </div>
+
+            <!-- 邮箱或手机号 -->
+            <div>
+                <label class="block text-sm font-medium text-white/70 mb-2">
+                    <i class="fa-solid fa-envelope mr-2 text-neonCyan"></i>邮箱或手机号 <span class="text-conanRed">*</span>
+                </label>
+                <input type="text" id="account" name="account" required
+                    class="auth-input w-full px-4 py-3 rounded-xl text-white placeholder-white/30"
+                    placeholder="请输入邮箱或手机号">
+                <p class="text-xs text-white/40 mt-1">用于登录和找回密码</p>
+            </div>
+
+            <!-- 密码 -->
+            <div>
+                <label class="block text-sm font-medium text-white/70 mb-2">
+                    <i class="fa-solid fa-lock mr-2 text-neonCyan"></i>密码 <span class="text-conanRed">*</span>
+                </label>
+                <div class="relative">
+                    <input type="password" id="password" name="password" required minlength="6"
+                        class="auth-input w-full px-4 py-3 rounded-xl text-white placeholder-white/30 pr-12"
+                        placeholder="请设置密码（至少6位）">
+                    <button type="button" onclick="togglePassword('password', 'eyeIcon1')" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-neonCyan">
+                        <i class="fa-solid fa-eye" id="eyeIcon1"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 确认密码 -->
+            <div>
+                <label class="block text-sm font-medium text-white/70 mb-2">
+                    <i class="fa-solid fa-lock mr-2 text-neonCyan"></i>确认密码 <span class="text-conanRed">*</span>
+                </label>
+                <div class="relative">
+                    <input type="password" id="confirmPassword" name="confirmPassword" required
+                        class="auth-input w-full px-4 py-3 rounded-xl text-white placeholder-white/30 pr-12"
+                        placeholder="请再次输入密码">
+                    <button type="button" onclick="togglePassword('confirmPassword', 'eyeIcon2')" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-neonCyan">
+                        <i class="fa-solid fa-eye" id="eyeIcon2"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 选填部分 - 成绩 -->
+            <div class="optional-section rounded-xl p-4 mt-6">
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fa-solid fa-star text-detectiveGold"></i>
+                    <span class="text-sm font-medium text-detectiveGold">个性化设置（选填）</span>
+                </div>
+                <p class="text-xs text-white/50 mb-4">
+                    <i class="fa-solid fa-lightbulb mr-1"></i>
+                    填写成绩后，AI将根据你的水平定制更适合的解答方式
+                </p>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- 物理成绩 -->
+                    <div>
+                        <label class="block text-xs text-white/60 mb-1.5">
+                            <i class="fa-solid fa-atom mr-1 text-teitanBlue"></i>物理成绩
+                        </label>
+                        <div class="relative">
+                            <input type="number" id="physicsScore" name="physicsScore" min="0" max="100"
+                                class="score-input w-full px-3 py-2 rounded-lg text-white placeholder-white/30 text-sm"
+                                placeholder="0-100">
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 text-xs">分</span>
+                        </div>
+                    </div>
+
+                    <!-- 化学成绩 -->
+                    <div>
+                        <label class="block text-xs text-white/60 mb-1.5">
+                            <i class="fa-solid fa-flask mr-1 text-conanRed"></i>化学成绩
+                        </label>
+                        <div class="relative">
+                            <input type="number" id="chemistryScore" name="chemistryScore" min="0" max="100"
+                                class="score-input w-full px-3 py-2 rounded-lg text-white placeholder-white/30 text-sm"
+                                placeholder="0-100">
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 text-xs">分</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 注册按钮 -->
+            <button type="submit" id="submitBtn" class="auth-btn w-full py-3 rounded-xl font-bold text-lg flex items-center justify-center gap-2 mt-6">
+                <i class="fa-solid fa-user-plus"></i>
+                <span>注 册</span>
+            </button>
+        </form>
+
+        <!-- 其他链接 -->
+        <div class="mt-6 text-center text-sm">
+            <span class="text-white/50">已有账号？</span>
+            <a href="/login" class="text-neonCyan hover:text-detectiveGold transition-colors ml-1">
+                <i class="fa-solid fa-right-to-bracket mr-1"></i>立即登录
+            </a>
+        </div>
+
+        <!-- 分隔线 -->
+        <div class="my-6 flex items-center gap-4">
+            <div class="flex-1 h-px bg-white/10"></div>
+            <span class="text-white/30 text-xs">或</span>
+            <div class="flex-1 h-px bg-white/10"></div>
+        </div>
+
+        <!-- 返回首页 -->
+        <a href="/" class="block text-center text-white/50 hover:text-white transition-colors text-sm">
+            <i class="fa-solid fa-arrow-left mr-2"></i>返回首页（游客模式）
+        </a>
+    </div>
+
+    <script>
+        // 生成星星
+        function createStars() {
+            const container = document.getElementById('stars');
+            if (!container) return;
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                container.appendChild(star);
+            }
+        }
+        createStars();
+
+        // 切换密码显示
+        function togglePassword(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-solid fa-eye';
+            }
+        }
+
+        // 显示消息
+        function showMessage(message, isError = true) {
+            const box = document.getElementById('messageBox');
+            box.textContent = message;
+            box.className = `rounded-lg p-3 mb-4 text-sm ${isError ? 'error-message' : 'success-message'}`;
+            box.classList.remove('hidden');
+            // 滚动到顶部显示消息
+            box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // 验证邮箱格式
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        // 验证手机号格式（中国大陆）
+        function isValidPhone(phone) {
+            return /^1[3-9]\d{9}$/.test(phone);
+        }
+
+        // 注册表单提交
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value.trim();
+            const account = document.getElementById('account').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const physicsScore = document.getElementById('physicsScore').value;
+            const chemistryScore = document.getElementById('chemistryScore').value;
+
+            // 验证
+            if (password !== confirmPassword) {
+                showMessage('两次输入的密码不一致');
+                return;
+            }
+
+            if (password.length < 6) {
+                showMessage('密码长度至少6位');
+                return;
+            }
+
+            // 判断账号类型
+            const isEmail = isValidEmail(account);
+            const isPhone = isValidPhone(account);
+
+            if (!isEmail && !isPhone) {
+                showMessage('请输入有效的邮箱或手机号');
+                return;
+            }
+
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>注册中...';
+
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name,
+                        email: isEmail ? account : null,
+                        phone: isPhone ? account : null,
+                        password,
+                        physics_score: physicsScore ? parseInt(physicsScore) : null,
+                        chemistry_score: chemistryScore ? parseInt(chemistryScore) : null
+                    })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('注册成功！正在跳转到登录页面...', false);
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 1500);
+                } else {
+                    showMessage(data.message);
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-user-plus"></i><span>注 册</span>';
+                }
+            } catch (err) {
+                showMessage('网络错误，请稍后重试');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-user-plus"></i><span>注 册</span>';
+            }
+        });
+    </script>
+</body>
+</html>

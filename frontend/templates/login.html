@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 | 名侦探作业帮</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome 图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- 自定义样式 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
+    <!-- Tailwind 配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        teitanBlue: '#0047AB',
+                        conanRed: '#E31D2B',
+                        paperWhite: '#F8F9FA',
+                        mysteryBlack: '#1a1a2e',
+                        moonlightBlue: '#16213e',
+                        neonCyan: '#00d4ff',
+                        detectiveGold: '#ffd700',
+                        deepPurple: '#0f0c29',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .auth-card {
+            background: rgba(22, 33, 62, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            box-shadow: 0 0 40px rgba(0, 212, 255, 0.1);
+        }
+        .auth-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        .auth-input:focus {
+            border-color: #00d4ff;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+            outline: none;
+        }
+        .auth-btn {
+            background: linear-gradient(135deg, #0047AB 0%, #00d4ff 100%);
+            transition: all 0.3s ease;
+        }
+        .auth-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+        }
+        .auth-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .error-message {
+            background: rgba(227, 29, 43, 0.2);
+            border: 1px solid rgba(227, 29, 43, 0.5);
+        }
+        .success-message {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.5);
+        }
+    </style>
+</head>
+<body class="min-h-screen font-sans text-white flex items-center justify-center p-4">
+
+    <!-- 星星容器 -->
+    <div class="stars" id="stars"></div>
+
+    <!-- 月亮 -->
+    <div class="moon"></div>
+
+    <!-- 暗角效果 -->
+    <div class="vignette"></div>
+
+    <!-- 登录卡片 -->
+    <div class="auth-card rounded-2xl p-8 w-full max-w-md relative z-10">
+        <!-- Logo -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-neonCyan to-teitanBlue mb-4">
+                <i class="fa-solid fa-magnifying-glass text-2xl"></i>
+            </div>
+            <h1 class="text-2xl font-bold bg-gradient-to-r from-neonCyan to-detectiveGold bg-clip-text text-transparent">
+                名侦探作业帮
+            </h1>
+            <p class="text-white/50 text-sm mt-2">登录你的账户</p>
+        </div>
+
+        <!-- 错误/成功消息 -->
+        <div id="messageBox" class="hidden rounded-lg p-3 mb-4 text-sm"></div>
+
+        <!-- 登录表单 -->
+        <form id="loginForm" class="space-y-5">
+            <!-- 账号 -->
+            <div>
+                <label class="block text-sm font-medium text-white/70 mb-2">
+                    <i class="fa-solid fa-user mr-2 text-neonCyan"></i>邮箱或手机号
+                </label>
+                <input type="text" id="account" name="account" required
+                    class="auth-input w-full px-4 py-3 rounded-xl text-white placeholder-white/30"
+                    placeholder="请输入邮箱或手机号">
+            </div>
+
+            <!-- 密码 -->
+            <div>
+                <label class="block text-sm font-medium text-white/70 mb-2">
+                    <i class="fa-solid fa-lock mr-2 text-neonCyan"></i>密码
+                </label>
+                <div class="relative">
+                    <input type="password" id="password" name="password" required
+                        class="auth-input w-full px-4 py-3 rounded-xl text-white placeholder-white/30 pr-12"
+                        placeholder="请输入密码">
+                    <button type="button" onclick="togglePassword()" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-neonCyan">
+                        <i class="fa-solid fa-eye" id="eyeIcon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 登录按钮 -->
+            <button type="submit" id="submitBtn" class="auth-btn w-full py-3 rounded-xl font-bold text-lg flex items-center justify-center gap-2">
+                <i class="fa-solid fa-right-to-bracket"></i>
+                <span>登 录</span>
+            </button>
+        </form>
+
+        <!-- 其他链接 -->
+        <div class="mt-6 flex justify-between text-sm">
+            <a href="/register" class="text-neonCyan hover:text-detectiveGold transition-colors">
+                <i class="fa-solid fa-user-plus mr-1"></i>注册账号
+            </a>
+            <a href="#" onclick="showResetPrompt()" class="text-white/50 hover:text-neonCyan transition-colors">
+                <i class="fa-solid fa-key mr-1"></i>忘记密码？
+            </a>
+        </div>
+
+        <!-- 分隔线 -->
+        <div class="my-6 flex items-center gap-4">
+            <div class="flex-1 h-px bg-white/10"></div>
+            <span class="text-white/30 text-xs">或</span>
+            <div class="flex-1 h-px bg-white/10"></div>
+        </div>
+
+        <!-- 返回首页 -->
+        <a href="/" class="block text-center text-white/50 hover:text-white transition-colors text-sm">
+            <i class="fa-solid fa-arrow-left mr-2"></i>返回首页（游客模式）
+        </a>
+    </div>
+
+    <!-- 找回密码弹窗 -->
+    <div id="resetModal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50 p-4">
+        <div class="auth-card rounded-2xl p-6 w-full max-w-sm">
+            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-key text-neonCyan"></i>找回密码
+            </h3>
+            <p class="text-white/60 text-sm mb-4">请输入你的邮箱或手机号，我们将验证账号是否存在。</p>
+            <input type="text" id="resetAccount"
+                class="auth-input w-full px-4 py-3 rounded-xl text-white placeholder-white/30 mb-4"
+                placeholder="请输入邮箱或手机号">
+            <div class="flex gap-3">
+                <button onclick="hideResetPrompt()" class="flex-1 py-2 rounded-xl border border-white/20 text-white/70 hover:bg-white/10 transition-colors">
+                    取消
+                </button>
+                <button onclick="checkAccountAndRedirect()" class="flex-1 py-2 rounded-xl bg-neonCyan text-mysteryBlack font-bold hover:bg-detectiveGold transition-colors">
+                    下一步
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 生成星星
+        function createStars() {
+            const container = document.getElementById('stars');
+            if (!container) return;
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                container.appendChild(star);
+            }
+        }
+        createStars();
+
+        // 切换密码显示
+        function togglePassword() {
+            const input = document.getElementById('password');
+            const icon = document.getElementById('eyeIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-solid fa-eye';
+            }
+        }
+
+        // 显示消息
+        function showMessage(message, isError = true) {
+            const box = document.getElementById('messageBox');
+            box.textContent = message;
+            box.className = `rounded-lg p-3 mb-4 text-sm ${isError ? 'error-message' : 'success-message'}`;
+            box.classList.remove('hidden');
+        }
+
+        // 登录表单提交
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>登录中...';
+
+            const account = document.getElementById('account').value.trim();
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ account, password })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('登录成功，正在跳转...', false);
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1000);
+                } else {
+                    showMessage(data.message);
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i><span>登 录</span>';
+                }
+            } catch (err) {
+                showMessage('网络错误，请稍后重试');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i><span>登 录</span>';
+            }
+        });
+
+        // 找回密码弹窗
+        function showResetPrompt() {
+            document.getElementById('resetModal').classList.remove('hidden');
+            document.getElementById('resetModal').classList.add('flex');
+        }
+
+        function hideResetPrompt() {
+            document.getElementById('resetModal').classList.add('hidden');
+            document.getElementById('resetModal').classList.remove('flex');
+        }
+
+        // 检查账号并跳转到重置密码页面
+        async function checkAccountAndRedirect() {
+            const account = document.getElementById('resetAccount').value.trim();
+            if (!account) {
+                alert('请输入邮箱或手机号');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/check-account', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ account })
+                });
+                const data = await response.json();
+
+                if (data.exists) {
+                    window.location.href = `/reset-password?account=${encodeURIComponent(account)}`;
+                } else {
+                    alert('该账号不存在，请检查后重试');
+                }
+            } catch (err) {
+                alert('网络错误，请稍后重试');
+            }
+        }
+    </script>
+</body>
+</html>
