@@ -33,17 +33,21 @@ class DoubaoClient:
             api_key: 豆包API密钥，如果为None则从环境变量获取
             timeout: 超时时间（秒），深度思考推荐1800秒以上
         """
-        self.api_key = api_key or os.getenv('DOUBAO_API_KEY', 'a7ce8af1-5b59-467b-984e-4d0934976e80')
+        self.api_key = api_key or os.getenv('DOUBAO_API_KEY')
         self.base_url = "https://ark.cn-beijing.volces.com/api/v3"
         self.model = "doubao-seed-1-6-251015"  # 深度思考模型
 
         # 初始化OpenAI兼容客户端
         # 使用Chat API流式模式获取 reasoning_content（思考过程）
-        self.client = OpenAI(
-            api_key=self.api_key,
-            base_url=self.base_url,
-            timeout=timeout  # 深度思考需要较长超时时间
-        )
+        self.client = None
+        if self.api_key:
+            self.client = OpenAI(
+                api_key=self.api_key,
+                base_url=self.base_url,
+                timeout=timeout  # 深度思考需要较长超时时间
+            )
+        else:
+            logger.warning("DOUBAO_API_KEY not set - image queries will not work")
 
     def encode_image(self, image_path: str) -> str:
         """

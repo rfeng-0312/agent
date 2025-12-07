@@ -39,14 +39,20 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-here')
 # Create uploads directory if it doesn't exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# Initialize OpenAI client for DeepSeek
-client = OpenAI(
-    api_key=os.getenv('DEEPSEEK_API_KEY'),
-    base_url=os.getenv('DEEPSEEK_BASE_URL', 'https://api.deepseek.com')
-)
-
-# Get model name from environment
+# Get API keys from environment
+DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
+DEEPSEEK_BASE_URL = os.getenv('DEEPSEEK_BASE_URL', 'https://api.deepseek.com')
 DEEPSEEK_MODEL = os.getenv('DEEPSEEK_MODEL', 'deepseek-reasoner')
+
+# Initialize OpenAI client for DeepSeek (only if API key is set)
+client = None
+if DEEPSEEK_API_KEY:
+    client = OpenAI(
+        api_key=DEEPSEEK_API_KEY,
+        base_url=DEEPSEEK_BASE_URL
+    )
+else:
+    logger.warning("DEEPSEEK_API_KEY not set - text queries will not work")
 
 # Initialize Doubao client for image queries
 doubao_client = DoubaoClient()
