@@ -62,8 +62,16 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/')
-def index():
-    """Serve the main application page"""
+def home():
+    """首页 - 展示平台介绍"""
+    return render_template('home.html')
+
+
+@app.route('/app')
+def app_page():
+    """问答应用页面 - 需要登录"""
+    if 'user_id' not in session:
+        return redirect(url_for('login_page'))
     return render_template('index.html')
 
 

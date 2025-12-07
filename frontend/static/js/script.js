@@ -449,11 +449,43 @@ function showError(message) {
     resultContainer.style.animation = 'fade-in-up 0.5s ease-out';
 }
 
+// ========== 用户相关功能 ==========
+
+// 获取当前用户信息
+async function fetchCurrentUser() {
+    try {
+        const response = await fetch('/api/auth/user');
+        const data = await response.json();
+        if (data.logged_in && data.user) {
+            const userNameEl = document.getElementById('navUserName');
+            if (userNameEl) {
+                userNameEl.textContent = data.user.name;
+            }
+        }
+    } catch (err) {
+        console.error('获取用户信息失败:', err);
+    }
+}
+
+// 登出功能
+async function logout() {
+    try {
+        await fetch('/api/auth/logout', { method: 'POST' });
+        window.location.href = '/';
+    } catch (err) {
+        console.error('登出失败:', err);
+        window.location.href = '/';
+    }
+}
+
 // ========== 初始化 ==========
 
 document.addEventListener('DOMContentLoaded', function() {
     createStars();
     createParticles();
+
+    // 获取用户信息
+    fetchCurrentUser();
 
     // 初始化深度思考开关
     initDeepThinkToggle();

@@ -86,6 +86,10 @@
         <div class="nav-glow-line"></div>
         <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center relative z-10">
             <div class="flex items-center gap-4">
+                <!-- 返回首页 -->
+                <a href="/" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all hover:scale-110" title="返回首页">
+                    <i class="fa-solid fa-home text-neonCyan"></i>
+                </a>
                 <!-- Logo -->
                 <div class="logo-container">
                     <div class="logo-inner">
@@ -100,9 +104,15 @@
                     <p class="text-[10px] opacity-60 uppercase tracking-widest">Detective Study Tool</p>
                 </div>
             </div>
-            <!-- 用户头像 -->
-            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-neonCyan to-teitanBlue flex items-center justify-center border-2 border-white/30 shadow-lg hover:scale-110 transition-transform cursor-pointer">
-                <i class="fa-solid fa-user-secret text-sm"></i>
+            <!-- 用户信息和登出 -->
+            <div class="flex items-center gap-3">
+                <div class="hidden sm:flex items-center gap-2 text-sm text-white/70">
+                    <i class="fa-solid fa-user-circle text-neonCyan"></i>
+                    <span id="navUserName">用户</span>
+                </div>
+                <button onclick="logout()" class="w-10 h-10 rounded-full bg-conanRed/20 hover:bg-conanRed/40 border border-conanRed/30 flex items-center justify-center transition-all hover:scale-110" title="退出登录">
+                    <i class="fa-solid fa-sign-out-alt text-conanRed"></i>
+                </button>
             </div>
         </div>
     </nav>

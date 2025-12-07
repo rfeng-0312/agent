@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>名侦探作业帮 | AI智能学习平台</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome 图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- AOS 动画库 -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <!-- 自定义样式 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+
+    <!-- Tailwind 配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        teitanBlue: '#0047AB',
+                        conanRed: '#E31D2B',
+                        paperWhite: '#F8F9FA',
+                        mysteryBlack: '#1a1a2e',
+                        moonlightBlue: '#16213e',
+                        neonCyan: '#00d4ff',
+                        detectiveGold: '#ffd700',
+                        deepPurple: '#0f0c29',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="min-h-screen font-sans text-white overflow-x-hidden">
+
+    <!-- 星星容器 -->
+    <div class="stars" id="stars"></div>
+
+    <!-- 月亮 -->
+    <div class="moon"></div>
+
+    <!-- 粒子效果 -->
+    <div class="particles" id="particles"></div>
+
+    <!-- 暗角效果 -->
+    <div class="vignette"></div>
+
+    <!-- 导航栏 -->
+    <nav class="fixed top-0 left-0 right-0 z-50 nav-glass">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center gap-3">
+                    <div class="logo-container">
+                        <div class="logo-inner">
+                            <i class="fa-solid fa-magnifying-glass text-neonCyan text-lg"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold bg-gradient-to-r from-neonCyan to-detectiveGold bg-clip-text text-transparent">
+                            名侦探作业帮
+                        </h1>
+                        <p class="text-xs text-white/50">Detective Study Helper</p>
+                    </div>
+                </div>
+
+                <!-- 导航链接 -->
+                <div class="hidden md:flex items-center gap-6">
+                    <a href="#features" class="nav-link">
+                        <i class="fa-solid fa-star mr-1"></i>功能特色
+                    </a>
+                    <a href="#qa" class="nav-link">
+                        <i class="fa-solid fa-brain mr-1"></i>智能问答
+                    </a>
+                    <a href="#diary" class="nav-link">
+                        <i class="fa-solid fa-book mr-1"></i>成长日记
+                    </a>
+                    <a href="#forum" class="nav-link">
+                        <i class="fa-solid fa-comments mr-1"></i>学习论坛
+                    </a>
+                </div>
+
+                <!-- 登录/用户按钮 -->
+                <div class="flex items-center gap-3">
+                    <div id="guestBtns" class="flex items-center gap-3">
+                        <a href="/login" class="login-btn">
+                            <i class="fa-solid fa-right-to-bracket mr-2"></i>登录
+                        </a>
+                        <a href="/register" class="register-btn hidden sm:flex">
+                            <i class="fa-solid fa-user-plus mr-2"></i>注册
+                        </a>
+                    </div>
+                    <div id="userBtns" class="hidden items-center gap-3">
+                        <span class="text-white/70 text-sm">
+                            <i class="fa-solid fa-user-circle mr-1 text-neonCyan"></i>
+                            <span id="userName">用户</span>
+                        </span>
+                        <button onclick="logout()" class="logout-btn">
+                            <i class="fa-solid fa-sign-out-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="nav-glow-line"></div>
+    </nav>
+
+    <!-- Hero 区域 -->
+    <section class="relative min-h-screen flex items-center justify-center pt-16">
+        <!-- 柯南剪影 -->
+        <img src="{{ url_for('static', filename='images/67a99ed6f3db4z2m7bdnw17636.jpg') }}"
+             alt="Conan" class="conan-hero">
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+            <!-- 蝴蝶结装饰 -->
+            <div class="bowtie-float">
+                <i class="fa-solid fa-bow-tie text-6xl text-conanRed"></i>
+            </div>
+
+            <!-- 主标题 -->
+            <div data-aos="fade-up" data-aos-duration="1000">
+                <h1 class="hero-title text-5xl md:text-7xl font-black mb-6">
+                    <span class="block">真相只有一个</span>
+                    <span class="hero-gradient-text">学习亦是如此</span>
+                </h1>
+            </div>
+
+            <!-- 副标题 -->
+            <p class="text-xl md:text-2xl text-white/70 mb-8 max-w-3xl mx-auto" data-aos="fade-up" data-aos-delay="200">
+                基于 <span class="text-neonCyan font-bold">Agent 智能体技术</span>，
+                奥林匹克国际竞赛决赛题目准确率高达
+                <span class="text-detectiveGold font-bold text-3xl">90%</span>
+            </p>
+
+            <!-- 特性标签 -->
+            <div class="flex flex-wrap justify-center gap-4 mb-12" data-aos="fade-up" data-aos-delay="400">
+                <span class="feature-tag">
+                    <i class="fa-solid fa-robot mr-2"></i>DeepSeek + 豆包双引擎
+                </span>
+                <span class="feature-tag">
+                    <i class="fa-solid fa-bolt mr-2"></i>实时流式响应
+                </span>
+                <span class="feature-tag">
+                    <i class="fa-solid fa-shield-check mr-2"></i>交叉验证准确性
+                </span>
+            </div>
+
+            <!-- CTA 按钮 -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center" data-aos="fade-up" data-aos-delay="600">
+                <button onclick="startLearning()" class="cta-primary">
+                    <i class="fa-solid fa-rocket mr-2"></i>
+                    开始学习之旅
+                    <span class="cta-shine"></span>
+                </button>
+                <a href="#features" class="cta-secondary">
+                    <i class="fa-solid fa-circle-info mr-2"></i>
+                    了解更多
+                </a>
+            </div>
+
+            <!-- 滚动提示 -->
+            <div class="scroll-indicator mt-16" data-aos="fade-up" data-aos-delay="800">
+                <i class="fa-solid fa-chevron-down"></i>
+                <span>向下滚动探索更多</span>
+            </div>
+        </div>
+
+        <!-- 装饰性元素 -->
+        <div class="hero-decoration left"></div>
+        <div class="hero-decoration right"></div>
+    </section>
+
+    <!-- 功能特色区 -->
+    <section id="features" class="py-24 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16" data-aos="fade-up">
+                <h2 class="section-title">
+                    <i class="fa-solid fa-wand-magic-sparkles text-detectiveGold mr-3"></i>
+                    三大核心功能
+                </h2>
+                <p class="text-white/60 mt-4 text-lg">为你的学习之路保驾护航</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- 智能问答卡片 -->
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="100" id="qa">
+                    <div class="feature-icon physics">
+                        <i class="fa-solid fa-atom"></i>
+                    </div>
+                    <h3 class="feature-title">物理化学问答</h3>
+                    <p class="feature-desc">
+                        专注于物理和化学学科，采用深度思考模式，
+                        像柯南破案一样层层推理，给出准确答案。
+                    </p>
+                    <ul class="feature-list">
+                        <li><i class="fa-solid fa-check"></i> 奥赛决赛级题目90%准确率</li>
+                        <li><i class="fa-solid fa-check"></i> DeepSeek + 豆包交叉验证</li>
+                        <li><i class="fa-solid fa-check"></i> 图片识别自动解题</li>
+                        <li><i class="fa-solid fa-check"></i> 实时展示思考过程</li>
+                    </ul>
+                    <button onclick="goToQA()" class="feature-btn physics">
+                        <i class="fa-solid fa-flask mr-2"></i>立即体验
+                    </button>
+                </div>
+
+                <!-- 成长日记卡片 -->
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="200" id="diary">
+                    <div class="feature-icon diary">
+                        <i class="fa-solid fa-feather-pointed"></i>
+                    </div>
+                    <h3 class="feature-title">成长日记</h3>
+                    <p class="feature-desc">
+                        记录学习心路历程，AI智能分析你的情绪变化和学习状态，
+                        做你的专属学习顾问。
+                    </p>
+                    <ul class="feature-list">
+                        <li><i class="fa-solid fa-check"></i> AI情感分析</li>
+                        <li><i class="fa-solid fa-check"></i> 学习状态追踪</li>
+                        <li><i class="fa-solid fa-check"></i> 个性化建议</li>
+                        <li><i class="fa-solid fa-check"></i> 成长可视化报告</li>
+                    </ul>
+                    <button onclick="goToDiary()" class="feature-btn diary">
+                        <i class="fa-solid fa-pen-fancy mr-2"></i>开始记录
+                    </button>
+                    <span class="coming-soon">即将上线</span>
+                </div>
+
+                <!-- 学习论坛卡片 -->
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="300" id="forum">
+                    <div class="feature-icon forum">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <h3 class="feature-title">学习论坛</h3>
+                    <p class="feature-desc">
+                        与志同道合的学习者交流讨论，分享解题技巧，
+                        互帮互助共同进步。
+                    </p>
+                    <ul class="feature-list">
+                        <li><i class="fa-solid fa-check"></i> 学科分类讨论</li>
+                        <li><i class="fa-solid fa-check"></i> 学霸答疑解惑</li>
+                        <li><i class="fa-solid fa-check"></i> 优质内容推荐</li>
+                        <li><i class="fa-solid fa-check"></i> 积分成就系统</li>
+                    </ul>
+                    <button onclick="goToForum()" class="feature-btn forum">
+                        <i class="fa-solid fa-comment-dots mr-2"></i>进入论坛
+                    </button>
+                    <span class="coming-soon">即将上线</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 数据统计区 -->
+    <section class="py-20 relative stats-section">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div class="stat-item" data-aos="zoom-in" data-aos-delay="100">
+                    <div class="stat-number" data-count="90">0</div>
+                    <div class="stat-suffix">%</div>
+                    <div class="stat-label">奥赛题准确率</div>
+                </div>
+                <div class="stat-item" data-aos="zoom-in" data-aos-delay="200">
+                    <div class="stat-number" data-count="2">0</div>
+                    <div class="stat-suffix">款</div>
+                    <div class="stat-label">AI引擎协同</div>
+                </div>
+                <div class="stat-item" data-aos="zoom-in" data-aos-delay="300">
+                    <div class="stat-number" data-count="24">0</div>
+                    <div class="stat-suffix">h</div>
+                    <div class="stat-label">全天候服务</div>
+                </div>
+                <div class="stat-item" data-aos="zoom-in" data-aos-delay="400">
+                    <div class="stat-number" data-count="100">0</div>
+                    <div class="stat-suffix">%</div>
+                    <div class="stat-label">免费使用</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 工作原理区 -->
+    <section class="py-24 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16" data-aos="fade-up">
+                <h2 class="section-title">
+                    <i class="fa-solid fa-gears text-neonCyan mr-3"></i>
+                    智能解题原理
+                </h2>
+                <p class="text-white/60 mt-4 text-lg">像名侦探一样，层层推理，步步验证</p>
+            </div>
+
+            <div class="workflow-container" data-aos="fade-up">
+                <div class="workflow-step">
+                    <div class="step-number">1</div>
+                    <div class="step-icon"><i class="fa-solid fa-camera"></i></div>
+                    <h4>题目输入</h4>
+                    <p>文字输入或图片上传</p>
+                </div>
+                <div class="workflow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                <div class="workflow-step">
+                    <div class="step-number">2</div>
+                    <div class="step-icon"><i class="fa-solid fa-brain"></i></div>
+                    <h4>深度分析</h4>
+                    <p>AI展示完整思考过程</p>
+                </div>
+                <div class="workflow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                <div class="workflow-step">
+                    <div class="step-number">3</div>
+                    <div class="step-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                    <h4>交叉验证</h4>
+                    <p>双AI互相检验答案</p>
+                </div>
+                <div class="workflow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+                <div class="workflow-step">
+                    <div class="step-number">4</div>
+                    <div class="step-icon"><i class="fa-solid fa-check-double"></i></div>
+                    <h4>精准解答</h4>
+                    <p>输出完整解题步骤</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="py-12 border-t border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="flex items-center gap-3">
+                    <div class="logo-container" style="width:40px;height:40px;">
+                        <div class="logo-inner" style="width:34px;height:34px;">
+                            <i class="fa-solid fa-magnifying-glass text-neonCyan text-sm"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-white">名侦探作业帮</h3>
+                        <p class="text-xs text-white/40">真相只有一个，学习亦是如此</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-6">
+                    <a href="#" class="footer-link"><i class="fa-brands fa-github"></i></a>
+                    <a href="#" class="footer-link"><i class="fa-brands fa-weixin"></i></a>
+                    <a href="#" class="footer-link"><i class="fa-solid fa-envelope"></i></a>
+                </div>
+
+                <p class="text-white/40 text-sm">
+                    © 2025 名侦探作业帮. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 登录提示弹窗 -->
+    <div id="loginModal" class="modal-overlay hidden">
+        <div class="modal-content" data-aos="zoom-in">
+            <div class="modal-icon">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <h3 class="modal-title">需要登录</h3>
+            <p class="modal-desc">登录后即可使用全部功能，开启你的学习之旅</p>
+            <div class="modal-btns">
+                <a href="/login" class="modal-btn-primary">
+                    <i class="fa-solid fa-right-to-bracket mr-2"></i>立即登录
+                </a>
+                <a href="/register" class="modal-btn-secondary">
+                    <i class="fa-solid fa-user-plus mr-2"></i>注册账号
+                </a>
+            </div>
+            <button onclick="closeModal()" class="modal-close">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- AOS 动画库 -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+    <script>
+        // 初始化AOS
+        AOS.init({
+            duration: 800,
+            once: true,
+            offset: 100
+        });
+
+        // 用户状态
+        let isLoggedIn = false;
+        let currentUser = null;
+
+        // 检查登录状态
+        async function checkLoginStatus() {
+            try {
+                const response = await fetch('/api/auth/user');
+                const data = await response.json();
+                if (data.logged_in) {
+                    isLoggedIn = true;
+                    currentUser = data.user;
+                    document.getElementById('guestBtns').classList.add('hidden');
+                    document.getElementById('userBtns').classList.remove('hidden');
+                    document.getElementById('userBtns').classList.add('flex');
+                    document.getElementById('userName').textContent = currentUser.name;
+                }
+            } catch (err) {
+                console.error('检查登录状态失败:', err);
+            }
+        }
+
+        // 登出
+        async function logout() {
+            try {
+                await fetch('/api/auth/logout', { method: 'POST' });
+                isLoggedIn = false;
+                currentUser = null;
+                document.getElementById('guestBtns').classList.remove('hidden');
+                document.getElementById('userBtns').classList.add('hidden');
+                document.getElementById('userBtns').classList.remove('flex');
+            } catch (err) {
+                console.error('登出失败:', err);
+            }
+        }
+
+        // 显示登录弹窗
+        function showLoginModal() {
+            document.getElementById('loginModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // 关闭弹窗
+        function closeModal() {
+            document.getElementById('loginModal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        // 开始学习
+        function startLearning() {
+            if (!isLoggedIn) {
+                showLoginModal();
+                return;
+            }
+            window.location.href = '/app';
+        }
+
+        // 跳转到问答页
+        function goToQA() {
+            if (!isLoggedIn) {
+                showLoginModal();
+                return;
+            }
+            window.location.href = '/app';
+        }
+
+        // 跳转到日记页
+        function goToDiary() {
+            if (!isLoggedIn) {
+                showLoginModal();
+                return;
+            }
+            alert('日记功能即将上线，敬请期待！');
+        }
+
+        // 跳转到论坛
+        function goToForum() {
+            if (!isLoggedIn) {
+                showLoginModal();
+                return;
+            }
+            alert('论坛功能即将上线，敬请期待！');
+        }
+
+        // 生成星星
+        function createStars() {
+            const container = document.getElementById('stars');
+            if (!container) return;
+            for (let i = 0; i < 150; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                star.style.width = Math.random() * 3 + 1 + 'px';
+                star.style.height = star.style.width;
+                container.appendChild(star);
+            }
+        }
+
+        // 生成粒子
+        function createParticles() {
+            const container = document.getElementById('particles');
+            if (!container) return;
+            const icons = ['fa-atom', 'fa-flask', 'fa-star', 'fa-sparkles', 'fa-bolt'];
+            for (let i = 0; i < 15; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.innerHTML = `<i class="fa-solid ${icons[Math.floor(Math.random() * icons.length)]}"></i>`;
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                particle.style.animationDelay = Math.random() * 10 + 's';
+                particle.style.fontSize = (Math.random() * 15 + 10) + 'px';
+                particle.style.color = `hsl(${Math.random() * 60 + 180}, 100%, 70%)`;
+                container.appendChild(particle);
+            }
+        }
+
+        // 数字滚动动画
+        function animateNumbers() {
+            const numbers = document.querySelectorAll('.stat-number');
+            numbers.forEach(num => {
+                const target = parseInt(num.getAttribute('data-count'));
+                const duration = 2000;
+                const step = target / (duration / 16);
+                let current = 0;
+
+                const timer = setInterval(() => {
+                    current += step;
+                    if (current >= target) {
+                        current = target;
+                        clearInterval(timer);
+                    }
+                    num.textContent = Math.floor(current);
+                }, 16);
+            });
+        }
+
+        // 监听滚动触发数字动画
+        const statsSection = document.querySelector('.stats-section');
+        let statsAnimated = false;
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && !statsAnimated) {
+                    statsAnimated = true;
+                    animateNumbers();
+                }
+            });
+        }, { threshold: 0.5 });
+        if (statsSection) observer.observe(statsSection);
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            createStars();
+            createParticles();
+            checkLoginStatus();
+        });
+
+        // 点击弹窗外部关闭
+        document.getElementById('loginModal').addEventListener('click', (e) => {
+            if (e.target.id === 'loginModal') {
+                closeModal();
+            }
+        });
+
+        // ESC关闭弹窗
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
