@@ -109,6 +109,24 @@ def reset_password_page():
     return render_template('reset_password.html')
 
 
+# ==================== 日记相关页面路由 ====================
+
+@app.route('/diary')
+def diary_page():
+    """写日记页面 - 需要登录"""
+    if 'user_id' not in session:
+        return redirect(url_for('login_page'))
+    return render_template('diary.html')
+
+
+@app.route('/diary/list')
+def diary_list_page():
+    """日记列表页面 - 需要登录"""
+    if 'user_id' not in session:
+        return redirect(url_for('login_page'))
+    return render_template('diary_list.html')
+
+
 # ==================== 认证 API 路由 ====================
 
 @app.route('/api/auth/register', methods=['POST'])
