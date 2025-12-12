@@ -349,10 +349,12 @@ function showLoadingState(isDeepThink = false) {
 
     const borderColor = isDeepThink ? 'border-purple-500' : 'border-neonCyan';
     const spinnerColor = isDeepThink ? 'border-t-purple-500' : 'border-t-neonCyan';
-    const title = isDeepThink ? 'AI正在深度思考中...' : 'AI正在思考中...';
+    const title = isDeepThink
+        ? (window.i18n ? i18n.t('app.loading.deepTitle') : 'AI正在深度思考中...')
+        : (window.i18n ? i18n.t('app.loading.title') : 'AI正在思考中...');
     const subtitle = isDeepThink
-        ? '深度分析模式已启用，这可能需要更长时间，请耐心等待'
-        : '名侦探正在分析你的问题，请稍候';
+        ? (window.i18n ? i18n.t('app.loading.deepSubtitle') : '深度分析模式已启用，这可能需要更长时间，请耐心等待')
+        : (window.i18n ? i18n.t('app.loading.subtitle') : '名侦探正在分析你的问题，请稍候');
     const icon = isDeepThink
         ? '<i class="fa-solid fa-brain text-4xl text-purple-400 animate-pulse"></i>'
         : '';
