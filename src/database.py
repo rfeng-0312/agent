@@ -127,7 +127,7 @@ def login_user(account, password):
     用户登录
 
     Args:
-        account: 邮箱或手机号
+        account: 用户名、邮箱或手机号
         password: 密码
 
     Returns:
@@ -140,12 +140,12 @@ def login_user(account, password):
     try:
         cursor = connection.cursor(dictionary=True)
 
-        # 查找用户（通过邮箱或手机号）
+        # 查找用户（通过用户名、邮箱或手机号）
         cursor.execute('''
             SELECT id, name, email, phone, password_hash, physics_score, chemistry_score
             FROM users
-            WHERE email = %s OR phone = %s
-        ''', (account, account))
+            WHERE name = %s OR email = %s OR phone = %s
+        ''', (account, account, account))
 
         user = cursor.fetchone()
 

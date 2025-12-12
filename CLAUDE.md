@@ -22,8 +22,9 @@ python scripts/install_all.py
 # Configure environment
 cp config/.env.example src/.env  # Edit with your API keys
 
-# Run application
-python start.py  # Or: 启动项目.bat on Windows
+# Run application (from project root)
+python start.py
+# Or on Windows: scripts\启动项目.bat
 
 # Run tests
 python tests/api/test_deepseek_simple.py
@@ -50,8 +51,8 @@ When `deep_think=true`:
 
 ### Backend (`src/`)
 - `app.py` - Flask routes, SSE streaming, session management, auth endpoints
-- `database.py` - MySQL connection, user CRUD (register, login, reset password)
-- `doubao_api.py` - DoubaoClient class for image+text queries (uses OpenAI SDK)
+- `database.py` - MySQL connection with mysql-connector-python, user CRUD (register, login, reset password), SHA-256 password hashing
+- `doubao_api.py` - DoubaoClient class for image+text queries (uses OpenAI SDK compatibility), image compression via Pillow, streaming with reasoning_content support
 - `prompts.py` - Subject-specific system prompts (physics/chemistry/competition/verification)
 
 ### Frontend (`frontend/`)
@@ -135,6 +136,7 @@ Response saved separately: `data/sessions/{session_id}_response.json`
 - **Temporary tests**: `.claude/tests/temporary/` (auto-cleanup after 24h)
 - **Test naming**: `test_<feature>_<timestamp>.py`
 - **Uploads**: `data/uploads/` (16MB max, allowed: png, jpg, jpeg, gif, webp)
+- **Sessions**: `data/sessions/` (JSON files with format `{YYYYMMDDHHMMSS}{microseconds}.json`)
 - **Logs**: `data/logs/`
 
 ## Production
@@ -142,3 +144,13 @@ Response saved separately: `data/sessions/{session_id}_response.json`
 Use `src/run_production.py` with Waitress (Windows) or Gunicorn (Linux) instead of Flask dev server.
 
 Docker deployment configured via `Dockerfile` and `zeabur.json` for Zeabur platform.
+
+## Dependencies
+
+Key Python packages (see `src/requirements.txt`):
+- `Flask`, `Flask-CORS` - Web framework
+- `openai>=1.40.0` - API client for DeepSeek and Doubao (OpenAI-compatible)
+- `Pillow>=10.0.0` - Image processing and compression
+- `mysql-connector-python>=8.0.0` - Database driver
+- `waitress>=2.1.2` - Production WSGI server (Windows)
+- `volcengine-python-sdk[ark]` - Volcengine SDK for Doubao
