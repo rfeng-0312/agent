@@ -602,9 +602,15 @@ def stream_response(session_id):
             with open(f'../data/sessions/{session_id}.json', 'r', encoding='utf-8') as f:
                 session_data = json.load(f)
 
+            query_type = session_data.get('type', 'text')
+
+            # ==================== 日记AI回复模式 ====================
+            if query_type == 'diary_ai_response':
+                yield from generate_diary_ai_response(session_id, session_data)
+                return
+
             question = session_data['question']
             subject = session_data['subject']
-            query_type = session_data.get('type', 'text')
             deep_think = session_data.get('deep_think', False)
 
             thinking_content = ""
@@ -872,6 +878,70 @@ def generate_deep_think_response(session_id, session_data):
     except Exception as e:
         logger.error(f"Deep think stream error: {e}")
         yield f"data: {json.dumps({'type': 'error', 'message': str(e)}, ensure_ascii=False)}\n\n"
+
+
+def generate_diary_ai_response(session_id, session_data):
+    """
+    日记AI回复的流式响应生成器
+    根据日记内容生成温暖的回复
+    """
+    content = session_data['content']
+    diary_id = session_data['diary_id']
+
+    ai_response = ""
+
+    try:
+        # 发送开始信号
+        yield f"data: {json.dumps({'type': 'stage', 'stage': 'responding', 'message': '小柯正在思考回复...'}, ensure_ascii=False)}\n\n"
+
+        # 日记回复的系统提示词
+        system_prompt = """你是"小柯"，一个温暖、有同理心的AI伙伴。
+
+你的特点：
+- 像朋友一样聊天，不说教
+- 善于发现用户话语中的亮点
+- 在用户低落时给予安慰，在用户开心时一起庆祝
+- 偶尔用柯南的经典台词点缀（如"真相只有一个"）
+- 回复简短有力，100-150字左右
+
+请根据用户的日记内容，给出温暖的回应。"""
+
+        # 调用 DeepSeek API 生成回复
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": f"用户今天的日记：\n\n{content}"}
+        ]
+
+        stream = client.chat.completions.create(
+            model=DEEPSEEK_MODEL,
+            messages=messages,
+            stream=True
+        )
+
+        for chunk in stream:
+            if chunk.choices[0].delta.content:
+                content_chunk = chunk.choices[0].delta.content
+                ai_response += content_chunk
+                yield f"data: {json.dumps({'type': 'content', 'content': content_chunk}, ensure_ascii=False)}\n\n"
+
+        # 发送完成信号
+        yield f"data: {json.dumps({'type': 'done'}, ensure_ascii=False)}\n\n"
+
+        # 保存AI回复到数据库
+        update_diary_ai_response(diary_id, ai_response)
+
+        # 保存到session文件
+        response_data = {
+            'ai_response': ai_response,
+            'completed_at': str(datetime.now())
+        }
+        with open(f'../data/sessions/{session_id}_response.json', 'w', encoding='utf-8') as f:
+            json.dump(response_data, f, ensure_ascii=False, indent=2)
+
+    except Exception as e:
+        logger.error(f"Diary AI response error: {e}")
+        yield f"data: {json.dumps({'type': 'error', 'message': str(e)}, ensure_ascii=False)}\n\n"
+
 
 @app.route('/health', methods=['GET'])
 def health_check():
