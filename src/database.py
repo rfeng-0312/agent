@@ -57,6 +57,22 @@ def init_database():
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ''')
 
+        # 创建日记表
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS diaries (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT NOT NULL,
+                content TEXT NOT NULL,
+                ai_response TEXT DEFAULT NULL,
+                mood_score INT DEFAULT NULL COMMENT '心情评分 1-5',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                INDEX idx_user_id (user_id),
+                INDEX idx_created_at (created_at)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        ''')
+
         connection.commit()
         logger.info("Database initialized successfully")
         return True
@@ -254,6 +270,236 @@ def get_user_by_id(user_id):
     except Error as e:
         logger.error(f"Get user error: {e}")
         return None
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+# ==================== 日记相关函数 ====================
+
+def create_diary(user_id, content, mood_score=None):
+    """创建新日记"""
+    connection = get_db_connection()
+    if not connection:
+        return {'success': False, 'message': '数据库连接失败', 'diary_id': None}
+
+    try:
+        cursor = connection.cursor()
+        cursor.execute('''
+            INSERT INTO diaries (user_id, content, mood_score)
+            VALUES (%s, %s, %s)
+        ''', (user_id, content, mood_score))
+
+        connection.commit()
+        diary_id = cursor.lastrowid
+
+        return {'success': True, 'message': '日记保存成功', 'diary_id': diary_id}
+    except Error as e:
+        logger.error(f"Create diary error: {e}")
+        return {'success': False, 'message': f'保存失败: {str(e)}', 'diary_id': None}
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+def update_diary_ai_response(diary_id, ai_response):
+    """更新日记的AI回复"""
+    connection = get_db_connection()
+    if not connection:
+        return {'success': False, 'message': '数据库连接失败'}
+
+    try:
+        cursor = connection.cursor()
+        cursor.execute('''
+            UPDATE diaries SET ai_response = %s WHERE id = %s
+        ''', (ai_response, diary_id))
+
+        connection.commit()
+        return {'success': True, 'message': 'AI回复已更新'}
+    except Error as e:
+        logger.error(f"Update diary AI response error: {e}")
+        return {'success': False, 'message': f'更新失败: {str(e)}'}
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+def get_diary_by_id(diary_id, user_id):
+    """根据ID获取日记详情"""
+    connection = get_db_connection()
+    if not connection:
+        return None
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute('''
+            SELECT id, content, ai_response, mood_score, created_at, updated_at
+            FROM diaries WHERE id = %s AND user_id = %s
+        ''', (diary_id, user_id))
+
+        result = cursor.fetchone()
+        if result:
+            result['created_at'] = result['created_at'].isoformat() if result['created_at'] else None
+            result['updated_at'] = result['updated_at'].isoformat() if result['updated_at'] else None
+        return result
+    except Error as e:
+        logger.error(f"Get diary error: {e}")
+        return None
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+def get_user_diaries(user_id, limit=20, offset=0):
+    """获取用户的日记列表"""
+    connection = get_db_connection()
+    if not connection:
+        return []
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute('''
+            SELECT id,
+                   LEFT(content, 100) as content,
+                   LEFT(ai_response, 50) as ai_response,
+                   mood_score,
+                   created_at
+            FROM diaries
+            WHERE user_id = %s
+            ORDER BY created_at DESC
+            LIMIT %s OFFSET %s
+        ''', (user_id, limit, offset))
+
+        results = cursor.fetchall()
+        for r in results:
+            r['created_at'] = r['created_at'].isoformat() if r['created_at'] else None
+        return results
+    except Error as e:
+        logger.error(f"Get user diaries error: {e}")
+        return []
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+def get_diary_count(user_id):
+    """获取用户日记总数"""
+    connection = get_db_connection()
+    if not connection:
+        return 0
+
+    try:
+        cursor = connection.cursor()
+        cursor.execute('SELECT COUNT(*) FROM diaries WHERE user_id = %s', (user_id,))
+        result = cursor.fetchone()
+        return result[0] if result else 0
+    except Error as e:
+        logger.error(f"Get diary count error: {e}")
+        return 0
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+def check_diary_today(user_id):
+    """检查用户今天是否已写日记"""
+    connection = get_db_connection()
+    if not connection:
+        return {'has_diary': False, 'diary_id': None}
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute('''
+            SELECT id FROM diaries
+            WHERE user_id = %s AND DATE(created_at) = CURDATE()
+            ORDER BY created_at DESC LIMIT 1
+        ''', (user_id,))
+
+        result = cursor.fetchone()
+        if result:
+            return {'has_diary': True, 'diary_id': result['id']}
+        return {'has_diary': False, 'diary_id': None}
+    except Error as e:
+        logger.error(f"Check diary today error: {e}")
+        return {'has_diary': False, 'diary_id': None}
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+def get_diary_streak(user_id):
+    """获取用户连续写日记天数"""
+    connection = get_db_connection()
+    if not connection:
+        return 0
+
+    try:
+        cursor = connection.cursor()
+        cursor.execute('''
+            SELECT DISTINCT DATE(created_at) as diary_date
+            FROM diaries
+            WHERE user_id = %s
+            ORDER BY diary_date DESC
+        ''', (user_id,))
+
+        dates = [row[0] for row in cursor.fetchall()]
+        if not dates:
+            return 0
+
+        from datetime import date, timedelta
+        today = date.today()
+        streak = 0
+
+        # 检查今天或昨天是否有日记
+        if dates[0] != today and dates[0] != today - timedelta(days=1):
+            return 0
+
+        # 计算连续天数
+        expected_date = dates[0]
+        for diary_date in dates:
+            if diary_date == expected_date:
+                streak += 1
+                expected_date = diary_date - timedelta(days=1)
+            else:
+                break
+
+        return streak
+    except Error as e:
+        logger.error(f"Get diary streak error: {e}")
+        return 0
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+def delete_diary(diary_id, user_id):
+    """删除日记"""
+    connection = get_db_connection()
+    if not connection:
+        return {'success': False, 'message': '数据库连接失败'}
+
+    try:
+        cursor = connection.cursor()
+        cursor.execute('''
+            DELETE FROM diaries WHERE id = %s AND user_id = %s
+        ''', (diary_id, user_id))
+
+        if cursor.rowcount == 0:
+            return {'success': False, 'message': '日记不存在或无权删除'}
+
+        connection.commit()
+        return {'success': True, 'message': '日记已删除'}
+    except Error as e:
+        logger.error(f"Delete diary error: {e}")
+        return {'success': False, 'message': f'删除失败: {str(e)}'}
     finally:
         if connection.is_connected():
             cursor.close()

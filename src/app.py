@@ -14,7 +14,11 @@ from prompts import (
     get_subject_prompt_by_lang, get_competition_prompt_by_lang, get_verification_prompt_by_lang
 )
 from doubao_api import DoubaoClient
-from database import init_database, register_user, login_user, check_account_exists, reset_password, get_user_by_id
+from database import (
+    init_database, register_user, login_user, check_account_exists, reset_password, get_user_by_id,
+    create_diary, update_diary_ai_response, get_diary_by_id, get_user_diaries,
+    get_diary_count, check_diary_today, get_diary_streak, delete_diary
+)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -254,6 +258,136 @@ def api_get_current_user():
             'chemistry_score': session.get('chemistry_score')
         }
     })
+
+
+# ==================== 日记 API 路由 ====================
+
+@app.route('/api/diary', methods=['POST'])
+def api_create_diary():
+    """创建日记 API"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '请先登录'}), 401
+
+    try:
+        data = request.get_json()
+        content = data.get('content', '').strip()
+        mood_score = data.get('mood_score')
+
+        if not content:
+            return jsonify({'success': False, 'message': '日记内容不能为空'})
+
+        if len(content) > 10000:
+            return jsonify({'success': False, 'message': '日记内容不能超过10000字'})
+
+        result = create_diary(
+            user_id=session['user_id'],
+            content=content,
+            mood_score=mood_score
+        )
+
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Create diary API error: {e}")
+        return jsonify({'success': False, 'message': f'保存失败: {str(e)}'})
+
+
+@app.route('/api/diary/<int:diary_id>/ai-response', methods=['POST'])
+def api_generate_ai_response(diary_id):
+    """为日记生成AI回复 API"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '请先登录'}), 401
+
+    try:
+        diary = get_diary_by_id(diary_id, session['user_id'])
+        if not diary:
+            return jsonify({'success': False, 'message': '日记不存在'})
+
+        session_id = datetime.now().strftime('%Y%m%d%H%M%S%f')
+
+        session_data = {
+            'type': 'diary_ai_response',
+            'diary_id': diary_id,
+            'content': diary['content'],
+            'timestamp': str(datetime.now())
+        }
+
+        os.makedirs('../data/sessions', exist_ok=True)
+        with open(f'../data/sessions/{session_id}.json', 'w', encoding='utf-8') as f:
+            json.dump(session_data, f, ensure_ascii=False, indent=2)
+
+        return jsonify({'success': True, 'session_id': session_id})
+    except Exception as e:
+        logger.error(f"Generate AI response API error: {e}")
+        return jsonify({'success': False, 'message': f'生成失败: {str(e)}'})
+
+
+@app.route('/api/diaries', methods=['GET'])
+def api_get_diaries():
+    """获取日记列表 API"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '请先登录'}), 401
+
+    try:
+        limit = request.args.get('limit', 20, type=int)
+        offset = request.args.get('offset', 0, type=int)
+        limit = min(limit, 50)
+
+        diaries = get_user_diaries(session['user_id'], limit, offset)
+        total = get_diary_count(session['user_id'])
+
+        return jsonify({
+            'success': True,
+            'diaries': diaries,
+            'total': total,
+            'limit': limit,
+            'offset': offset
+        })
+    except Exception as e:
+        logger.error(f"Get diaries API error: {e}")
+        return jsonify({'success': False, 'message': f'获取失败: {str(e)}'})
+
+
+@app.route('/api/diary/<int:diary_id>', methods=['GET'])
+def api_get_diary(diary_id):
+    """获取单篇日记 API"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '请先登录'}), 401
+
+    diary = get_diary_by_id(diary_id, session['user_id'])
+    if not diary:
+        return jsonify({'success': False, 'message': '日记不存在'})
+
+    return jsonify({'success': True, 'diary': diary})
+
+
+@app.route('/api/diary/<int:diary_id>', methods=['DELETE'])
+def api_delete_diary(diary_id):
+    """删除日记 API"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '请先登录'}), 401
+
+    result = delete_diary(diary_id, session['user_id'])
+    return jsonify(result)
+
+
+@app.route('/api/diary/status/today', methods=['GET'])
+def api_diary_today_status():
+    """检查今日日记状态 API"""
+    if 'user_id' not in session:
+        return jsonify({'has_diary': False, 'diary_id': None})
+
+    result = check_diary_today(session['user_id'])
+    return jsonify(result)
+
+
+@app.route('/api/diary/streak', methods=['GET'])
+def api_diary_streak():
+    """获取连续打卡天数 API"""
+    if 'user_id' not in session:
+        return jsonify({'streak': 0})
+
+    streak = get_diary_streak(session['user_id'])
+    return jsonify({'streak': streak})
 
 
 @app.route('/api/query/text', methods=['POST'])
