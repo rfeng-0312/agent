@@ -273,13 +273,21 @@
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-3">
                     <i class="fa-solid fa-user-tie text-2xl text-neonCyan animate-pulse"></i>
-                    <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-neonCyan-to-white">
+                    <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-neonCyan-to-white" data-i18n="result.navTitle">
                         名侦探作业帮 - AI解答结果
                     </h1>
                 </div>
-                <a href="/app" class="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-300 hover:scale-105">
-                    <i class="fa-solid fa-arrow-left mr-2"></i>继续提问
-                </a>
+                <div class="flex items-center gap-4">
+                    <!-- 语言切换 -->
+                    <div class="lang-switcher flex items-center gap-1 text-sm">
+                        <button data-lang="zh-CN" class="lang-btn px-2 py-1 rounded hover:text-neonCyan transition-colors">中文</button>
+                        <span class="text-white/30">|</span>
+                        <button data-lang="en-US" class="lang-btn px-2 py-1 rounded hover:text-neonCyan transition-colors">EN</button>
+                    </div>
+                    <a href="/app" class="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-300 hover:scale-105">
+                        <i class="fa-solid fa-arrow-left mr-2"></i><span data-i18n="result.continueBtn">继续提问</span>
+                    </a>
+                </div>
             </div>
         </div>
     </nav>
@@ -291,7 +299,7 @@
             <div class="glass-card p-6 rounded-xl shadow-2xl border border-white/20">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-xl font-bold text-neonCyan">
-                        <i class="fa-solid fa-question-circle mr-2"></i>你的问题
+                        <i class="fa-solid fa-question-circle mr-2"></i><span data-i18n="result.question.title">你的问题</span>
                     </h2>
                     <span class="px-3 py-1 rounded-full text-sm font-medium
                         {% if data.subject == 'physics' %}
@@ -299,13 +307,13 @@
                         {% else %}
                             bg-red-500/20 text-red-300 border border-red-400/30
                         {% endif %}">
-                        {% if data.subject == 'physics' %}物理{% else %}化学{% endif %}
+                        {% if data.subject == 'physics' %}<span data-i18n="result.question.physics">物理</span>{% else %}<span data-i18n="result.question.chemistry">化学</span>{% endif %}
                     </span>
                 </div>
                 <p class="text-white/90 text-lg leading-relaxed">{{ data.question }}</p>
                 <p class="text-xs text-white/50 mt-3">
                     <i class="fa-solid fa-clock mr-1"></i>
-                    提问时间：{{ data.timestamp }}
+                    <span data-i18n="result.question.timestamp">提问时间：</span>{{ data.timestamp }}
                 </p>
             </div>
         </div>
@@ -315,8 +323,8 @@
             <div class="thinking-process p-6 rounded-xl shadow-2xl backdrop-blur-md relative">
                 <button id="toggleThinking" class="flex items-center justify-between w-full text-left">
                     <h3 class="text-lg font-bold text-thinkingPurple">
-                        <i class="fa-solid fa-brain mr-2"></i>AI思考过程
-                        <span class="text-sm font-normal ml-2 text-purple-300">(点击展开/收起)</span>
+                        <i class="fa-solid fa-brain mr-2"></i><span data-i18n="result.thinking.title">AI思考过程</span>
+                        <span class="text-sm font-normal ml-2 text-purple-300" data-i18n="result.thinking.hint">(点击展开/收起)</span>
                     </h3>
                     <i id="thinkingIcon" class="fa-solid fa-chevron-down transition-transform duration-300"></i>
                 </button>
@@ -331,7 +339,7 @@
         <div class="max-w-4xl mx-auto animate-slide-up" style="animation-delay: 0.4s">
             <div class="answer-box p-6 rounded-xl shadow-2xl backdrop-blur-md">
                 <h3 class="text-lg font-bold text-answerBlue mb-4">
-                    <i class="fa-solid fa-lightbulb mr-2"></i>AI解答
+                    <i class="fa-solid fa-lightbulb mr-2"></i><span data-i18n="result.answer.title">AI解答</span>
                 </h3>
                 <div id="answerText" class="text-white/90"></div>
 
@@ -341,7 +349,7 @@
                         <div class="w-16 h-16 border-4 border-blue-500/20 rounded-full animate-spin"></div>
                         <div class="absolute top-0 left-0 w-16 h-16 border-4 border-transparent border-t-blue-500 rounded-full animate-spin"></div>
                     </div>
-                    <span id="loadingText" class="ml-4 text-blue-300">AI正在思考中...</span>
+                    <span id="loadingText" class="ml-4 text-blue-300" data-i18n="result.answer.loading">AI正在思考中...</span>
                 </div>
             </div>
         </div>
@@ -353,8 +361,8 @@
                 <div class="p-6 rounded-xl shadow-2xl backdrop-blur-md relative" style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%); border-left: 4px solid #22c55e;">
                     <button id="toggleVerifyThinking" class="flex items-center justify-between w-full text-left">
                         <h3 class="text-lg font-bold text-green-400">
-                            <i class="fa-solid fa-check-double mr-2"></i>验证思考过程
-                            <span class="text-sm font-normal ml-2 text-green-300">(点击展开/收起)</span>
+                            <i class="fa-solid fa-check-double mr-2"></i><span data-i18n="result.verification.thinkingTitle">验证思考过程</span>
+                            <span class="text-sm font-normal ml-2 text-green-300" data-i18n="result.thinking.hint">(点击展开/收起)</span>
                         </h3>
                         <i id="verifyThinkingIcon" class="fa-solid fa-chevron-down transition-transform duration-300"></i>
                     </button>
@@ -368,7 +376,7 @@
             <!-- 验证结果 -->
             <div class="p-6 rounded-xl shadow-2xl backdrop-blur-md" style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%); border-left: 4px solid #22c55e;">
                 <h3 class="text-lg font-bold text-green-400 mb-4">
-                    <i class="fa-solid fa-clipboard-check mr-2"></i>验证结果
+                    <i class="fa-solid fa-clipboard-check mr-2"></i><span data-i18n="result.verification.resultTitle">验证结果</span>
                 </h3>
                 <div id="verifyAnswerText" class="text-white/90"></div>
 
@@ -378,7 +386,7 @@
                         <div class="w-16 h-16 border-4 border-green-500/20 rounded-full animate-spin"></div>
                         <div class="absolute top-0 left-0 w-16 h-16 border-4 border-transparent border-t-green-500 rounded-full animate-spin"></div>
                     </div>
-                    <span class="ml-4 text-green-300">正在验证答案...</span>
+                    <span class="ml-4 text-green-300" data-i18n="result.verification.loading">正在验证答案...</span>
                 </div>
             </div>
         </div>
@@ -389,17 +397,17 @@
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <i class="fa-solid fa-brain text-purple-400 animate-pulse"></i>
-                        <span class="text-purple-300 font-medium">深度思考模式</span>
+                        <span class="text-purple-300 font-medium" data-i18n="result.verification.deepThinkLabel">深度思考模式</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <div id="stage1Indicator" class="flex items-center gap-1">
                             <div class="w-3 h-3 rounded-full bg-purple-500 animate-pulse"></div>
-                            <span class="text-xs text-purple-300">解答中</span>
+                            <span class="text-xs text-purple-300" data-i18n="result.verification.stage1">解答中</span>
                         </div>
                         <i class="fa-solid fa-arrow-right text-white/30 mx-2"></i>
                         <div id="stage2Indicator" class="flex items-center gap-1 opacity-30">
                             <div class="w-3 h-3 rounded-full bg-green-500"></div>
-                            <span class="text-xs text-green-300">待验证</span>
+                            <span class="text-xs text-green-300" data-i18n="result.verification.stage2">待验证</span>
                         </div>
                     </div>
                 </div>
@@ -409,13 +417,13 @@
         <!-- 操作按钮 -->
         <div class="max-w-4xl mx-auto mt-8 flex justify-center space-x-4 animate-slide-up" style="animation-delay: 0.6s">
             <button onclick="copyAnswer()" class="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-300 hover:scale-105">
-                <i class="fa-solid fa-copy mr-2"></i>复制答案
+                <i class="fa-solid fa-copy mr-2"></i><span data-i18n="result.actions.copy">复制答案</span>
             </button>
             <button onclick="printAnswer()" class="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-300 hover:scale-105">
-                <i class="fa-solid fa-print mr-2"></i>打印
+                <i class="fa-solid fa-print mr-2"></i><span data-i18n="result.actions.print">打印</span>
             </button>
             <button onclick="shareAnswer()" class="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-300 hover:scale-105">
-                <i class="fa-solid fa-share-alt mr-2"></i>分享
+                <i class="fa-solid fa-share-alt mr-2"></i><span data-i18n="result.actions.share">分享</span>
             </button>
         </div>
     </main>
@@ -424,6 +432,11 @@
     <button id="backToTop" class="fixed bottom-8 right-8 w-12 h-12 bg-neonCyan/20 hover:bg-neonCyan/30 rounded-full flex items-center justify-center transition-all duration-300 opacity-0 pointer-events-none hover:scale-110 z-50">
         <i class="fa-solid fa-arrow-up text-neonCyan"></i>
     </button>
+
+    <!-- 国际化支持 -->
+    <script src="{{ url_for('static', filename='js/translations/zh-CN.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/translations/en-US.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
 
     <!-- JavaScript -->
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>

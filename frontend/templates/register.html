@@ -99,15 +99,24 @@
 
     <!-- 注册卡片 -->
     <div class="auth-card rounded-2xl p-8 w-full max-w-md relative z-10 my-8">
+        <!-- 语言切换 -->
+        <div class="absolute top-4 right-4">
+            <div class="lang-switcher flex items-center gap-1 text-sm">
+                <button data-lang="zh-CN" class="lang-btn px-2 py-1 rounded hover:text-neonCyan transition-colors">中文</button>
+                <span class="text-white/30">|</span>
+                <button data-lang="en-US" class="lang-btn px-2 py-1 rounded hover:text-neonCyan transition-colors">EN</button>
+            </div>
+        </div>
+
         <!-- Logo -->
         <div class="text-center mb-6">
             <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-neonCyan to-teitanBlue mb-3">
                 <i class="fa-solid fa-user-plus text-xl"></i>
             </div>
-            <h1 class="text-2xl font-bold bg-gradient-to-r from-neonCyan to-detectiveGold bg-clip-text text-transparent">
+            <h1 class="text-2xl font-bold bg-gradient-to-r from-neonCyan to-detectiveGold bg-clip-text text-transparent" data-i18n="register.heading">
                 加入名侦探
             </h1>
-            <p class="text-white/50 text-sm mt-1">创建你的专属账户</p>
+            <p class="text-white/50 text-sm mt-1" data-i18n="register.subheading">创建你的专属账户</p>
         </div>
 
         <!-- 错误/成功消息 -->
@@ -118,32 +127,35 @@
             <!-- 姓名 -->
             <div>
                 <label class="block text-sm font-medium text-white/70 mb-2">
-                    <i class="fa-solid fa-user mr-2 text-neonCyan"></i>姓名 <span class="text-conanRed">*</span>
+                    <i class="fa-solid fa-user mr-2 text-neonCyan"></i><span data-i18n="register.form.nameLabel">姓名</span> <span class="text-conanRed">*</span>
                 </label>
                 <input type="text" id="name" name="name" required
                     class="auth-input w-full px-4 py-3 rounded-xl text-white placeholder-white/30"
+                    data-i18n-placeholder="register.form.namePlaceholder"
                     placeholder="请输入你的姓名">
             </div>
 
             <!-- 邮箱或手机号 -->
             <div>
                 <label class="block text-sm font-medium text-white/70 mb-2">
-                    <i class="fa-solid fa-envelope mr-2 text-neonCyan"></i>邮箱或手机号 <span class="text-conanRed">*</span>
+                    <i class="fa-solid fa-envelope mr-2 text-neonCyan"></i><span data-i18n="register.form.accountLabel">邮箱或手机号</span> <span class="text-conanRed">*</span>
                 </label>
                 <input type="text" id="account" name="account" required
                     class="auth-input w-full px-4 py-3 rounded-xl text-white placeholder-white/30"
+                    data-i18n-placeholder="register.form.accountPlaceholder"
                     placeholder="请输入邮箱或手机号">
-                <p class="text-xs text-white/40 mt-1">用于登录和找回密码</p>
+                <p class="text-xs text-white/40 mt-1" data-i18n="register.form.accountHint">用于登录和找回密码</p>
             </div>
 
             <!-- 密码 -->
             <div>
                 <label class="block text-sm font-medium text-white/70 mb-2">
-                    <i class="fa-solid fa-lock mr-2 text-neonCyan"></i>密码 <span class="text-conanRed">*</span>
+                    <i class="fa-solid fa-lock mr-2 text-neonCyan"></i><span data-i18n="register.form.passwordLabel">密码</span> <span class="text-conanRed">*</span>
                 </label>
                 <div class="relative">
                     <input type="password" id="password" name="password" required minlength="6"
                         class="auth-input w-full px-4 py-3 rounded-xl text-white placeholder-white/30 pr-12"
+                        data-i18n-placeholder="register.form.passwordPlaceholder"
                         placeholder="请设置密码（至少6位）">
                     <button type="button" onclick="togglePassword('password', 'eyeIcon1')" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-neonCyan">
                         <i class="fa-solid fa-eye" id="eyeIcon1"></i>
@@ -154,11 +166,12 @@
             <!-- 确认密码 -->
             <div>
                 <label class="block text-sm font-medium text-white/70 mb-2">
-                    <i class="fa-solid fa-lock mr-2 text-neonCyan"></i>确认密码 <span class="text-conanRed">*</span>
+                    <i class="fa-solid fa-lock mr-2 text-neonCyan"></i><span data-i18n="register.form.confirmPasswordLabel">确认密码</span> <span class="text-conanRed">*</span>
                 </label>
                 <div class="relative">
                     <input type="password" id="confirmPassword" name="confirmPassword" required
                         class="auth-input w-full px-4 py-3 rounded-xl text-white placeholder-white/30 pr-12"
+                        data-i18n-placeholder="register.form.confirmPasswordPlaceholder"
                         placeholder="请再次输入密码">
                     <button type="button" onclick="togglePassword('confirmPassword', 'eyeIcon2')" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-neonCyan">
                         <i class="fa-solid fa-eye" id="eyeIcon2"></i>
@@ -170,37 +183,37 @@
             <div class="optional-section rounded-xl p-4 mt-6">
                 <div class="flex items-center gap-2 mb-3">
                     <i class="fa-solid fa-star text-detectiveGold"></i>
-                    <span class="text-sm font-medium text-detectiveGold">个性化设置（选填）</span>
+                    <span class="text-sm font-medium text-detectiveGold" data-i18n="register.optional.title">个性化设置（选填）</span>
                 </div>
                 <p class="text-xs text-white/50 mb-4">
                     <i class="fa-solid fa-lightbulb mr-1"></i>
-                    填写成绩后，AI将根据你的水平定制更适合的解答方式
+                    <span data-i18n="register.optional.description">填写成绩后，AI将根据你的水平定制更适合的解答方式</span>
                 </p>
 
                 <div class="grid grid-cols-2 gap-4">
                     <!-- 物理成绩 -->
                     <div>
                         <label class="block text-xs text-white/60 mb-1.5">
-                            <i class="fa-solid fa-atom mr-1 text-teitanBlue"></i>物理成绩
+                            <i class="fa-solid fa-atom mr-1 text-teitanBlue"></i><span data-i18n="register.optional.physicsScore">物理成绩</span>
                         </label>
                         <div class="relative">
                             <input type="number" id="physicsScore" name="physicsScore" min="0" max="100"
                                 class="score-input w-full px-3 py-2 rounded-lg text-white placeholder-white/30 text-sm"
                                 placeholder="0-100">
-                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 text-xs">分</span>
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 text-xs" data-i18n="register.optional.points">分</span>
                         </div>
                     </div>
 
                     <!-- 化学成绩 -->
                     <div>
                         <label class="block text-xs text-white/60 mb-1.5">
-                            <i class="fa-solid fa-flask mr-1 text-conanRed"></i>化学成绩
+                            <i class="fa-solid fa-flask mr-1 text-conanRed"></i><span data-i18n="register.optional.chemistryScore">化学成绩</span>
                         </label>
                         <div class="relative">
                             <input type="number" id="chemistryScore" name="chemistryScore" min="0" max="100"
                                 class="score-input w-full px-3 py-2 rounded-lg text-white placeholder-white/30 text-sm"
                                 placeholder="0-100">
-                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 text-xs">分</span>
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 text-xs" data-i18n="register.optional.points">分</span>
                         </div>
                     </div>
                 </div>
@@ -209,28 +222,28 @@
             <!-- 注册按钮 -->
             <button type="submit" id="submitBtn" class="auth-btn w-full py-3 rounded-xl font-bold text-lg flex items-center justify-center gap-2 mt-6">
                 <i class="fa-solid fa-user-plus"></i>
-                <span>注 册</span>
+                <span data-i18n="register.form.submitBtn">注 册</span>
             </button>
         </form>
 
         <!-- 其他链接 -->
         <div class="mt-6 text-center text-sm">
-            <span class="text-white/50">已有账号？</span>
+            <span class="text-white/50" data-i18n="register.links.hasAccount">已有账号？</span>
             <a href="/login" class="text-neonCyan hover:text-detectiveGold transition-colors ml-1">
-                <i class="fa-solid fa-right-to-bracket mr-1"></i>立即登录
+                <i class="fa-solid fa-right-to-bracket mr-1"></i><span data-i18n="register.links.login">立即登录</span>
             </a>
         </div>
 
         <!-- 分隔线 -->
         <div class="my-6 flex items-center gap-4">
             <div class="flex-1 h-px bg-white/10"></div>
-            <span class="text-white/30 text-xs">或</span>
+            <span class="text-white/30 text-xs" data-i18n="register.links.or">或</span>
             <div class="flex-1 h-px bg-white/10"></div>
         </div>
 
         <!-- 返回首页 -->
         <a href="/" class="block text-center text-white/50 hover:text-white transition-colors text-sm">
-            <i class="fa-solid fa-arrow-left mr-2"></i>返回首页
+            <i class="fa-solid fa-arrow-left mr-2"></i><span data-i18n="register.links.backToHome">返回首页</span>
         </a>
     </div>
 
@@ -296,12 +309,12 @@
 
             // 验证
             if (password !== confirmPassword) {
-                showMessage('两次输入的密码不一致');
+                showMessage(window.i18n ? i18n.t('register.messages.passwordMismatch') : '两次输入的密码不一致');
                 return;
             }
 
             if (password.length < 6) {
-                showMessage('密码长度至少6位');
+                showMessage(window.i18n ? i18n.t('register.messages.passwordTooShort') : '密码长度至少6位');
                 return;
             }
 
@@ -310,13 +323,13 @@
             const isPhone = isValidPhone(account);
 
             if (!isEmail && !isPhone) {
-                showMessage('请输入有效的邮箱或手机号');
+                showMessage(window.i18n ? i18n.t('register.messages.invalidAccount') : '请输入有效的邮箱或手机号');
                 return;
             }
 
             const btn = document.getElementById('submitBtn');
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>注册中...';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>' + (window.i18n ? i18n.t('register.messages.registering') : '注册中...');
 
             try {
                 const response = await fetch('/api/auth/register', {
@@ -334,21 +347,26 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    showMessage('注册成功！正在跳转到登录页面...', false);
+                    showMessage(window.i18n ? i18n.t('register.messages.success') : '注册成功！正在跳转到登录页面...', false);
                     setTimeout(() => {
                         window.location.href = '/login';
                     }, 1500);
                 } else {
                     showMessage(data.message);
                     btn.disabled = false;
-                    btn.innerHTML = '<i class="fa-solid fa-user-plus"></i><span>注 册</span>';
+                    btn.innerHTML = '<i class="fa-solid fa-user-plus"></i><span>' + (window.i18n ? i18n.t('register.form.submitBtn') : '注 册') + '</span>';
                 }
             } catch (err) {
-                showMessage('网络错误，请稍后重试');
+                showMessage(window.i18n ? i18n.t('register.messages.networkError') : '网络错误，请稍后重试');
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-user-plus"></i><span>注 册</span>';
+                btn.innerHTML = '<i class="fa-solid fa-user-plus"></i><span>' + (window.i18n ? i18n.t('register.form.submitBtn') : '注 册') + '</span>';
             }
         });
     </script>
+
+    <!-- 国际化支持 -->
+    <script src="{{ url_for('static', filename='js/translations/zh-CN.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/translations/en-US.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
 </body>
 </html>

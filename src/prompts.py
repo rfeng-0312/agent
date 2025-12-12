@@ -322,3 +322,63 @@ def get_verification_prompt(subject, question, answer):
         template = PHYSICS_VERIFICATION_PROMPT
 
     return template.format(question=question, answer=answer)
+
+
+# ==================== 多语言支持函数 ====================
+
+# 导入英文版 Prompts
+from prompts_en import (
+    get_subject_prompt_en,
+    get_competition_prompt_en,
+    get_verification_prompt_en
+)
+
+
+def get_subject_prompt_by_lang(subject, lang='zh-CN'):
+    """
+    根据科目和语言获取对应的prompt（普通模式）
+
+    Args:
+        subject (str): 'physics' 或 'chemistry'
+        lang (str): 'zh-CN' 或 'en-US'
+
+    Returns:
+        str: 对应语言的prompt模板
+    """
+    if lang == 'en-US':
+        return get_subject_prompt_en(subject)
+    return get_subject_prompt(subject)
+
+
+def get_competition_prompt_by_lang(subject, lang='zh-CN'):
+    """
+    根据科目和语言获取竞赛/深度思考模式的prompt
+
+    Args:
+        subject (str): 'physics' 或 'chemistry'
+        lang (str): 'zh-CN' 或 'en-US'
+
+    Returns:
+        str: 对应语言的竞赛prompt模板
+    """
+    if lang == 'en-US':
+        return get_competition_prompt_en(subject)
+    return get_competition_prompt(subject)
+
+
+def get_verification_prompt_by_lang(subject, question, answer, lang='zh-CN'):
+    """
+    根据科目和语言获取答案验证的prompt
+
+    Args:
+        subject (str): 'physics' 或 'chemistry'
+        question (str): 原始问题
+        answer (str): 待验证的答案
+        lang (str): 'zh-CN' 或 'en-US'
+
+    Returns:
+        str: 填充后的对应语言验证prompt
+    """
+    if lang == 'en-US':
+        return get_verification_prompt_en(subject, question, answer)
+    return get_verification_prompt(subject, question, answer)

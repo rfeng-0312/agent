@@ -104,13 +104,19 @@
                     <p class="text-[10px] opacity-60 uppercase tracking-widest">Detective Study Tool</p>
                 </div>
             </div>
-            <!-- 用户信息和登出 -->
-            <div class="flex items-center gap-3">
+            <!-- 语言切换 + 用户信息和登出 -->
+            <div class="flex items-center gap-4">
+                <!-- 语言切换 -->
+                <div class="lang-switcher flex items-center gap-1 text-sm">
+                    <button data-lang="zh-CN" class="lang-btn px-2 py-1 rounded hover:text-neonCyan transition-colors">中文</button>
+                    <span class="text-white/30">|</span>
+                    <button data-lang="en-US" class="lang-btn px-2 py-1 rounded hover:text-neonCyan transition-colors">EN</button>
+                </div>
                 <div class="hidden sm:flex items-center gap-2 text-sm text-white/70">
                     <i class="fa-solid fa-user-circle text-neonCyan"></i>
-                    <span id="navUserName">用户</span>
+                    <span id="navUserName" data-i18n="common.user">用户</span>
                 </div>
-                <button onclick="logout()" class="w-10 h-10 rounded-full bg-conanRed/20 hover:bg-conanRed/40 border border-conanRed/30 flex items-center justify-center transition-all hover:scale-110" title="退出登录">
+                <button onclick="logout()" class="w-10 h-10 rounded-full bg-conanRed/20 hover:bg-conanRed/40 border border-conanRed/30 flex items-center justify-center transition-all hover:scale-110" data-i18n-title="common.logout" title="退出登录">
                     <i class="fa-solid fa-sign-out-alt text-conanRed"></i>
                 </button>
             </div>
@@ -123,13 +129,13 @@
         <!-- 欢迎语 -->
         <div class="text-center mb-10">
             <h2 class="text-3xl font-bold mb-3 inline-block">
-                <span class="bg-gradient-to-r from-neonCyan via-white to-detectiveGold bg-clip-text text-transparent">
+                <span class="bg-gradient-to-r from-neonCyan via-white to-detectiveGold bg-clip-text text-transparent" data-i18n="app.welcome">
                     今天遇到了什么难题？
                 </span>
             </h2>
             <p class="text-white/60 text-sm welcome-subtitle">
                 <i class="fa-solid fa-quote-left text-xs mr-2 text-neonCyan"></i>
-                像侦探处理案件一样，逻辑清晰地解决它吧
+                <span data-i18n="app.welcomeSubtitle">像侦探处理案件一样，逻辑清晰地解决它吧</span>
                 <i class="fa-solid fa-quote-right text-xs ml-2 text-neonCyan"></i>
             </p>
         </div>
@@ -141,11 +147,11 @@
             <div class="tab-container flex rounded-t-xl overflow-hidden">
                 <button onclick="switchTab('physics')" id="btnPhysics" class="tab-btn flex-1 py-5 text-center font-bold transition-all duration-300 flex items-center justify-center gap-3 tab-active-phy">
                     <i class="fa-solid fa-atom tab-icon text-lg"></i>
-                    <span>物理 Physics</span>
+                    <span data-i18n="app.tabs.physics">物理 Physics</span>
                 </button>
                 <button onclick="switchTab('chemistry')" id="btnChemistry" class="tab-btn flex-1 py-5 text-center font-bold transition-all duration-300 flex items-center justify-center gap-3 tab-inactive">
                     <i class="fa-solid fa-flask tab-icon text-lg"></i>
-                    <span>化学 Chemistry</span>
+                    <span data-i18n="app.tabs.chemistry">化学 Chemistry</span>
                 </button>
             </div>
 
@@ -155,17 +161,18 @@
                     <label class="block text-sm font-semibold text-white/80 mb-3 flex justify-between items-center">
                         <span class="flex items-center gap-2">
                             <i class="fa-solid fa-pen-fancy text-neonCyan"></i>
-                            题目描述
+                            <span data-i18n="app.input.label">题目描述</span>
                         </span>
                         <span class="text-xs text-white/40 font-normal flex items-center gap-1">
                             <i class="fa-solid fa-keyboard"></i>
-                            支持输入公式和文本
+                            <span data-i18n="app.input.hint">支持输入公式和文本</span>
                         </span>
                     </label>
                     <div class="relative">
                         <textarea
                             id="problemInput"
                             class="input-area w-full h-44 p-4 pl-10 text-base resize-none"
+                            data-i18n-placeholder="app.input.placeholder"
                             placeholder="在这里输入题目内容... 侦探正在等待你的案件"></textarea>
                         <!-- 装饰图标 -->
                         <div class="input-decoration">
@@ -180,14 +187,14 @@
                 <div class="mb-6">
                     <label class="block text-sm font-semibold text-white/80 mb-3 flex items-center gap-2">
                         <i class="fa-solid fa-image text-neonCyan"></i>
-                        上传题目图片
+                        <span data-i18n="app.upload.label">上传题目图片</span>
                     </label>
 
                     <div class="flex gap-4 items-start">
                         <!-- 上传按钮 -->
                         <label id="uploadArea" class="upload-area flex-shrink-0 cursor-pointer w-36 h-36 flex flex-col items-center justify-center text-white/50 hover:text-neonCyan group relative">
                             <i class="fa-solid fa-cloud-arrow-up text-3xl mb-2 group-hover:scale-125 transition-transform"></i>
-                            <span class="text-xs">点击或粘贴</span>
+                            <span class="text-xs" data-i18n="app.upload.hint">点击或粘贴</span>
                             <input type="file" class="hidden" accept="image/*" onchange="previewImage(this)">
                             <!-- 背景装饰 -->
                             <i class="fa-solid fa-fingerprint absolute -bottom-2 -right-2 text-5xl opacity-10"></i>
@@ -205,9 +212,9 @@
                         <div id="uploadHint" class="flex-1 text-sm text-white/50 self-center">
                             <p class="flex items-center gap-2">
                                 <i class="fa-solid fa-circle-info text-neonCyan"></i>
-                                复杂的电路图或化学方程式？
+                                <span data-i18n="app.upload.hintText">复杂的电路图或化学方程式？</span>
                             </p>
-                            <p class="mt-2 text-white/40">直接拍下来上传，或 <kbd class="px-1.5 py-0.5 bg-white/10 rounded text-xs">Ctrl+V</kbd> 粘贴截图</p>
+                            <p class="mt-2 text-white/40"><span data-i18n="app.upload.hintSubtext">直接拍下来上传，或</span> <kbd class="px-1.5 py-0.5 bg-white/10 rounded text-xs" data-i18n="app.upload.pasteHint">Ctrl+V 粘贴截图</kbd></p>
                         </div>
                     </div>
                 </div>
@@ -218,14 +225,14 @@
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-brain text-xl text-purple-400"></i>
                             <div>
-                                <span class="text-sm font-semibold text-white/90">深度思考模式</span>
-                                <p class="text-xs text-white/50 mt-0.5">启用后AI会进行更深入的分析，但耗时更长</p>
+                                <span class="text-sm font-semibold text-white/90" data-i18n="app.deepThink.label">深度思考模式</span>
+                                <p class="text-xs text-white/50 mt-0.5" data-i18n="app.deepThink.desc">启用后AI会进行更深入的分析，但耗时更长</p>
                             </div>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="deepThinkToggle" class="sr-only peer">
                             <div class="w-14 h-7 bg-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-purple-500"></div>
-                            <span id="deepThinkLabel" class="ms-3 text-sm font-medium text-white/70 w-8">关闭</span>
+                            <span id="deepThinkLabel" class="ms-3 text-sm font-medium text-white/70 w-8" data-i18n="app.deepThink.off">关闭</span>
                         </label>
                     </div>
                 </div>
@@ -233,7 +240,7 @@
                 <!-- 提交按钮 -->
                 <button id="submitBtn" class="submit-btn w-full py-5 text-white rounded-xl font-bold text-lg flex items-center justify-center gap-3 relative">
                     <i class="fa-solid fa-magnifying-glass"></i>
-                    <span>开始解题</span>
+                    <span data-i18n="app.submitBtn">开始解题</span>
                     <i class="fa-solid fa-arrow-right"></i>
                 </button>
 
@@ -243,7 +250,7 @@
             <div class="status-bar px-8 py-3 flex justify-between items-center text-xs text-white/50 rounded-b-xl">
                 <div class="flex items-center gap-3">
                     <div class="status-dot"></div>
-                    <span>系统运行正常</span>
+                    <span data-i18n="app.status.normal">系统运行正常</span>
                 </div>
                 <div class="font-mono flex items-center gap-2">
                     <i class="fa-solid fa-shield-halved text-neonCyan"></i>
@@ -258,10 +265,15 @@
         <p class="footer-text text-xs mb-2">&copy; 2025 Detective Study Group</p>
         <p class="footer-quote text-sm">
             <i class="fa-solid fa-star mr-2"></i>
-            真相永远只有一个
+            <span data-i18n="app.footer.slogan">真相永远只有一个</span>
             <i class="fa-solid fa-star ml-2"></i>
         </p>
     </footer>
+
+    <!-- 国际化支持 -->
+    <script src="{{ url_for('static', filename='js/translations/zh-CN.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/translations/en-US.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
 
     <!-- JavaScript 脚本 -->
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>

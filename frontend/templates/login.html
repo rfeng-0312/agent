@@ -86,15 +86,24 @@
 
     <!-- 登录卡片 -->
     <div class="auth-card rounded-2xl p-8 w-full max-w-md relative z-10">
+        <!-- 语言切换 -->
+        <div class="absolute top-4 right-4">
+            <div class="lang-switcher flex items-center gap-1 text-sm">
+                <button data-lang="zh-CN" class="lang-btn px-2 py-1 rounded hover:text-neonCyan transition-colors">中文</button>
+                <span class="text-white/30">|</span>
+                <button data-lang="en-US" class="lang-btn px-2 py-1 rounded hover:text-neonCyan transition-colors">EN</button>
+            </div>
+        </div>
+
         <!-- Logo -->
         <div class="text-center mb-8">
             <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-neonCyan to-teitanBlue mb-4">
                 <i class="fa-solid fa-magnifying-glass text-2xl"></i>
             </div>
-            <h1 class="text-2xl font-bold bg-gradient-to-r from-neonCyan to-detectiveGold bg-clip-text text-transparent">
+            <h1 class="text-2xl font-bold bg-gradient-to-r from-neonCyan to-detectiveGold bg-clip-text text-transparent" data-i18n="common.appName">
                 名侦探作业帮
             </h1>
-            <p class="text-white/50 text-sm mt-2">登录你的账户</p>
+            <p class="text-white/50 text-sm mt-2" data-i18n="login.heading">登录你的账户</p>
         </div>
 
         <!-- 错误/成功消息 -->
@@ -105,21 +114,23 @@
             <!-- 账号 -->
             <div>
                 <label class="block text-sm font-medium text-white/70 mb-2">
-                    <i class="fa-solid fa-user mr-2 text-neonCyan"></i>用户名 / 邮箱 / 手机号
+                    <i class="fa-solid fa-user mr-2 text-neonCyan"></i><span data-i18n="login.form.accountLabel">用户名 / 邮箱 / 手机号</span>
                 </label>
                 <input type="text" id="account" name="account" required
                     class="auth-input w-full px-4 py-3 rounded-xl text-white placeholder-white/30"
+                    data-i18n-placeholder="login.form.accountPlaceholder"
                     placeholder="请输入用户名、邮箱或手机号">
             </div>
 
             <!-- 密码 -->
             <div>
                 <label class="block text-sm font-medium text-white/70 mb-2">
-                    <i class="fa-solid fa-lock mr-2 text-neonCyan"></i>密码
+                    <i class="fa-solid fa-lock mr-2 text-neonCyan"></i><span data-i18n="login.form.passwordLabel">密码</span>
                 </label>
                 <div class="relative">
                     <input type="password" id="password" name="password" required
                         class="auth-input w-full px-4 py-3 rounded-xl text-white placeholder-white/30 pr-12"
+                        data-i18n-placeholder="login.form.passwordPlaceholder"
                         placeholder="请输入密码">
                     <button type="button" onclick="togglePassword()" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-neonCyan">
                         <i class="fa-solid fa-eye" id="eyeIcon"></i>
@@ -130,30 +141,30 @@
             <!-- 登录按钮 -->
             <button type="submit" id="submitBtn" class="auth-btn w-full py-3 rounded-xl font-bold text-lg flex items-center justify-center gap-2">
                 <i class="fa-solid fa-right-to-bracket"></i>
-                <span>登 录</span>
+                <span data-i18n="login.form.submitBtn">登 录</span>
             </button>
         </form>
 
         <!-- 其他链接 -->
         <div class="mt-6 flex justify-between text-sm">
             <a href="/register" class="text-neonCyan hover:text-detectiveGold transition-colors">
-                <i class="fa-solid fa-user-plus mr-1"></i>注册账号
+                <i class="fa-solid fa-user-plus mr-1"></i><span data-i18n="login.links.register">注册账号</span>
             </a>
             <a href="#" onclick="showResetPrompt()" class="text-white/50 hover:text-neonCyan transition-colors">
-                <i class="fa-solid fa-key mr-1"></i>忘记密码？
+                <i class="fa-solid fa-key mr-1"></i><span data-i18n="login.links.forgotPassword">忘记密码？</span>
             </a>
         </div>
 
         <!-- 分隔线 -->
         <div class="my-6 flex items-center gap-4">
             <div class="flex-1 h-px bg-white/10"></div>
-            <span class="text-white/30 text-xs">或</span>
+            <span class="text-white/30 text-xs" data-i18n="login.links.or">或</span>
             <div class="flex-1 h-px bg-white/10"></div>
         </div>
 
         <!-- 返回首页 -->
         <a href="/" class="block text-center text-white/50 hover:text-white transition-colors text-sm">
-            <i class="fa-solid fa-arrow-left mr-2"></i>返回首页
+            <i class="fa-solid fa-arrow-left mr-2"></i><span data-i18n="login.links.backToHome">返回首页</span>
         </a>
     </div>
 
@@ -161,17 +172,18 @@
     <div id="resetModal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50 p-4">
         <div class="auth-card rounded-2xl p-6 w-full max-w-sm">
             <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-key text-neonCyan"></i>找回密码
+                <i class="fa-solid fa-key text-neonCyan"></i><span data-i18n="login.resetModal.title">找回密码</span>
             </h3>
-            <p class="text-white/60 text-sm mb-4">请输入你的邮箱或手机号，我们将验证账号是否存在。</p>
+            <p class="text-white/60 text-sm mb-4" data-i18n="login.resetModal.description">请输入你的邮箱或手机号，我们将验证账号是否存在。</p>
             <input type="text" id="resetAccount"
                 class="auth-input w-full px-4 py-3 rounded-xl text-white placeholder-white/30 mb-4"
+                data-i18n-placeholder="login.resetModal.placeholder"
                 placeholder="请输入邮箱或手机号">
             <div class="flex gap-3">
-                <button onclick="hideResetPrompt()" class="flex-1 py-2 rounded-xl border border-white/20 text-white/70 hover:bg-white/10 transition-colors">
+                <button onclick="hideResetPrompt()" class="flex-1 py-2 rounded-xl border border-white/20 text-white/70 hover:bg-white/10 transition-colors" data-i18n="login.resetModal.cancelBtn">
                     取消
                 </button>
-                <button onclick="checkAccountAndRedirect()" class="flex-1 py-2 rounded-xl bg-neonCyan text-mysteryBlack font-bold hover:bg-detectiveGold transition-colors">
+                <button onclick="checkAccountAndRedirect()" class="flex-1 py-2 rounded-xl bg-neonCyan text-mysteryBlack font-bold hover:bg-detectiveGold transition-colors" data-i18n="login.resetModal.nextBtn">
                     下一步
                 </button>
             </div>
@@ -220,7 +232,7 @@
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>登录中...';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>' + (window.i18n ? i18n.t('login.messages.loggingIn') : '登录中...');
 
             const account = document.getElementById('account').value.trim();
             const password = document.getElementById('password').value;
@@ -234,7 +246,7 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    showMessage('登录成功，正在跳转...', false);
+                    showMessage(window.i18n ? i18n.t('login.messages.success') : '登录成功，正在跳转...', false);
                     // 检查是否有重定向目标
                     const urlParams = new URLSearchParams(window.location.search);
                     const redirect = urlParams.get('redirect') || '/';
@@ -244,12 +256,12 @@
                 } else {
                     showMessage(data.message);
                     btn.disabled = false;
-                    btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i><span>登 录</span>';
+                    btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i><span>' + (window.i18n ? i18n.t('login.form.submitBtn') : '登 录') + '</span>';
                 }
             } catch (err) {
-                showMessage('网络错误，请稍后重试');
+                showMessage(window.i18n ? i18n.t('login.messages.networkError') : '网络错误，请稍后重试');
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i><span>登 录</span>';
+                btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i><span>' + (window.i18n ? i18n.t('login.form.submitBtn') : '登 录') + '</span>';
             }
         });
 
@@ -268,7 +280,7 @@
         async function checkAccountAndRedirect() {
             const account = document.getElementById('resetAccount').value.trim();
             if (!account) {
-                alert('请输入邮箱或手机号');
+                alert(window.i18n ? i18n.t('login.resetModal.emptyAlert') : '请输入邮箱或手机号');
                 return;
             }
 
@@ -283,12 +295,17 @@
                 if (data.exists) {
                     window.location.href = `/reset-password?account=${encodeURIComponent(account)}`;
                 } else {
-                    alert('该账号不存在，请检查后重试');
+                    alert(window.i18n ? i18n.t('login.resetModal.notExistAlert') : '该账号不存在，请检查后重试');
                 }
             } catch (err) {
-                alert('网络错误，请稍后重试');
+                alert(window.i18n ? i18n.t('login.messages.networkError') : '网络错误，请稍后重试');
             }
         }
     </script>
+
+    <!-- 国际化支持 -->
+    <script src="{{ url_for('static', filename='js/translations/zh-CN.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/translations/en-US.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
 </body>
 </html>

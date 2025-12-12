@@ -9,7 +9,10 @@ import json
 import logging
 from openai import OpenAI
 from dotenv import load_dotenv
-from prompts import get_subject_prompt, get_competition_prompt, get_verification_prompt
+from prompts import (
+    get_subject_prompt, get_competition_prompt, get_verification_prompt,
+    get_subject_prompt_by_lang, get_competition_prompt_by_lang, get_verification_prompt_by_lang
+)
 from doubao_api import DoubaoClient
 from database import init_database, register_user, login_user, check_account_exists, reset_password, get_user_by_id
 
@@ -60,6 +63,17 @@ doubao_client = DoubaoClient()
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def get_current_language():
+    """
+    从 Cookie 获取当前语言设置
+
+    Returns:
+        str: 'zh-CN' 或 'en-US'
+    """
+    lang = request.cookies.get('lang', 'zh-CN')
+    return lang if lang in ['zh-CN', 'en-US'] else 'zh-CN'
 
 @app.route('/')
 def home():
@@ -242,10 +256,12 @@ def handle_text_query():
 
         # Store question in session for result page
         session_id = datetime.now().strftime('%Y%m%d%H%M%S%f')
+        lang = get_current_language()  # 获取当前语言设置
         session_data = {
             'question': question,
             'subject': subject,
             'deep_think': deep_think,  # 存储深度思考标记
+            'lang': lang,  # 存储语言设置
             'timestamp': str(datetime.now()),
             'type': 'text_deep' if deep_think else 'text'  # 区分查询类型
         }
@@ -293,12 +309,14 @@ def handle_image_query():
 
             # Create session ID
             session_id = datetime.now().strftime('%Y%m%d%H%M%S%f')
+            lang = get_current_language()  # 获取当前语言设置
 
             # Save session data with image path
             session_data = {
                 'question': question,
                 'subject': subject,
                 'deep_think': deep_think,  # 存储深度思考标记
+                'lang': lang,  # 存储语言设置
                 'image_path': filename,
                 'image_filepath': filepath,  # 保存完整路径供流式API使用
                 'timestamp': str(datetime.now()),
@@ -507,7 +525,8 @@ def stream_response(session_id):
                 return
 
             # For text-only queries, use DeepSeek streaming
-            system_prompt = get_subject_prompt(subject)
+            lang = session_data.get('lang', 'zh-CN')
+            system_prompt = get_subject_prompt_by_lang(subject, lang)
 
             # Create messages for DeepSeek API
             messages = [
@@ -570,9 +589,10 @@ def generate_deep_think_response(session_id, session_data):
     subject = session_data['subject']
     query_type = session_data.get('type', 'text_deep')
     image_filepath = session_data.get('image_filepath', '')
+    lang = session_data.get('lang', 'zh-CN')  # 获取语言设置
 
-    # 获取竞赛级提示词
-    competition_prompt = get_competition_prompt(subject)
+    # 获取竞赛级提示词（支持多语言）
+    competition_prompt = get_competition_prompt_by_lang(subject, lang)
 
     solve_thinking = ""
     solve_answer = ""
@@ -581,7 +601,8 @@ def generate_deep_think_response(session_id, session_data):
 
     try:
         # ==================== 阶段1：解答问题 ====================
-        yield f"data: {json.dumps({'type': 'stage', 'stage': 'solving', 'message': '正在深度分析问题...'}, ensure_ascii=False)}\n\n"
+        solving_msg = 'Deep analyzing problem...' if lang == 'en-US' else '正在深度分析问题...'
+        yield f"data: {json.dumps({'type': 'stage', 'stage': 'solving', 'message': solving_msg}, ensure_ascii=False)}\n\n"
 
         if query_type == 'image_deep':
             # 图片问题：使用豆包解答
@@ -629,17 +650,19 @@ def generate_deep_think_response(session_id, session_data):
                     yield f"data: {json.dumps({'type': 'answer', 'content': delta.content}, ensure_ascii=False)}\n\n"
 
         # ==================== 阶段2：交叉验证答案 ====================
-        yield f"data: {json.dumps({'type': 'stage', 'stage': 'verifying', 'message': '正在验证答案...'}, ensure_ascii=False)}\n\n"
+        verifying_msg = 'Verifying answer...' if lang == 'en-US' else '正在验证答案...'
+        yield f"data: {json.dumps({'type': 'stage', 'stage': 'verifying', 'message': verifying_msg}, ensure_ascii=False)}\n\n"
 
-        # 构造验证提示词
-        verification_prompt = get_verification_prompt(subject, question, solve_answer)
+        # 构造验证提示词（支持多语言）
+        verification_prompt = get_verification_prompt_by_lang(subject, question, solve_answer, lang)
 
         if query_type == 'image_deep':
             # 图片问题：使用DeepSeek验证（交叉验证）
             logger.info(f"Deep think image query - Stage 2: DeepSeek verifying")
 
+            verify_system_msg = "You are a rigorous science review expert. Please independently verify the correctness of the solution." if lang == 'en-US' else "你是一位严谨的理科审稿专家，请独立验证解答的正确性。"
             messages = [
-                {"role": "system", "content": "你是一位严谨的理科审稿专家，请独立验证解答的正确性。"},
+                {"role": "system", "content": verify_system_msg},
                 {"role": "user", "content": verification_prompt}
             ]
 

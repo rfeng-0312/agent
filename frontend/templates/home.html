@@ -74,33 +74,39 @@
                 <!-- 导航链接 -->
                 <div class="hidden md:flex items-center gap-6">
                     <a href="#features" class="nav-link">
-                        <i class="fa-solid fa-star mr-1"></i>功能特色
+                        <i class="fa-solid fa-star mr-1"></i><span data-i18n="home.nav.features">功能特色</span>
                     </a>
                     <a href="#qa" class="nav-link">
-                        <i class="fa-solid fa-brain mr-1"></i>智能问答
+                        <i class="fa-solid fa-brain mr-1"></i><span data-i18n="home.nav.qa">智能问答</span>
                     </a>
                     <a href="#diary" class="nav-link">
-                        <i class="fa-solid fa-book mr-1"></i>成长日记
+                        <i class="fa-solid fa-book mr-1"></i><span data-i18n="home.nav.diary">成长日记</span>
                     </a>
                     <a href="#forum" class="nav-link">
-                        <i class="fa-solid fa-comments mr-1"></i>学习论坛
+                        <i class="fa-solid fa-comments mr-1"></i><span data-i18n="home.nav.forum">学习论坛</span>
                     </a>
                 </div>
 
-                <!-- 登录/用户按钮 -->
-                <div class="flex items-center gap-3">
+                <!-- 语言切换 + 登录/用户按钮 -->
+                <div class="flex items-center gap-4">
+                    <!-- 语言切换 -->
+                    <div class="lang-switcher flex items-center gap-1 text-sm">
+                        <button data-lang="zh-CN" class="lang-btn px-2 py-1 rounded hover:text-neonCyan transition-colors">中文</button>
+                        <span class="text-white/30">|</span>
+                        <button data-lang="en-US" class="lang-btn px-2 py-1 rounded hover:text-neonCyan transition-colors">EN</button>
+                    </div>
                     <div id="guestBtns" class="flex items-center gap-3">
                         <a href="/login" class="login-btn">
-                            <i class="fa-solid fa-right-to-bracket mr-2"></i>登录
+                            <i class="fa-solid fa-right-to-bracket mr-2"></i><span data-i18n="common.login">登录</span>
                         </a>
                         <a href="/register" class="register-btn hidden sm:flex">
-                            <i class="fa-solid fa-user-plus mr-2"></i>注册
+                            <i class="fa-solid fa-user-plus mr-2"></i><span data-i18n="common.register">注册</span>
                         </a>
                     </div>
                     <div id="userBtns" class="hidden items-center gap-3">
                         <span class="text-white/70 text-sm">
                             <i class="fa-solid fa-user-circle mr-1 text-neonCyan"></i>
-                            <span id="userName">用户</span>
+                            <span id="userName" data-i18n="common.user">用户</span>
                         </span>
                         <button onclick="logout()" class="logout-btn">
                             <i class="fa-solid fa-sign-out-alt"></i>
@@ -127,28 +133,27 @@
             <!-- 主标题 -->
             <div data-aos="fade-up" data-aos-duration="1000">
                 <h1 class="hero-title text-5xl md:text-7xl font-black mb-6">
-                    <span class="block">真相只有一个</span>
-                    <span class="hero-gradient-text">学习亦是如此</span>
+                    <span class="block" data-i18n="home.hero.title1">真相只有一个</span>
+                    <span class="hero-gradient-text" data-i18n="home.hero.title2">学习亦是如此</span>
                 </h1>
             </div>
 
             <!-- 副标题 -->
             <p class="text-xl md:text-2xl text-white/70 mb-8 max-w-3xl mx-auto" data-aos="fade-up" data-aos-delay="200">
-                基于 <span class="text-neonCyan font-bold">Agent 智能体技术</span>，
-                奥林匹克国际竞赛决赛题目准确率高达
-                <span class="text-detectiveGold font-bold text-3xl">90%</span>
+                <span data-i18n="home.hero.subtitle">基于 Agent 智能体技术，奥林匹克国际竞赛决赛题目准确率高达</span>
+                <span class="text-detectiveGold font-bold text-3xl" data-i18n="home.hero.accuracy">90%</span>
             </p>
 
             <!-- 特性标签 -->
             <div class="flex flex-wrap justify-center gap-4 mb-12" data-aos="fade-up" data-aos-delay="400">
                 <span class="feature-tag">
-                    <i class="fa-solid fa-robot mr-2"></i>DeepSeek + 豆包双引擎
+                    <i class="fa-solid fa-robot mr-2"></i><span data-i18n="home.hero.tag1">DeepSeek + 豆包双引擎</span>
                 </span>
                 <span class="feature-tag">
-                    <i class="fa-solid fa-bolt mr-2"></i>实时流式响应
+                    <i class="fa-solid fa-bolt mr-2"></i><span data-i18n="home.hero.tag2">实时流式响应</span>
                 </span>
                 <span class="feature-tag">
-                    <i class="fa-solid fa-shield-check mr-2"></i>交叉验证准确性
+                    <i class="fa-solid fa-shield-check mr-2"></i><span data-i18n="home.hero.tag3">交叉验证准确性</span>
                 </span>
             </div>
 
@@ -156,19 +161,19 @@
             <div class="flex flex-col sm:flex-row gap-4 justify-center" data-aos="fade-up" data-aos-delay="600">
                 <button onclick="startLearning()" class="cta-primary">
                     <i class="fa-solid fa-rocket mr-2"></i>
-                    开始学习之旅
+                    <span data-i18n="home.hero.ctaPrimary">开始学习之旅</span>
                     <span class="cta-shine"></span>
                 </button>
                 <a href="#features" class="cta-secondary">
                     <i class="fa-solid fa-circle-info mr-2"></i>
-                    了解更多
+                    <span data-i18n="home.hero.ctaSecondary">了解更多</span>
                 </a>
             </div>
 
             <!-- 滚动提示 -->
             <div class="scroll-indicator mt-16" data-aos="fade-up" data-aos-delay="800">
                 <i class="fa-solid fa-chevron-down"></i>
-                <span>向下滚动探索更多</span>
+                <span data-i18n="home.hero.scrollHint">向下滚动探索更多</span>
             </div>
         </div>
 
@@ -183,9 +188,9 @@
             <div class="text-center mb-16" data-aos="fade-up">
                 <h2 class="section-title">
                     <i class="fa-solid fa-wand-magic-sparkles text-detectiveGold mr-3"></i>
-                    三大核心功能
+                    <span data-i18n="home.features.sectionTitle">三大核心功能</span>
                 </h2>
-                <p class="text-white/60 mt-4 text-lg">为你的学习之路保驾护航</p>
+                <p class="text-white/60 mt-4 text-lg" data-i18n="home.features.sectionSubtitle">为你的学习之路保驾护航</p>
             </div>
 
             <div class="grid md:grid-cols-3 gap-8">
@@ -194,19 +199,19 @@
                     <div class="feature-icon physics">
                         <i class="fa-solid fa-atom"></i>
                     </div>
-                    <h3 class="feature-title">物理化学问答</h3>
-                    <p class="feature-desc">
+                    <h3 class="feature-title" data-i18n="home.features.qaCard.title">物理化学问答</h3>
+                    <p class="feature-desc" data-i18n="home.features.qaCard.desc">
                         专注于物理和化学学科，采用深度思考模式，
                         像柯南破案一样层层推理，给出准确答案。
                     </p>
                     <ul class="feature-list">
-                        <li><i class="fa-solid fa-check"></i> 奥赛决赛级题目90%准确率</li>
-                        <li><i class="fa-solid fa-check"></i> DeepSeek + 豆包交叉验证</li>
-                        <li><i class="fa-solid fa-check"></i> 图片识别自动解题</li>
-                        <li><i class="fa-solid fa-check"></i> 实时展示思考过程</li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="home.features.qaCard.item1">奥赛决赛级题目90%准确率</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="home.features.qaCard.item2">DeepSeek + 豆包交叉验证</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="home.features.qaCard.item3">图片识别自动解题</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="home.features.qaCard.item4">实时展示思考过程</span></li>
                     </ul>
                     <button onclick="goToQA()" class="feature-btn physics">
-                        <i class="fa-solid fa-flask mr-2"></i>立即体验
+                        <i class="fa-solid fa-flask mr-2"></i><span data-i18n="home.features.qaCard.btn">立即体验</span>
                     </button>
                 </div>
 
@@ -215,21 +220,21 @@
                     <div class="feature-icon diary">
                         <i class="fa-solid fa-feather-pointed"></i>
                     </div>
-                    <h3 class="feature-title">成长日记</h3>
-                    <p class="feature-desc">
+                    <h3 class="feature-title" data-i18n="home.features.diaryCard.title">成长日记</h3>
+                    <p class="feature-desc" data-i18n="home.features.diaryCard.desc">
                         记录学习心路历程，AI智能分析你的情绪变化和学习状态，
                         做你的专属学习顾问。
                     </p>
                     <ul class="feature-list">
-                        <li><i class="fa-solid fa-check"></i> AI情感分析</li>
-                        <li><i class="fa-solid fa-check"></i> 学习状态追踪</li>
-                        <li><i class="fa-solid fa-check"></i> 个性化建议</li>
-                        <li><i class="fa-solid fa-check"></i> 成长可视化报告</li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="home.features.diaryCard.item1">AI情感分析</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="home.features.diaryCard.item2">学习状态追踪</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="home.features.diaryCard.item3">个性化建议</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="home.features.diaryCard.item4">成长可视化报告</span></li>
                     </ul>
                     <button onclick="goToDiary()" class="feature-btn diary">
-                        <i class="fa-solid fa-pen-fancy mr-2"></i>开始记录
+                        <i class="fa-solid fa-pen-fancy mr-2"></i><span data-i18n="home.features.diaryCard.btn">开始记录</span>
                     </button>
-                    <span class="coming-soon">即将上线</span>
+                    <span class="coming-soon" data-i18n="home.features.diaryCard.comingSoon">即将上线</span>
                 </div>
 
                 <!-- 学习论坛卡片 -->
@@ -237,21 +242,21 @@
                     <div class="feature-icon forum">
                         <i class="fa-solid fa-users"></i>
                     </div>
-                    <h3 class="feature-title">学习论坛</h3>
-                    <p class="feature-desc">
+                    <h3 class="feature-title" data-i18n="home.features.forumCard.title">学习论坛</h3>
+                    <p class="feature-desc" data-i18n="home.features.forumCard.desc">
                         与志同道合的学习者交流讨论，分享解题技巧，
                         互帮互助共同进步。
                     </p>
                     <ul class="feature-list">
-                        <li><i class="fa-solid fa-check"></i> 学科分类讨论</li>
-                        <li><i class="fa-solid fa-check"></i> 学霸答疑解惑</li>
-                        <li><i class="fa-solid fa-check"></i> 优质内容推荐</li>
-                        <li><i class="fa-solid fa-check"></i> 积分成就系统</li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="home.features.forumCard.item1">学科分类讨论</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="home.features.forumCard.item2">学霸答疑解惑</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="home.features.forumCard.item3">优质内容推荐</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="home.features.forumCard.item4">积分成就系统</span></li>
                     </ul>
                     <button onclick="goToForum()" class="feature-btn forum">
-                        <i class="fa-solid fa-comment-dots mr-2"></i>进入论坛
+                        <i class="fa-solid fa-comment-dots mr-2"></i><span data-i18n="home.features.forumCard.btn">进入论坛</span>
                     </button>
-                    <span class="coming-soon">即将上线</span>
+                    <span class="coming-soon" data-i18n="home.features.forumCard.comingSoon">即将上线</span>
                 </div>
             </div>
         </div>
@@ -264,22 +269,22 @@
                 <div class="stat-item" data-aos="zoom-in" data-aos-delay="100">
                     <div class="stat-number" data-count="90">0</div>
                     <div class="stat-suffix">%</div>
-                    <div class="stat-label">奥赛题准确率</div>
+                    <div class="stat-label" data-i18n="home.stats.accuracy">奥赛题准确率</div>
                 </div>
                 <div class="stat-item" data-aos="zoom-in" data-aos-delay="200">
                     <div class="stat-number" data-count="2">0</div>
-                    <div class="stat-suffix">款</div>
-                    <div class="stat-label">AI引擎协同</div>
+                    <div class="stat-suffix" data-i18n="home.stats.enginesValue"></div>
+                    <div class="stat-label" data-i18n="home.stats.engines">AI引擎协同</div>
                 </div>
                 <div class="stat-item" data-aos="zoom-in" data-aos-delay="300">
                     <div class="stat-number" data-count="24">0</div>
                     <div class="stat-suffix">h</div>
-                    <div class="stat-label">全天候服务</div>
+                    <div class="stat-label" data-i18n="home.stats.service">全天候服务</div>
                 </div>
                 <div class="stat-item" data-aos="zoom-in" data-aos-delay="400">
                     <div class="stat-number" data-count="100">0</div>
                     <div class="stat-suffix">%</div>
-                    <div class="stat-label">免费使用</div>
+                    <div class="stat-label" data-i18n="home.stats.free">免费使用</div>
                 </div>
             </div>
         </div>
@@ -291,38 +296,38 @@
             <div class="text-center mb-16" data-aos="fade-up">
                 <h2 class="section-title">
                     <i class="fa-solid fa-gears text-neonCyan mr-3"></i>
-                    智能解题原理
+                    <span data-i18n="home.workflow.sectionTitle">智能解题原理</span>
                 </h2>
-                <p class="text-white/60 mt-4 text-lg">像名侦探一样，层层推理，步步验证</p>
+                <p class="text-white/60 mt-4 text-lg" data-i18n="home.workflow.sectionSubtitle">像名侦探一样，层层推理，步步验证</p>
             </div>
 
             <div class="workflow-container" data-aos="fade-up">
                 <div class="workflow-step">
                     <div class="step-number">1</div>
                     <div class="step-icon"><i class="fa-solid fa-camera"></i></div>
-                    <h4>题目输入</h4>
-                    <p>文字输入或图片上传</p>
+                    <h4 data-i18n="home.workflow.step1.title">题目输入</h4>
+                    <p data-i18n="home.workflow.step1.desc">文字输入或图片上传</p>
                 </div>
                 <div class="workflow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
                 <div class="workflow-step">
                     <div class="step-number">2</div>
                     <div class="step-icon"><i class="fa-solid fa-brain"></i></div>
-                    <h4>深度分析</h4>
-                    <p>AI展示完整思考过程</p>
+                    <h4 data-i18n="home.workflow.step2.title">深度分析</h4>
+                    <p data-i18n="home.workflow.step2.desc">AI展示完整思考过程</p>
                 </div>
                 <div class="workflow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
                 <div class="workflow-step">
                     <div class="step-number">3</div>
                     <div class="step-icon"><i class="fa-solid fa-shield-halved"></i></div>
-                    <h4>交叉验证</h4>
-                    <p>双AI互相检验答案</p>
+                    <h4 data-i18n="home.workflow.step3.title">交叉验证</h4>
+                    <p data-i18n="home.workflow.step3.desc">双AI互相检验答案</p>
                 </div>
                 <div class="workflow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
                 <div class="workflow-step">
                     <div class="step-number">4</div>
                     <div class="step-icon"><i class="fa-solid fa-check-double"></i></div>
-                    <h4>精准解答</h4>
-                    <p>输出完整解题步骤</p>
+                    <h4 data-i18n="home.workflow.step4.title">精准解答</h4>
+                    <p data-i18n="home.workflow.step4.desc">输出完整解题步骤</p>
                 </div>
             </div>
         </div>
@@ -339,8 +344,8 @@
                         </div>
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-white">名侦探作业帮</h3>
-                        <p class="text-xs text-white/40">真相只有一个，学习亦是如此</p>
+                        <h3 class="text-lg font-bold text-white" data-i18n="common.appName">名侦探作业帮</h3>
+                        <p class="text-xs text-white/40" data-i18n="home.footer.slogan">真相只有一个，学习亦是如此</p>
                     </div>
                 </div>
 
@@ -350,7 +355,7 @@
                     <a href="#" class="footer-link"><i class="fa-solid fa-envelope"></i></a>
                 </div>
 
-                <p class="text-white/40 text-sm">
+                <p class="text-white/40 text-sm" data-i18n="home.footer.copyright">
                     © 2025 名侦探作业帮. All rights reserved.
                 </p>
             </div>
@@ -363,14 +368,14 @@
             <div class="modal-icon">
                 <i class="fa-solid fa-lock"></i>
             </div>
-            <h3 class="modal-title">需要登录</h3>
-            <p class="modal-desc">登录后即可使用全部功能，开启你的学习之旅</p>
+            <h3 class="modal-title" data-i18n="home.loginModal.title">需要登录</h3>
+            <p class="modal-desc" data-i18n="home.loginModal.desc">登录后即可使用全部功能，开启你的学习之旅</p>
             <div class="modal-btns">
                 <a href="/login" class="modal-btn-primary">
-                    <i class="fa-solid fa-right-to-bracket mr-2"></i>立即登录
+                    <i class="fa-solid fa-right-to-bracket mr-2"></i><span data-i18n="home.loginModal.loginBtn">立即登录</span>
                 </a>
                 <a href="/register" class="modal-btn-secondary">
-                    <i class="fa-solid fa-user-plus mr-2"></i>注册账号
+                    <i class="fa-solid fa-user-plus mr-2"></i><span data-i18n="home.loginModal.registerBtn">注册账号</span>
                 </a>
             </div>
             <button onclick="closeModal()" class="modal-close">
@@ -381,6 +386,11 @@
 
     <!-- AOS 动画库 -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+    <!-- 国际化支持 -->
+    <script src="{{ url_for('static', filename='js/translations/zh-CN.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/translations/en-US.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
 
     <script>
         // 初始化AOS
@@ -462,7 +472,7 @@
                 showLoginModal();
                 return;
             }
-            alert('日记功能即将上线，敬请期待！');
+            alert(window.i18n ? window.i18n.t('home.alerts.diaryComingSoon') : '日记功能即将上线，敬请期待！');
         }
 
         // 跳转到论坛
@@ -471,7 +481,7 @@
                 showLoginModal();
                 return;
             }
-            alert('论坛功能即将上线，敬请期待！');
+            alert(window.i18n ? window.i18n.t('home.alerts.forumComingSoon') : '论坛功能即将上线，敬请期待！');
         }
 
         // 生成星星
