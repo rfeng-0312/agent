@@ -237,7 +237,7 @@
                     showMessage('登录成功，正在跳转...', false);
                     // 检查是否有重定向目标
                     const urlParams = new URLSearchParams(window.location.search);
-                    const redirect = urlParams.get('redirect') || '/app';
+                    const redirect = urlParams.get('redirect') || '/';
                     setTimeout(() => {
                         window.location.href = redirect;
                     }, 1000);
