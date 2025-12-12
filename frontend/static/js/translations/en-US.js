@@ -5,6 +5,7 @@ const translations_en = {
     // ===== Common =====
     common: {
         appName: "Detective Study Helper",
+        appSlogan: "AI-Powered Learning Platform",
         login: "Login",
         register: "Sign Up",
         logout: "Logout",

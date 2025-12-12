@@ -6,6 +6,7 @@ const translations_zh = {
     // ===== 通用 =====
     common: {
         appName: "名侦探作业帮",
+        appSlogan: "AI智能学习平台",
         login: "登录",
         register: "注册",
         logout: "退出登录",
