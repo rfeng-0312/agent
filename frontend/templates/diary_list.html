@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="diary.listPageTitle">我的日记 | 名侦探作业帮</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        neonCyan: '#00d4ff',
+                        detectiveGold: '#ffd700',
+                        mysteryBlack: '#1a1a2e',
+                        moonlightBlue: '#16213e',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .diary-card {
+            background: linear-gradient(135deg, rgba(22, 33, 62, 0.9) 0%, rgba(26, 26, 46, 0.95) 100%);
+            border: 1px solid rgba(255, 215, 0, 0.1);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .diary-card:hover {
+            border-color: rgba(0, 212, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .mood-emoji {
+            font-size: 24px;
+        }
+
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .line-clamp-1 {
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* 语言切换样式 */
+        .lang-switcher .lang-btn {
+            opacity: 0.6;
+            transition: all 0.3s ease;
+        }
+        .lang-switcher .lang-btn:hover,
+        .lang-switcher .lang-btn.active {
+            opacity: 1;
+            color: #00d4ff;
+        }
+
+        .streak-badge {
+            background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+            color: #1a1a2e;
+            font-weight: bold;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .loading-spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #00d4ff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-mysteryBlack via-moonlightBlue to-mysteryBlack text-white">
+
+    <!-- 星星背景 -->
+    <div class="stars" id="stars"></div>
+
+    <!-- 导航栏 -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-mysteryBlack/80 backdrop-blur-md border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <a href="/" class="flex items-center gap-3">
+                    <i class="fa-solid fa-magnifying-glass text-neonCyan text-xl"></i>
+                    <span class="text-xl font-bold bg-gradient-to-r from-neonCyan to-detectiveGold bg-clip-text text-transparent" data-i18n="common.appName">名侦探作业帮</span>
+                </a>
+                <div class="flex items-center gap-4">
+                    <!-- 语言切换 -->
+                    <div class="lang-switcher flex items-center gap-1 text-sm">
+                        <button data-lang="zh-CN" class="lang-btn px-2 py-1 rounded hover:text-neonCyan transition-colors">中文</button>
+                        <span class="text-white/30">|</span>
+                        <button data-lang="en-US" class="lang-btn px-2 py-1 rounded hover:text-neonCyan transition-colors">EN</button>
+                    </div>
+                    <div id="streakBadge" class="streak-badge hidden">
+                        <i class="fa-solid fa-fire mr-1"></i>
+                        <span id="streakCount">0</span> <span data-i18n="diary.days">天</span>
+                    </div>
+                    <a href="/diary" class="px-4 py-2 rounded-lg bg-gradient-to-r from-neonCyan to-detectiveGold text-mysteryBlack font-bold transition-all hover:shadow-lg">
+                        <i class="fa-solid fa-plus mr-2"></i>
+                        <span data-i18n="diary.writeNew">写新日记</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容 -->
+    <main class="pt-24 pb-12 px-4">
+        <div class="max-w-3xl mx-auto">
+
+            <h1 class="text-2xl font-bold mb-6">
+                <i class="fa-solid fa-book text-detectiveGold mr-2"></i>
+                <span data-i18n="diary.myDiaries">我的日记</span>
+                <span id="totalCount" class="text-white/50 text-lg ml-2">(0)</span>
+            </h1>
+
+            <!-- 加载状态 -->
+            <div id="loadingState" class="text-center py-16">
+                <div class="loading-spinner mx-auto mb-4"></div>
+                <p class="text-white/50" data-i18n="common.loading">加载中...</p>
+            </div>
+
+            <!-- 日记列表 -->
+            <div id="diaryList" class="space-y-4 hidden">
+                <!-- 动态加载 -->
+            </div>
+
+            <!-- 空状态 -->
+            <div id="emptyState" class="hidden text-center py-16">
+                <i class="fa-solid fa-book-open text-6xl text-white/20 mb-4"></i>
+                <p class="text-white/50 mb-4" data-i18n="diary.empty">还没有日记，开始记录你的第一篇吧！</p>
+                <a href="/diary" class="inline-block px-6 py-3 rounded-lg bg-gradient-to-r from-neonCyan to-detectiveGold text-mysteryBlack font-bold">
+                    <i class="fa-solid fa-pen mr-2"></i>
+                    <span data-i18n="diary.startWriting">开始写日记</span>
+                </a>
+            </div>
+
+            <!-- 加载更多 -->
+            <div id="loadMore" class="hidden text-center py-8">
+                <button onclick="loadDiaries()" class="px-6 py-3 rounded-lg border border-white/20 text-white/70 hover:bg-white/10 transition-colors">
+                    <i class="fa-solid fa-chevron-down mr-2"></i>
+                    <span data-i18n="diary.loadMore">加载更多</span>
+                </button>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/translations/zh-CN.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/translations/en-US.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
+
+    <script>
+        const moodEmojis = ['', '😢', '😕', '😐', '😊', '😄'];
+        let offset = 0;
+        const limit = 20;
+        let hasMore = true;
+        let isLoading = false;
+
+        // 生成星星背景
+        function createStars() {
+            const container = document.getElementById('stars');
+            if (!container) return;
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                star.style.width = Math.random() * 3 + 1 + 'px';
+                star.style.height = star.style.width;
+                container.appendChild(star);
+            }
+        }
+
+        // 格式化日期
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const lang = window.i18n ? window.i18n.getCurrentLanguage() : 'zh-CN';
+
+            if (lang === 'en-US') {
+                return date.toLocaleDateString('en-US', {
+                    year: 'numeric', month: 'long', day: 'numeric'
+                });
+            }
+            return date.toLocaleDateString('zh-CN', {
+                year: 'numeric', month: 'long', day: 'numeric'
+            });
+        }
+
+        async function loadDiaries() {
+            if (isLoading) return;
+            isLoading = true;
+
+            try {
+                const response = await fetch(`/api/diaries?limit=${limit}&offset=${offset}`);
+                const data = await response.json();
+
+                // 隐藏加载状态
+                document.getElementById('loadingState').classList.add('hidden');
+
+                if (!data.success) {
+                    throw new Error(data.message);
+                }
+
+                document.getElementById('totalCount').textContent = `(${data.total})`;
+
+                if (data.diaries.length === 0 && offset === 0) {
+                    document.getElementById('emptyState').classList.remove('hidden');
+                    return;
+                }
+
+                const listEl = document.getElementById('diaryList');
+                listEl.classList.remove('hidden');
+
+                data.diaries.forEach(diary => {
+                    const dateStr = formatDate(diary.created_at);
+
+                    const card = document.createElement('a');
+                    card.href = `/diary/${diary.id}`;
+                    card.className = 'diary-card block p-4';
+
+                    const contentPreview = diary.content + (diary.content.length >= 100 ? '...' : '');
+                    const aiPreview = diary.ai_response ? diary.ai_response + '...' : '';
+
+                    card.innerHTML = `
+                        <div class="flex items-start gap-4">
+                            <div class="mood-emoji">${moodEmojis[diary.mood_score] || '📝'}</div>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-sm text-white/50 mb-1">${dateStr}</div>
+                                <p class="text-white/90 line-clamp-2">${contentPreview}</p>
+                                ${aiPreview ? `<p class="text-neonCyan/70 text-sm mt-2 line-clamp-1"><i class="fa-solid fa-comment mr-1"></i>${aiPreview}</p>` : ''}
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-white/30 mt-2"></i>
+                        </div>
+                    `;
+                    listEl.appendChild(card);
+                });
+
+                offset += data.diaries.length;
+                hasMore = offset < data.total;
+
+                document.getElementById('loadMore').classList.toggle('hidden', !hasMore);
+
+            } catch (error) {
+                console.error('Load diaries error:', error);
+                document.getElementById('loadingState').classList.add('hidden');
+                document.getElementById('emptyState').classList.remove('hidden');
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        // 加载连续天数
+        async function loadStreak() {
+            try {
+                const response = await fetch('/api/diary/streak');
+                const data = await response.json();
+
+                if (data.streak > 0) {
+                    document.getElementById('streakBadge').classList.remove('hidden');
+                    document.getElementById('streakCount').textContent = data.streak;
+                }
+            } catch (error) {
+                console.error('Load streak error:', error);
+            }
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            createStars();
+            loadDiaries();
+            loadStreak();
+        });
+    </script>
+</body>
+</html>

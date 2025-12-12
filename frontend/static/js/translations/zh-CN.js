@@ -340,6 +340,40 @@ const translations_zh = {
             success: "密码重置成功！正在跳转到登录页面...",
             networkError: "网络错误，请稍后重试"
         }
+    },
+
+    // ===== 日记页 =====
+    diary: {
+        pageTitle: "写日记 | 名侦探作业帮",
+        listPageTitle: "我的日记 | 名侦探作业帮",
+        title: "今日成长记录",
+        subtitle: "记录你的心情，小柯会陪伴你",
+        moodLabel: "今天心情怎么样？",
+        contentLabel: "写下今天的故事",
+        placeholder: "今天发生了什么？有什么想说的吗...",
+        characters: "字",
+        save: "保存日记",
+        saving: "保存中...",
+        saved: "已保存",
+        history: "历史记录",
+        days: "天",
+        myDiaries: "我的日记",
+        empty: "还没有日记，开始记录你的第一篇吧！",
+        startWriting: "开始写日记",
+        writeNew: "写新日记",
+        writeAnother: "再写一篇",
+        viewHistory: "查看历史",
+        loadMore: "加载更多",
+        emptyError: "请写点什么再保存哦~",
+        aiError: "小柯暂时无法回复，但你的日记已保存~",
+        todayWritten: "今日已记录",
+        mood: {
+            1: "很差",
+            2: "不太好",
+            3: "一般",
+            4: "不错",
+            5: "很棒"
+        }
     }
 };
 

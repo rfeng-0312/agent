@@ -339,6 +339,40 @@ const translations_en = {
             success: "Password reset successful! Redirecting to login page...",
             networkError: "Network error, please try again later"
         }
+    },
+
+    // ===== Diary =====
+    diary: {
+        pageTitle: "Write Diary | Detective Study Helper",
+        listPageTitle: "My Diaries | Detective Study Helper",
+        title: "Today's Growth Record",
+        subtitle: "Record your feelings, Xiao Ke will accompany you",
+        moodLabel: "How do you feel today?",
+        contentLabel: "Write today's story",
+        placeholder: "What happened today? Anything you want to share...",
+        characters: "characters",
+        save: "Save Diary",
+        saving: "Saving...",
+        saved: "Saved",
+        history: "History",
+        days: "days",
+        myDiaries: "My Diaries",
+        empty: "No diary yet. Start recording your first one!",
+        startWriting: "Start Writing",
+        writeNew: "New Diary",
+        writeAnother: "Write Another",
+        viewHistory: "View History",
+        loadMore: "Load More",
+        emptyError: "Please write something before saving~",
+        aiError: "Xiao Ke is temporarily unavailable, but your diary has been saved~",
+        todayWritten: "Today recorded",
+        mood: {
+            1: "Very Bad",
+            2: "Not Good",
+            3: "Okay",
+            4: "Good",
+            5: "Great"
+        }
     }
 };
 

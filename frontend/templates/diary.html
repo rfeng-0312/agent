@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="diary.pageTitle">写日记 | 名侦探作业帮</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- 自定义样式 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+
+    <!-- Tailwind 配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        neonCyan: '#00d4ff',
+                        detectiveGold: '#ffd700',
+                        mysteryBlack: '#1a1a2e',
+                        moonlightBlue: '#16213e',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* 日记专属样式 */
+        .diary-container {
+            background: linear-gradient(135deg, rgba(22, 33, 62, 0.9) 0%, rgba(26, 26, 46, 0.95) 100%);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .diary-textarea {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            resize: none;
+            transition: all 0.3s ease;
+        }
+
+        .diary-textarea:focus {
+            border-color: rgba(0, 212, 255, 0.5);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+            outline: none;
+        }
+
+        .mood-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 24px;
+        }
+
+        .mood-btn:hover {
+            transform: scale(1.1);
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .mood-btn.selected {
+            border-color: #ffd700;
+            background: rgba(255, 215, 0, 0.2);
+            transform: scale(1.15);
+        }
+
+        .ai-response-box {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(255, 215, 0, 0.1) 100%);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 12px;
+        }
+
+        .ai-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #00d4ff 0%, #ffd700 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: #00d4ff;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 2px;
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+
+        .typing-indicator span:nth-child(1) { animation-delay: 0s; }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        .streak-badge {
+            background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+            color: #1a1a2e;
+            font-weight: bold;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        /* 语言切换样式 */
+        .lang-switcher .lang-btn {
+            opacity: 0.6;
+            transition: all 0.3s ease;
+        }
+        .lang-switcher .lang-btn:hover,
+        .lang-switcher .lang-btn.active {
+            opacity: 1;
+            color: #00d4ff;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-mysteryBlack via-moonlightBlue to-mysteryBlack text-white">
+
+    <!-- 星星背景 -->
+    <div class="stars" id="stars"></div>
+
+    <!-- 导航栏 -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-mysteryBlack/80 backdrop-blur-md border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <a href="/" class="flex items-center gap-3">
+                    <i class="fa-solid fa-magnifying-glass text-neonCyan text-xl"></i>
+                    <span class="text-xl font-bold bg-gradient-to-r from-neonCyan to-detectiveGold bg-clip-text text-transparent" data-i18n="common.appName">名侦探作业帮</span>
+                </a>
+                <div class="flex items-center gap-4">
+                    <!-- 语言切换 -->
+                    <div class="lang-switcher flex items-center gap-1 text-sm">
+                        <button data-lang="zh-CN" class="lang-btn px-2 py-1 rounded hover:text-neonCyan transition-colors">中文</button>
+                        <span class="text-white/30">|</span>
+                        <button data-lang="en-US" class="lang-btn px-2 py-1 rounded hover:text-neonCyan transition-colors">EN</button>
+                    </div>
+                    <a href="/diary/list" class="text-white/70 hover:text-white transition-colors">
+                        <i class="fa-solid fa-clock-rotate-left mr-1"></i>
+                        <span data-i18n="diary.history">历史记录</span>
+                    </a>
+                    <div id="streakBadge" class="streak-badge hidden">
+                        <i class="fa-solid fa-fire mr-1"></i>
+                        <span id="streakCount">0</span> <span data-i18n="diary.days">天</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <main class="pt-24 pb-12 px-4">
+        <div class="max-w-2xl mx-auto">
+
+            <!-- 页面标题 -->
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold mb-2">
+                    <i class="fa-solid fa-feather-pointed text-detectiveGold mr-2"></i>
+                    <span data-i18n="diary.title">今日成长记录</span>
+                </h1>
+                <p class="text-white/60" data-i18n="diary.subtitle">记录你的心情，小柯会陪伴你</p>
+            </div>
+
+            <!-- 日记容器 -->
+            <div class="diary-container p-6">
+
+                <!-- 心情选择 -->
+                <div class="mb-6">
+                    <label class="block text-white/80 mb-3">
+                        <i class="fa-solid fa-face-smile mr-2"></i>
+                        <span data-i18n="diary.moodLabel">今天心情怎么样？</span>
+                    </label>
+                    <div class="flex justify-center gap-4">
+                        <button class="mood-btn" data-mood="1" title="很差">😢</button>
+                        <button class="mood-btn" data-mood="2" title="不太好">😕</button>
+                        <button class="mood-btn" data-mood="3" title="一般">😐</button>
+                        <button class="mood-btn" data-mood="4" title="不错">😊</button>
+                        <button class="mood-btn" data-mood="5" title="很棒">😄</button>
+                    </div>
+                </div>
+
+                <!-- 日记输入 -->
+                <div class="mb-6">
+                    <label class="block text-white/80 mb-3">
+                        <i class="fa-solid fa-pen mr-2"></i>
+                        <span data-i18n="diary.contentLabel">写下今天的故事</span>
+                    </label>
+                    <textarea
+                        id="diaryContent"
+                        class="diary-textarea w-full h-64 p-4 rounded-lg text-lg"
+                        placeholder="今天发生了什么？有什么想说的吗..."
+                        data-i18n-placeholder="diary.placeholder"
+                    ></textarea>
+                    <div class="flex justify-between text-sm text-white/50 mt-2">
+                        <span><span id="charCount">0</span> / 10000 <span data-i18n="diary.characters">字</span></span>
+                        <span id="todayStatus" class="text-detectiveGold hidden">
+                            <i class="fa-solid fa-check-circle mr-1"></i>
+                            <span data-i18n="diary.todayWritten">今日已记录</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- 保存按钮 -->
+                <button id="saveBtn" class="w-full py-4 rounded-lg bg-gradient-to-r from-neonCyan to-detectiveGold text-mysteryBlack font-bold text-lg transition-all hover:shadow-lg hover:shadow-neonCyan/30 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fa-solid fa-paper-plane mr-2"></i>
+                    <span data-i18n="diary.save">保存日记</span>
+                </button>
+
+                <!-- AI回复区域 (初始隐藏) -->
+                <div id="aiResponseSection" class="hidden mt-8">
+                    <div class="ai-response-box p-4">
+                        <div class="flex items-start gap-3">
+                            <div class="ai-avatar flex-shrink-0">
+                                <i class="fa-solid fa-user-secret text-mysteryBlack"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-bold text-detectiveGold mb-2" id="aiCharacterName">小柯</div>
+                                <div id="aiResponseContent" class="text-white/90 leading-relaxed">
+                                    <!-- AI回复内容 -->
+                                </div>
+                                <div id="typingIndicator" class="typing-indicator hidden">
+                                    <span></span><span></span><span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 继续写或查看历史 -->
+                    <div class="flex gap-4 mt-4">
+                        <button onclick="resetForm()" class="flex-1 py-3 rounded-lg border border-white/20 text-white/70 hover:bg-white/10 transition-colors">
+                            <i class="fa-solid fa-pen mr-2"></i>
+                            <span data-i18n="diary.writeAnother">再写一篇</span>
+                        </button>
+                        <a href="/diary/list" class="flex-1 py-3 rounded-lg border border-neonCyan/30 text-neonCyan hover:bg-neonCyan/10 transition-colors text-center">
+                            <i class="fa-solid fa-book mr-2"></i>
+                            <span data-i18n="diary.viewHistory">查看历史</span>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- 国际化支持 -->
+    <script src="{{ url_for('static', filename='js/translations/zh-CN.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/translations/en-US.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
+
+    <!-- 页面脚本 -->
+    <script>
+        // 状态变量
+        let selectedMood = null;
+        let isSaving = false;
+
+        // DOM元素
+        const diaryContent = document.getElementById('diaryContent');
+        const charCount = document.getElementById('charCount');
+        const saveBtn = document.getElementById('saveBtn');
+        const aiResponseSection = document.getElementById('aiResponseSection');
+        const aiResponseContent = document.getElementById('aiResponseContent');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const streakBadge = document.getElementById('streakBadge');
+        const streakCount = document.getElementById('streakCount');
+        const todayStatus = document.getElementById('todayStatus');
+
+        // 生成星星背景
+        function createStars() {
+            const container = document.getElementById('stars');
+            if (!container) return;
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                star.style.width = Math.random() * 3 + 1 + 'px';
+                star.style.height = star.style.width;
+                container.appendChild(star);
+            }
+        }
+
+        // 心情选择
+        document.querySelectorAll('.mood-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedMood = parseInt(btn.dataset.mood);
+            });
+        });
+
+        // 字数统计
+        diaryContent.addEventListener('input', () => {
+            charCount.textContent = diaryContent.value.length;
+        });
+
+        // 重置表单
+        function resetForm() {
+            diaryContent.value = '';
+            charCount.textContent = '0';
+            selectedMood = null;
+            document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+            aiResponseSection.classList.add('hidden');
+            aiResponseContent.innerHTML = '';
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i>' +
+                (window.i18n ? i18n.t('diary.save') : '保存日记');
+        }
+
+        // 保存日记
+        saveBtn.addEventListener('click', async () => {
+            const content = diaryContent.value.trim();
+
+            if (!content) {
+                alert(window.i18n ? i18n.t('diary.emptyError') : '请写点什么再保存哦~');
+                return;
+            }
+
+            if (isSaving) return;
+            isSaving = true;
+
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>' +
+                (window.i18n ? i18n.t('diary.saving') : '保存中...');
+
+            try {
+                // 1. 保存日记
+                const saveResponse = await fetch('/api/diary', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content: content,
+                        mood_score: selectedMood
+                    })
+                });
+
+                const saveResult = await saveResponse.json();
+
+                if (!saveResult.success) {
+                    throw new Error(saveResult.message);
+                }
+
+                // 2. 显示AI回复区域
+                aiResponseSection.classList.remove('hidden');
+                typingIndicator.classList.remove('hidden');
+                aiResponseContent.innerHTML = '';
+
+                // 3. 请求AI回复
+                const aiResponse = await fetch(`/api/diary/${saveResult.diary_id}/ai-response`, {
+                    method: 'POST'
+                });
+
+                const aiResult = await aiResponse.json();
+
+                if (!aiResult.success) {
+                    throw new Error(aiResult.message);
+                }
+
+                // 4. 使用SSE接收流式响应
+                const eventSource = new EventSource(`/api/stream/${aiResult.session_id}`);
+
+                eventSource.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+
+                    if (data.type === 'stage') {
+                        // 显示阶段信息
+                        console.log('Stage:', data.stage, data.message);
+                    } else if (data.type === 'content') {
+                        typingIndicator.classList.add('hidden');
+                        aiResponseContent.innerHTML += data.content;
+                    } else if (data.type === 'done') {
+                        eventSource.close();
+                        saveBtn.disabled = false;
+                        saveBtn.innerHTML = '<i class="fa-solid fa-check mr-2"></i>' +
+                            (window.i18n ? i18n.t('diary.saved') : '已保存');
+
+                        // 更新连续天数
+                        loadStreak();
+                        // 更新今日状态
+                        todayStatus.classList.remove('hidden');
+                    } else if (data.type === 'error') {
+                        eventSource.close();
+                        throw new Error(data.message);
+                    }
+                };
+
+                eventSource.onerror = () => {
+                    eventSource.close();
+                    typingIndicator.classList.add('hidden');
+                    aiResponseContent.innerHTML = window.i18n ?
+                        i18n.t('diary.aiError') : '小柯暂时无法回复，但你的日记已保存~';
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = '<i class="fa-solid fa-check mr-2"></i>' +
+                        (window.i18n ? i18n.t('diary.saved') : '已保存');
+                    // 更新今日状态
+                    todayStatus.classList.remove('hidden');
+                };
+
+            } catch (error) {
+                console.error('Save diary error:', error);
+                alert(error.message || '保存失败，请重试');
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i>' +
+                    (window.i18n ? i18n.t('diary.save') : '保存日记');
+            } finally {
+                isSaving = false;
+            }
+        });
+
+        // 加载连续天数
+        async function loadStreak() {
+            try {
+                const response = await fetch('/api/diary/streak');
+                const data = await response.json();
+
+                if (data.streak > 0) {
+                    streakBadge.classList.remove('hidden');
+                    streakCount.textContent = data.streak;
+                }
+            } catch (error) {
+                console.error('Load streak error:', error);
+            }
+        }
+
+        // 检查今日是否已写日记
+        async function checkTodayStatus() {
+            try {
+                const response = await fetch('/api/diary/status/today');
+                const data = await response.json();
+
+                if (data.has_diary) {
+                    todayStatus.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Check today status error:', error);
+            }
+        }
+
+        // 页面加载时
+        document.addEventListener('DOMContentLoaded', () => {
+            createStars();
+            loadStreak();
+            checkTodayStatus();
+        });
+    </script>
+</body>
+</html>

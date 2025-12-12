@@ -234,7 +234,6 @@
                     <button onclick="goToDiary()" class="feature-btn diary">
                         <i class="fa-solid fa-pen-fancy mr-2"></i><span data-i18n="home.features.diaryCard.btn">开始记录</span>
                     </button>
-                    <span class="coming-soon" data-i18n="home.features.diaryCard.comingSoon">即将上线</span>
                 </div>
 
                 <!-- 学习论坛卡片 -->
@@ -472,7 +471,7 @@
                 showLoginModal();
                 return;
             }
-            alert(window.i18n ? window.i18n.t('home.alerts.diaryComingSoon') : '日记功能即将上线，敬请期待！');
+            window.location.href = '/diary';
         }
 
         // 跳转到论坛
