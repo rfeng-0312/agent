@@ -426,6 +426,34 @@
                 <i class="fa-solid fa-share-alt mr-2"></i><span data-i18n="result.actions.share">分享</span>
             </button>
         </div>
+
+        <!-- 追问对话区域 -->
+        <div class="max-w-4xl mx-auto mt-8 animate-slide-up" style="animation-delay: 0.7s">
+            <div class="bg-gradient-to-br from-purple-900/30 to-blue-900/30 rounded-2xl p-6 border border-purple-500/20">
+                <h3 class="text-lg font-bold text-white mb-4">
+                    <i class="fa-solid fa-comments text-neonCyan mr-2"></i>
+                    <span data-i18n="result.followup.title">继续追问</span>
+                </h3>
+                <p class="text-white/50 text-sm mb-4" data-i18n="result.followup.hint">
+                    对这道题还有疑问？可以继续向AI提问
+                </p>
+
+                <!-- 聊天记录 -->
+                <div id="chatMessages" class="max-h-96 overflow-y-auto space-y-4 mb-4"></div>
+
+                <!-- 输入区域 -->
+                <div class="flex gap-3">
+                    <input type="text" id="chatInput"
+                           class="flex-1 px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:border-neonCyan transition-colors"
+                           placeholder="对这道题还有什么疑问？"
+                           onkeypress="if(event.key==='Enter' && !event.shiftKey) sendFollowup()">
+                    <button onclick="sendFollowup()" id="sendFollowupBtn"
+                            class="px-6 py-3 rounded-xl bg-gradient-to-r from-neonCyan to-purple-500 text-white font-bold hover:shadow-lg transition-all disabled:opacity-50">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
     </main>
 
     <!-- 返回顶部按钮 -->
@@ -831,6 +859,177 @@
         backToTopBtn.addEventListener('click', () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
+
+        // ==================== 追问对话功能 ====================
+        let chatHistory = [];
+        let isFollowupSending = false;
+
+        async function sendFollowup() {
+            const input = document.getElementById('chatInput');
+            const btn = document.getElementById('sendFollowupBtn');
+            const message = input.value.trim();
+
+            if (!message || isFollowupSending) return;
+
+            isFollowupSending = true;
+            input.value = '';
+            btn.disabled = true;
+
+            // 添加用户消息到UI
+            addChatMessage('user', message);
+            chatHistory.push({ role: 'user', content: message });
+
+            // 创建AI回复占位
+            const aiMsgId = addChatMessage('assistant', '', true);
+
+            try {
+                const response = await fetch('/api/chat/followup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        message: message,
+                        history: chatHistory.slice(0, -1)
+                    })
+                });
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let aiResponse = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const text = decoder.decode(value);
+                    const lines = text.split('\n');
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.slice(6));
+                                if (data.type === 'content') {
+                                    aiResponse += data.content;
+                                    updateChatMessage(aiMsgId, aiResponse);
+                                } else if (data.type === 'done') {
+                                    chatHistory.push({ role: 'assistant', content: aiResponse });
+                                    finalizeChatMessage(aiMsgId);
+                                } else if (data.type === 'error') {
+                                    updateChatMessage(aiMsgId, '抱歉，发生了错误：' + data.message);
+                                    finalizeChatMessage(aiMsgId);
+                                }
+                            } catch (e) {
+                                // 忽略解析错误
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Follow-up error:', error);
+                updateChatMessage(aiMsgId, '抱歉，网络错误，请重试。');
+                finalizeChatMessage(aiMsgId);
+            } finally {
+                isFollowupSending = false;
+                btn.disabled = false;
+                input.focus();
+            }
+        }
+
+        function addChatMessage(role, content, isStreaming = false) {
+            const container = document.getElementById('chatMessages');
+            const msgId = 'msg-' + Date.now();
+            const isUser = role === 'user';
+
+            const msgHtml = `
+                <div id="${msgId}" class="flex ${isUser ? 'justify-end' : 'justify-start'} animate-fade-in">
+                    <div class="max-w-[85%] px-4 py-3 rounded-2xl ${
+                        isUser
+                            ? 'bg-gradient-to-r from-neonCyan to-purple-500 text-white'
+                            : 'bg-white/10 text-white/90 border border-white/10'
+                    }">
+                        <div class="chat-content text-sm leading-relaxed">${
+                            content || (isStreaming ? '<span class="typing-cursor">|</span>' : '')
+                        }</div>
+                    </div>
+                </div>
+            `;
+
+            container.insertAdjacentHTML('beforeend', msgHtml);
+            container.scrollTop = container.scrollHeight;
+            return msgId;
+        }
+
+        function updateChatMessage(msgId, content) {
+            const el = document.querySelector(`#${msgId} .chat-content`);
+            if (el) {
+                // 渲染Markdown和公式
+                let rendered = marked.parse(content);
+                el.innerHTML = rendered + '<span class="typing-cursor">|</span>';
+                document.getElementById('chatMessages').scrollTop =
+                    document.getElementById('chatMessages').scrollHeight;
+            }
+        }
+
+        function finalizeChatMessage(msgId) {
+            const el = document.querySelector(`#${msgId} .chat-content`);
+            if (el) {
+                const cursor = el.querySelector('.typing-cursor');
+                if (cursor) cursor.remove();
+
+                // 尝试渲染KaTeX公式
+                try {
+                    renderMathInElement(el, {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '$', right: '$', display: false},
+                            {left: '\\[', right: '\\]', display: true},
+                            {left: '\\(', right: '\\)', display: false}
+                        ],
+                        throwOnError: false
+                    });
+                } catch (e) {
+                    // 忽略KaTeX渲染错误
+                }
+            }
+        }
     </script>
+
+    <style>
+        /* 追问对话样式 */
+        .typing-cursor {
+            animation: blink 1s infinite;
+            color: #00d4ff;
+        }
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fade-in 0.3s ease-out;
+        }
+        #chatMessages .chat-content p {
+            margin-bottom: 0.5rem;
+        }
+        #chatMessages .chat-content p:last-child {
+            margin-bottom: 0;
+        }
+        #chatMessages .chat-content code {
+            background: rgba(0,0,0,0.3);
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.25rem;
+            font-size: 0.85em;
+        }
+        #chatMessages .chat-content pre {
+            background: rgba(0,0,0,0.3);
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin: 0.5rem 0;
+        }
+    </style>
 </body>
 </html>

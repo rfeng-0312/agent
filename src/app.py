@@ -1314,6 +1314,90 @@ Keep each analysis under 80 words. Be specific, not generic."""
         yield f"data: {json.dumps({'type': 'error', 'message': str(e)}, ensure_ascii=False)}\n\n"
 
 
+# ==================== 追问对话API ====================
+@app.route('/api/chat/followup', methods=['POST'])
+def chat_followup():
+    """追问对话API - 流式响应"""
+    data = request.json
+    session_id = data.get('session_id')
+    message = data.get('message')
+    history = data.get('history', [])
+
+    if not session_id or not message:
+        return jsonify({'success': False, 'message': '缺少必要参数'}), 400
+
+    def generate():
+        try:
+            # 读取原始会话数据
+            session_file = f'../data/sessions/{session_id}.json'
+            response_file = f'../data/sessions/{session_id}_response.json'
+
+            with open(session_file, 'r', encoding='utf-8') as f:
+                session_data = json.load(f)
+
+            # 读取原始答案
+            original_answer = ''
+            try:
+                with open(response_file, 'r', encoding='utf-8') as f:
+                    response_data = json.load(f)
+                    original_answer = response_data.get('answer', '')
+            except FileNotFoundError:
+                pass
+
+            subject = session_data.get('subject', 'physics')
+            question = session_data.get('question', '')
+
+            # 构建系统提示词
+            subject_name = '物理' if subject == 'physics' else '化学'
+            system_prompt = f"""你是一位专业的{subject_name}老师，正在帮助学生解答问题。
+
+【背景信息】
+学生之前提出了一个问题，你已经给出了详细解答。现在学生有进一步的疑问。
+
+【原始问题】
+{question[:1000]}
+
+【你之前的解答】
+{original_answer[:2000]}
+
+【当前任务】
+请基于以上背景，回答学生的追问。要求：
+1. 保持与之前解答的一致性
+2. 如果追问涉及之前解答中的内容，直接引用
+3. 如果是新问题，正常解答
+4. 语言简洁清晰，适合学生理解
+5. 如果涉及公式，使用LaTeX格式"""
+
+            messages = [{"role": "system", "content": system_prompt}]
+
+            # 添加历史对话（最近10轮）
+            for h in history[-10:]:
+                messages.append({"role": h.get("role", "user"), "content": h.get("content", "")})
+
+            # 添加当前追问
+            messages.append({"role": "user", "content": message})
+
+            # 调用豆包API流式返回
+            stream = doubao_client.client.chat.completions.create(
+                model=doubao_client.model,
+                messages=messages,
+                stream=True
+            )
+
+            for chunk in stream:
+                if chunk.choices and chunk.choices[0].delta.content:
+                    content = chunk.choices[0].delta.content
+                    yield f"data: {json.dumps({'type': 'content', 'content': content}, ensure_ascii=False)}\n\n"
+
+            yield f"data: {json.dumps({'type': 'done'})}\n\n"
+
+        except Exception as e:
+            logger.error(f"Follow-up chat error: {e}")
+            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+
+    return Response(generate(), mimetype='text/event-stream')
+
+
 @app.route('/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
