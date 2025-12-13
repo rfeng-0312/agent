@@ -402,7 +402,7 @@ const translations_en = {
             goalAnalysisTitle: "Goal Progress Analysis"
         },
         // Set goals hint
-        setGoalsHint: "No goals set yet? Go to profile to set goals, AI will help track your progress",
+        setGoalsHint: "No goals yet? Click to set goals, AI will help track your progress",
         goSetGoals: "Set Goals"
     },
 

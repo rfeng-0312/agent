@@ -101,6 +101,7 @@
         .modal-overlay {
             background: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(4px);
+            z-index: 1;
         }
 
         .modal-content {
@@ -238,7 +239,7 @@
     <!-- 删除确认弹窗 -->
     <div id="deleteModal" class="fixed inset-0 z-50 hidden">
         <div class="modal-overlay absolute inset-0" onclick="hideDeleteModal()"></div>
-        <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="flex items-center justify-center min-h-screen p-4 relative z-10">
             <div class="modal-content relative p-6 max-w-sm w-full">
                 <h3 class="text-xl font-bold mb-4 text-center">
                     <i class="fa-solid fa-exclamation-triangle text-conanRed mr-2"></i>
@@ -292,10 +293,16 @@
             }
         }
 
+        // 获取当前语言（从 cookie 读取，不依赖 i18n 模块）
+        function getCurrentLang() {
+            const match = document.cookie.match(/(?:^|;\s*)lang=([^;]*)/);
+            return match ? match[1] : 'zh-CN';
+        }
+
         // 格式化日期
         function formatDate(dateStr) {
             const date = new Date(dateStr);
-            const lang = window.i18n ? window.i18n.getCurrentLanguage() : 'zh-CN';
+            const lang = getCurrentLang();
 
             if (lang === 'en-US') {
                 return date.toLocaleDateString('en-US', {

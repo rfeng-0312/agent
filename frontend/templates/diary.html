@@ -200,6 +200,37 @@
             opacity: 1;
             color: #00d4ff;
         }
+
+        /* 目标设置模态框样式 */
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 1;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, rgba(22, 33, 62, 0.98) 0%, rgba(26, 26, 46, 0.98) 100%);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 16px;
+        }
+
+        .goal-input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .goal-input:focus {
+            outline: none;
+            border-color: rgba(0, 212, 255, 0.5);
+            box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.1);
+        }
+
+        .goal-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
     </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-mysteryBlack via-moonlightBlue to-mysteryBlack text-white">
@@ -326,14 +357,14 @@
 
                 <!-- 没有目标时显示设置目标提示 -->
                 <div id="noGoalsHint" class="mb-6 hidden">
-                    <a href="/profile" class="block p-4 rounded-lg border border-dashed border-detectiveGold/30 hover:border-detectiveGold/60 hover:bg-detectiveGold/5 transition-all text-center">
+                    <button onclick="showAddGoalModal()" class="block w-full p-4 rounded-lg border border-dashed border-detectiveGold/30 hover:border-detectiveGold/60 hover:bg-detectiveGold/5 transition-all text-center">
                         <i class="fa-solid fa-bullseye text-detectiveGold text-2xl mb-2"></i>
-                        <p class="text-white/70 text-sm" data-i18n="diary.setGoalsHint">还没有设置目标？去个人主页设置目标，AI会帮你追踪进度</p>
+                        <p class="text-white/70 text-sm" data-i18n="diary.setGoalsHint">还没有设置目标？点击设置目标，AI会帮你追踪进度</p>
                         <span class="inline-block mt-2 text-detectiveGold text-sm">
-                            <i class="fa-solid fa-arrow-right mr-1"></i>
-                            <span data-i18n="diary.goSetGoals">去设置目标</span>
+                            <i class="fa-solid fa-plus mr-1"></i>
+                            <span data-i18n="diary.goSetGoals">设置目标</span>
                         </span>
-                    </a>
+                    </button>
                 </div>
 
                 <!-- 保存按钮 -->
@@ -404,6 +435,47 @@
 
         </div>
     </main>
+
+    <!-- 添加目标模态框 -->
+    <div id="goalModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-overlay absolute inset-0" onclick="hideGoalModal()"></div>
+        <div class="flex items-center justify-center min-h-screen p-4 relative z-10">
+            <div class="modal-content relative p-6 max-w-md w-full">
+                <h3 id="goalModalTitle" class="text-xl font-bold mb-4 text-center">
+                    <i class="fa-solid fa-bullseye text-detectiveGold mr-2"></i>
+                    <span data-i18n="goals.addGoal">添加目标</span>
+                </h3>
+
+                <form id="goalForm" onsubmit="saveGoal(event)">
+                    <input type="hidden" id="goalId" value="">
+
+                    <div class="mb-4">
+                        <label class="block text-white/70 text-sm mb-2" data-i18n="goals.goalTitle">目标标题</label>
+                        <input type="text" id="goalTitle" class="goal-input w-full px-4 py-3"
+                               placeholder="例如：每天阅读30分钟" data-i18n-placeholder="goals.titlePlaceholder" required maxlength="255">
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-white/70 text-sm mb-2" data-i18n="goals.goalDescription">目标描述（选填）</label>
+                        <textarea id="goalDescription" class="goal-input w-full px-4 py-3 h-24 resize-none"
+                                  placeholder="描述你想达成的具体目标..." data-i18n-placeholder="goals.descriptionPlaceholder"></textarea>
+                    </div>
+
+                    <div class="flex gap-4">
+                        <button type="button" onclick="hideGoalModal()"
+                                class="flex-1 py-3 rounded-lg border border-white/20 text-white/70 hover:bg-white/10 transition-colors">
+                            <span data-i18n="common.cancel">取消</span>
+                        </button>
+                        <button type="submit"
+                                class="flex-1 py-3 rounded-lg bg-gradient-to-r from-neonCyan to-detectiveGold text-mysteryBlack font-bold">
+                            <i class="fa-solid fa-check mr-2"></i>
+                            <span data-i18n="common.confirm">确认</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- 国际化支持 -->
     <script src="{{ url_for('static', filename='js/translations/zh-CN.js') }}"></script>
@@ -534,6 +606,54 @@
                 hasGoals = false;
                 goalAnalysisSection.classList.add('hidden');
                 noGoalsHint.classList.remove('hidden');  // 出错时也显示设置目标提示
+            }
+        }
+
+        // 显示添加目标模态框
+        function showAddGoalModal() {
+            document.getElementById('goalId').value = '';
+            document.getElementById('goalTitle').value = '';
+            document.getElementById('goalDescription').value = '';
+            document.getElementById('goalModalTitle').innerHTML = '<i class="fa-solid fa-bullseye text-detectiveGold mr-2"></i><span data-i18n="goals.addGoal">添加目标</span>';
+            document.getElementById('goalModal').classList.remove('hidden');
+            document.getElementById('goalTitle').focus();
+        }
+
+        // 隐藏目标模态框
+        function hideGoalModal() {
+            document.getElementById('goalModal').classList.add('hidden');
+        }
+
+        // 保存目标
+        async function saveGoal(event) {
+            event.preventDefault();
+
+            const title = document.getElementById('goalTitle').value.trim();
+            const description = document.getElementById('goalDescription').value.trim();
+
+            if (!title) {
+                alert('请输入目标标题');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/goals', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, description })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    hideGoalModal();
+                    loadUserGoals();  // 重新加载目标状态
+                    alert(window.i18n ? i18n.t('common.success') : '目标添加成功！');
+                } else {
+                    alert(data.message || '添加失败');
+                }
+            } catch (error) {
+                console.error('Save goal error:', error);
+                alert('保存失败，请重试');
             }
         }
 

@@ -348,6 +348,7 @@ def api_generate_ai_response(diary_id):
             'mood_score': diary.get('mood_score'),
             'enable_goal_analysis': enable_goal_analysis,
             'history_range': history_range,
+            'lang': get_current_language(),  # 添加语言设置
             'timestamp': str(datetime.now())
         }
 
@@ -1050,16 +1051,32 @@ def generate_diary_ai_response(session_id, session_data):
     user_id = session_data.get('user_id')
     enable_goal_analysis = session_data.get('enable_goal_analysis', False)
     history_range = session_data.get('history_range')  # 7, 30, or None
+    lang = session_data.get('lang', 'zh-CN')  # 获取语言设置
 
     emotional_response = ""
     goal_analysis_response = ""
 
     try:
         # ==================== 阶段1：情感回复 ====================
-        yield f"data: {json.dumps({'type': 'stage', 'stage': 'emotional', 'message': '小柯正在思考回复...'}, ensure_ascii=False)}\n\n"
+        stage_message = 'Xiao Ke is thinking...' if lang == 'en-US' else '小柯正在思考回复...'
+        yield f"data: {json.dumps({'type': 'stage', 'stage': 'emotional', 'message': stage_message}, ensure_ascii=False)}\n\n"
 
-        # 日记回复的系统提示词
-        emotional_prompt = """你是"小柯"，一个温暖、有同理心的AI伙伴。
+        # 日记回复的系统提示词（支持多语言）
+        if lang == 'en-US':
+            emotional_prompt = """You are "Xiao Ke", a warm and empathetic AI companion.
+
+Your traits:
+- Chat like a friend, don't lecture
+- Good at finding highlights in user's words
+- Comfort when user is down, celebrate when user is happy
+- Occasionally use Detective Conan's classic quotes (like "There's only one truth")
+- Keep responses concise, around 100-150 words
+- IMPORTANT: Always respond in English
+
+Please give a warm response based on the user's diary."""
+            user_content = f"User's diary today:\n\n{content}"
+        else:
+            emotional_prompt = """你是"小柯"，一个温暖、有同理心的AI伙伴。
 
 你的特点：
 - 像朋友一样聊天，不说教
@@ -1069,10 +1086,11 @@ def generate_diary_ai_response(session_id, session_data):
 - 回复简短有力，100-150字左右
 
 请根据用户的日记内容，给出温暖的回应。"""
+            user_content = f"用户今天的日记：\n\n{content}"
 
         messages = [
             {"role": "system", "content": emotional_prompt},
-            {"role": "user", "content": f"用户今天的日记：\n\n{content}"}
+            {"role": "user", "content": user_content}
         ]
 
         stream = client.chat.completions.create(
@@ -1098,14 +1116,15 @@ def generate_diary_ai_response(session_id, session_data):
             goals = get_user_goals(user_id, 'active')
 
             if goals:
-                yield f"data: {json.dumps({'type': 'stage', 'stage': 'goal_analysis', 'message': '正在分析目标进度...'}, ensure_ascii=False)}\n\n"
+                stage_msg = 'Analyzing goal progress...' if lang == 'en-US' else '正在分析目标进度...'
+                yield f"data: {json.dumps({'type': 'stage', 'stage': 'goal_analysis', 'message': stage_msg}, ensure_ascii=False)}\n\n"
 
                 # 获取历史日记
                 recent_diaries = get_recent_diaries(user_id, days=history_range, limit=50)
 
                 # 构建目标列表文本
                 goals_text = "\n".join([
-                    f"- {g['title']}" + (f"：{g['description']}" if g.get('description') else "")
+                    f"- {g['title']}" + (f": {g['description']}" if g.get('description') else "")
                     for g in goals
                 ])
 
@@ -1117,11 +1136,41 @@ def generate_diary_ai_response(session_id, session_data):
                         date_str = d['created_at'].strftime('%m/%d') if hasattr(d['created_at'], 'strftime') else str(d['created_at'])[:10]
                         diary_summaries.append(f"[{date_str}] {summary}")
 
-                history_text = "\n".join(diary_summaries[:20]) if diary_summaries else "（暂无历史日记）"
-                history_label = f"最近{history_range}天" if history_range else "全部"
+                no_history_text = "(No recent diary entries)" if lang == 'en-US' else "（暂无历史日记）"
+                history_text = "\n".join(diary_summaries[:20]) if diary_summaries else no_history_text
 
-                # 目标分析提示词
-                goal_analysis_prompt = f"""你是一位成长教练，帮助用户追踪目标进度。
+                if lang == 'en-US':
+                    history_label = f"Last {history_range} days" if history_range else "All"
+                else:
+                    history_label = f"最近{history_range}天" if history_range else "全部"
+
+                # 目标分析提示词（支持多语言）
+                if lang == 'en-US':
+                    goal_analysis_prompt = f"""You are a growth coach helping users track their goal progress.
+
+User's goals:
+{goals_text}
+
+Recent diary summary ({history_label}):
+{history_text}
+
+Today's diary:
+{content}
+
+Please analyze each goal in this format:
+### 🎯 [Goal Name]
+**Progress**: [Good progress/Needs attention/Just started]
+**Recent Performance**: [Relevant content from diaries]
+**Suggestions**: [1-2 specific suggestions]
+
+Requirements:
+- Keep each goal analysis under 100 words
+- Be warm and encouraging, don't lecture
+- If a goal isn't mentioned in diary, briefly remind user to focus on it
+- IMPORTANT: Always respond in English"""
+                    system_content = "You are a professional growth coach who excels at analyzing user goal completion from diaries. Always respond in English."
+                else:
+                    goal_analysis_prompt = f"""你是一位成长教练，帮助用户追踪目标进度。
 
 用户设定的目标：
 {goals_text}
@@ -1142,9 +1191,10 @@ def generate_diary_ai_response(session_id, session_data):
 - 每个目标分析控制在100字内
 - 语气温和鼓励，不要说教
 - 如果日记中没有提到某目标，也要简要提醒用户关注"""
+                    system_content = "你是一位专业的成长教练，擅长从日记中分析用户的目标完成情况。"
 
                 messages = [
-                    {"role": "system", "content": "你是一位专业的成长教练，擅长从日记中分析用户的目标完成情况。"},
+                    {"role": "system", "content": system_content},
                     {"role": "user", "content": goal_analysis_prompt}
                 ]
 

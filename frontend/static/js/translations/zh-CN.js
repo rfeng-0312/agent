@@ -403,8 +403,8 @@ const translations_zh = {
             goalAnalysisTitle: "目标进度分析"
         },
         // 设置目标提示
-        setGoalsHint: "还没有设置目标？去个人主页设置目标，AI会帮你追踪进度",
-        goSetGoals: "去设置目标"
+        setGoalsHint: "还没有设置目标？点击设置目标，AI会帮你追踪进度",
+        goSetGoals: "设置目标"
     },
 
     // ===== 个人主页 =====
