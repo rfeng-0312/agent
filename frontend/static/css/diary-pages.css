@@ -1,0 +1,862 @@
+/* ============================================
+   名侦探作业帮 - 日记/个人主页共享样式
+   适用页面: diary.html, diary_list.html,
+            diary_detail.html, profile.html
+   ============================================ */
+
+/* ========== 1. CSS 变量定义 ========== */
+:root {
+    /* 主题色 */
+    --dp-neon-cyan: #00d4ff;
+    --dp-detective-gold: #ffd700;
+    --dp-conan-red: #E31D2B;
+    --dp-mystery-black: #1a1a2e;
+    --dp-moonlight-blue: #16213e;
+    --dp-deep-purple: #0f0c29;
+
+    /* 透明度变体 */
+    --dp-glass-bg: rgba(255, 255, 255, 0.1);
+    --dp-glass-border: rgba(255, 255, 255, 0.2);
+    --dp-card-bg: linear-gradient(135deg, rgba(22, 33, 62, 0.9) 0%, rgba(26, 26, 46, 0.95) 100%);
+
+    /* 阴影 */
+    --dp-glow-cyan: 0 0 20px rgba(0, 212, 255, 0.3);
+    --dp-glow-gold: 0 0 20px rgba(255, 215, 0, 0.3);
+    --dp-shadow-card: 0 8px 32px rgba(0, 0, 0, 0.3);
+
+    /* 过渡 */
+    --dp-transition: all 0.3s ease;
+    --dp-transition-slow: all 0.4s ease;
+}
+
+/* ========== 2. 动画关键帧 ========== */
+@keyframes dp-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes dp-glow-pulse {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 40px rgba(0, 212, 255, 0.6), 0 0 60px rgba(255, 215, 0, 0.3);
+    }
+}
+
+@keyframes dp-twinkle {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes dp-slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes dp-scan-line {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+@keyframes dp-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes dp-moon-glow {
+    0%, 100% { box-shadow: 0 0 40px 20px rgba(255, 215, 0, 0.3); }
+    50% { box-shadow: 0 0 60px 30px rgba(255, 215, 0, 0.5); }
+}
+
+@keyframes dp-typing {
+    0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+    40% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes dp-shine {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+/* ========== 3. 星空背景组件 ========== */
+.dp-stars-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.dp-star {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    animation: dp-twinkle 3s ease-in-out infinite;
+}
+
+.dp-moon {
+    position: fixed;
+    top: 100px;
+    right: 60px;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #ffd700 0%, #fff8dc 100%);
+    border-radius: 50%;
+    box-shadow: 0 0 40px 20px rgba(255, 215, 0, 0.3);
+    animation: dp-moon-glow 4s ease-in-out infinite;
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* ========== 4. 通用容器卡片 ========== */
+.dp-container-card {
+    background: var(--dp-card-bg);
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    border-radius: 16px;
+    box-shadow: var(--dp-shadow-card);
+    transition: var(--dp-transition);
+    position: relative;
+    overflow: hidden;
+}
+
+/* hover顶部光条 */
+.dp-container-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--dp-neon-cyan), var(--dp-detective-gold), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 10;
+}
+
+.dp-container-card:hover {
+    border-color: rgba(0, 212, 255, 0.4);
+    box-shadow:
+        0 12px 40px rgba(0, 0, 0, 0.4),
+        0 0 30px rgba(0, 212, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.dp-container-card:hover::before {
+    opacity: 1;
+}
+
+/* 毛玻璃卡片变体 */
+.dp-glass-card {
+    background: var(--dp-glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--dp-glass-border);
+    border-radius: 20px;
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        inset 0 0 80px rgba(255, 255, 255, 0.05);
+    position: relative;
+    overflow: hidden;
+}
+
+/* 扫描线效果 */
+.dp-glass-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    animation: dp-scan-line 4s linear infinite;
+    pointer-events: none;
+}
+
+/* 发光边框变体 */
+.dp-glow-cyan {
+    box-shadow: var(--dp-glow-cyan);
+    border-color: rgba(0, 212, 255, 0.3);
+}
+
+.dp-glow-gold {
+    box-shadow: var(--dp-glow-gold);
+    border-color: rgba(255, 215, 0, 0.3);
+}
+
+/* ========== 5. 统一按钮样式 ========== */
+.dp-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.5rem;
+    background: linear-gradient(135deg, var(--dp-neon-cyan), var(--dp-detective-gold));
+    color: var(--dp-mystery-black);
+    font-weight: 600;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    transition: var(--dp-transition);
+    box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.dp-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 212, 255, 0.5);
+}
+
+.dp-btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* 按钮闪光效果 */
+.dp-btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+.dp-btn-primary:hover::before {
+    left: 100%;
+}
+
+/* 次要按钮 */
+.dp-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.5rem;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 600;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: var(--dp-transition);
+}
+
+.dp-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--dp-neon-cyan);
+    color: var(--dp-neon-cyan);
+}
+
+/* 危险按钮 */
+.dp-btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background: rgba(227, 29, 43, 0.2);
+    color: #ff6b6b;
+    font-weight: 600;
+    border-radius: 12px;
+    border: 1px solid rgba(227, 29, 43, 0.3);
+    cursor: pointer;
+    transition: var(--dp-transition);
+}
+
+.dp-btn-danger:hover {
+    background: rgba(227, 29, 43, 0.4);
+    border-color: rgba(227, 29, 43, 0.6);
+}
+
+/* ========== 6. 统一输入框样式 ========== */
+.dp-input {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: white;
+    font-size: 1rem;
+    transition: var(--dp-transition);
+}
+
+.dp-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.dp-input:focus {
+    outline: none;
+    border-color: rgba(0, 212, 255, 0.5);
+    box-shadow:
+        0 0 0 3px rgba(0, 212, 255, 0.1),
+        0 0 20px rgba(0, 212, 255, 0.2);
+}
+
+/* 文本域 */
+.dp-textarea {
+    width: 100%;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: white;
+    font-size: 1rem;
+    resize: none;
+    transition: var(--dp-transition);
+    min-height: 200px;
+}
+
+.dp-textarea:focus {
+    outline: none;
+    border-color: rgba(0, 212, 255, 0.5);
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+}
+
+/* ========== 7. 统一模态框样式 ========== */
+.dp-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.dp-modal-content {
+    background: linear-gradient(135deg, rgba(22, 33, 62, 0.98) 0%, rgba(26, 26, 46, 0.98) 100%);
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 450px;
+    width: 100%;
+    position: relative;
+    z-index: 101;
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.5),
+        0 0 40px rgba(0, 212, 255, 0.1);
+    animation: dp-slide-up 0.3s ease-out;
+}
+
+.dp-modal-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: white;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.dp-modal-title i {
+    color: var(--dp-detective-gold);
+}
+
+.dp-modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: var(--dp-transition);
+}
+
+.dp-modal-close:hover {
+    background: rgba(227, 29, 43, 0.2);
+    border-color: var(--dp-conan-red);
+    color: #ff6b6b;
+}
+
+/* ========== 8. 日记组件 ========== */
+
+/* 心情按钮 */
+.dp-mood-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.3);
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: var(--dp-transition);
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dp-mood-btn:hover {
+    transform: scale(1.1);
+    background: rgba(255, 215, 0, 0.1);
+}
+
+.dp-mood-btn.selected {
+    border-color: var(--dp-detective-gold);
+    background: rgba(255, 215, 0, 0.2);
+    transform: scale(1.15);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+/* AI回复框 */
+.dp-ai-response-box {
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(255, 215, 0, 0.1) 100%);
+    border: 1px solid rgba(0, 212, 255, 0.3);
+    border-radius: 12px;
+    padding: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.dp-ai-response-box::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--dp-neon-cyan), var(--dp-detective-gold));
+}
+
+/* AI头像 */
+.dp-ai-avatar {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--dp-neon-cyan) 0%, var(--dp-detective-gold) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+}
+
+.dp-ai-avatar i {
+    color: var(--dp-mystery-black);
+}
+
+/* AI头像金色变体 (目标分析) */
+.dp-ai-avatar-gold {
+    background: linear-gradient(135deg, var(--dp-detective-gold) 0%, #ff8c00 100%);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+/* 打字动画指示器 */
+.dp-typing-indicator {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 0;
+}
+
+.dp-typing-indicator span {
+    width: 8px;
+    height: 8px;
+    background: var(--dp-neon-cyan);
+    border-radius: 50%;
+    animation: dp-typing 1.4s infinite ease-in-out both;
+}
+
+.dp-typing-indicator span:nth-child(1) { animation-delay: 0s; }
+.dp-typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.dp-typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+/* 目标分析开关区域 */
+.dp-toggle-section {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1rem;
+    transition: var(--dp-transition);
+}
+
+.dp-toggle-section.active {
+    border-color: rgba(255, 215, 0, 0.3);
+    background: rgba(255, 215, 0, 0.1);
+}
+
+/* 开关按钮 */
+.dp-toggle-switch {
+    width: 48px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    position: relative;
+    cursor: pointer;
+    transition: var(--dp-transition);
+}
+
+.dp-toggle-switch.active {
+    background: linear-gradient(135deg, var(--dp-neon-cyan) 0%, var(--dp-detective-gold) 100%);
+}
+
+.dp-toggle-switch::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: var(--dp-transition);
+}
+
+.dp-toggle-switch.active::after {
+    left: 26px;
+}
+
+/* 历史范围按钮 */
+.dp-range-btn {
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid transparent;
+    color: rgba(255, 255, 255, 0.6);
+    transition: var(--dp-transition);
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.dp-range-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.dp-range-btn.active {
+    background: rgba(0, 212, 255, 0.2);
+    border-color: rgba(0, 212, 255, 0.5);
+    color: var(--dp-neon-cyan);
+}
+
+/* 目标分析回复框 */
+.dp-goal-analysis-box {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 140, 0, 0.1) 100%);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+/* ========== 9. 个人主页组件 ========== */
+
+/* 头像环 */
+.dp-avatar-ring {
+    background: linear-gradient(135deg, var(--dp-neon-cyan) 0%, var(--dp-detective-gold) 100%);
+    padding: 3px;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+}
+
+.dp-avatar-ring img,
+.dp-avatar-ring .dp-avatar-inner {
+    border-radius: 50%;
+    display: block;
+}
+
+.dp-avatar-inner {
+    background: var(--dp-mystery-black);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 统计卡片 */
+.dp-stat-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1.25rem;
+    transition: var(--dp-transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.dp-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--dp-neon-cyan), var(--dp-detective-gold));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.dp-stat-card:hover {
+    border-color: rgba(0, 212, 255, 0.3);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.dp-stat-card:hover::before {
+    opacity: 1;
+}
+
+.dp-stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--dp-neon-cyan), var(--dp-detective-gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* 菜单项 */
+.dp-menu-item {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1rem;
+    transition: var(--dp-transition);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    text-decoration: none;
+    color: white;
+}
+
+.dp-menu-item:hover {
+    background: rgba(0, 212, 255, 0.1);
+    border-color: rgba(0, 212, 255, 0.3);
+    transform: translateX(4px);
+}
+
+.dp-menu-item i {
+    color: var(--dp-neon-cyan);
+    width: 24px;
+    text-align: center;
+}
+
+/* 目标项 */
+.dp-goal-item {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1rem;
+    transition: var(--dp-transition);
+    position: relative;
+}
+
+.dp-goal-item:hover {
+    border-color: rgba(255, 215, 0, 0.3);
+    background: rgba(255, 215, 0, 0.05);
+}
+
+.dp-goal-item.completed {
+    opacity: 0.6;
+}
+
+.dp-goal-item.completed .dp-goal-title {
+    text-decoration: line-through;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.dp-goal-checkbox {
+    width: 24px;
+    height: 24px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: var(--dp-transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.dp-goal-checkbox:hover {
+    border-color: var(--dp-detective-gold);
+}
+
+.dp-goal-checkbox.checked {
+    background: linear-gradient(135deg, var(--dp-neon-cyan), var(--dp-detective-gold));
+    border-color: transparent;
+}
+
+.dp-goal-checkbox.checked i {
+    color: var(--dp-mystery-black);
+}
+
+/* ========== 10. 列表组件 ========== */
+
+/* 日记卡片 */
+.dp-diary-card {
+    background: var(--dp-card-bg);
+    border: 1px solid rgba(255, 215, 0, 0.1);
+    border-radius: 12px;
+    padding: 1.25rem;
+    transition: var(--dp-transition);
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.dp-diary-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--dp-neon-cyan), var(--dp-detective-gold));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.dp-diary-card:hover {
+    border-color: rgba(0, 212, 255, 0.3);
+    transform: translateY(-4px);
+    box-shadow:
+        0 12px 32px rgba(0, 0, 0, 0.3),
+        0 0 20px rgba(0, 212, 255, 0.15);
+}
+
+.dp-diary-card:hover::before {
+    opacity: 1;
+}
+
+/* 连续打卡徽章 */
+.dp-streak-badge {
+    background: linear-gradient(135deg, var(--dp-detective-gold) 0%, #ff8c00 100%);
+    color: var(--dp-mystery-black);
+    font-weight: bold;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 2px 10px rgba(255, 215, 0, 0.3);
+}
+
+/* 加载动画 */
+.dp-loading-spinner {
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top-color: var(--dp-neon-cyan);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: dp-spin 1s linear infinite;
+}
+
+/* 空状态提示 */
+.dp-empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.dp-empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: rgba(255, 215, 0, 0.3);
+}
+
+/* ========== 11. 导航样式增强 ========== */
+.dp-nav {
+    background: rgba(15, 12, 41, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+}
+
+.dp-nav-link {
+    color: rgba(255, 255, 255, 0.7);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    transition: var(--dp-transition);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.dp-nav-link:hover {
+    color: var(--dp-neon-cyan);
+    background: rgba(0, 212, 255, 0.1);
+}
+
+/* ========== 12. 语言切换 ========== */
+.dp-lang-switcher .dp-lang-btn {
+    opacity: 0.6;
+    transition: var(--dp-transition);
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+}
+
+.dp-lang-switcher .dp-lang-btn:hover,
+.dp-lang-switcher .dp-lang-btn.active {
+    opacity: 1;
+    color: var(--dp-neon-cyan);
+}
+
+/* ========== 13. 响应式设计 ========== */
+@media (max-width: 768px) {
+    .dp-moon {
+        width: 40px;
+        height: 40px;
+        top: 80px;
+        right: 20px;
+    }
+
+    .dp-container-card {
+        border-radius: 12px;
+    }
+
+    .dp-modal-content {
+        margin: 1rem;
+        padding: 1.5rem;
+    }
+
+    .dp-stat-card {
+        padding: 1rem;
+    }
+
+    .dp-stat-number {
+        font-size: 1.5rem;
+    }
+
+    /* 减少动画 */
+    .dp-glass-card::after {
+        animation: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

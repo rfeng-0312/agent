@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/diary-pages.css') }}">
 
     <script>
         tailwind.config = {
@@ -26,25 +27,6 @@
     </script>
 
     <style>
-        .profile-card {
-            background: linear-gradient(135deg, rgba(22, 33, 62, 0.9) 0%, rgba(26, 26, 46, 0.95) 100%);
-            border: 1px solid rgba(255, 215, 0, 0.2);
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-
-        .stat-card {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-            border-color: rgba(0, 212, 255, 0.3);
-            transform: translateY(-2px);
-        }
-
         .menu-item {
             background: rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -56,12 +38,6 @@
             background: rgba(0, 212, 255, 0.1);
             border-color: rgba(0, 212, 255, 0.3);
             transform: translateX(4px);
-        }
-
-        .avatar-ring {
-            background: linear-gradient(135deg, #00d4ff 0%, #ffd700 100%);
-            padding: 3px;
-            border-radius: 50%;
         }
 
         .avatar-inner {
@@ -84,74 +60,13 @@
         .diary-preview:hover {
             border-color: rgba(0, 212, 255, 0.3);
         }
-
-        /* 目标卡片样式 */
-        .goal-item {
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            transition: all 0.3s ease;
-        }
-
-        .goal-item:hover {
-            border-color: rgba(255, 215, 0, 0.3);
-        }
-
-        .goal-item.completed {
-            opacity: 0.6;
-        }
-
-        .goal-item.completed .goal-title {
-            text-decoration: line-through;
-        }
-
-        /* 模态框样式 */
-        .modal-overlay {
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(4px);
-            z-index: 1;
-        }
-
-        .modal-content {
-            background: linear-gradient(135deg, rgba(22, 33, 62, 0.98) 0%, rgba(26, 26, 46, 0.98) 100%);
-            border: 1px solid rgba(255, 215, 0, 0.2);
-            border-radius: 16px;
-        }
-
-        .goal-input {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            color: white;
-            transition: all 0.3s ease;
-        }
-
-        .goal-input:focus {
-            outline: none;
-            border-color: rgba(0, 212, 255, 0.5);
-            box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.1);
-        }
-
-        .goal-input::placeholder {
-            color: rgba(255, 255, 255, 0.3);
-        }
-
-        /* 语言切换样式 */
-        .lang-switcher .lang-btn {
-            opacity: 0.6;
-            transition: all 0.3s ease;
-        }
-        .lang-switcher .lang-btn:hover,
-        .lang-switcher .lang-btn.active {
-            opacity: 1;
-            color: #00d4ff;
-        }
     </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-mysteryBlack via-moonlightBlue to-mysteryBlack text-white">
 
     <!-- 星星背景 -->
-    <div class="stars" id="stars"></div>
+    <div class="dp-stars-container" id="stars"></div>
+    <div class="dp-moon"></div>
 
     <!-- 导航栏 -->
     <nav class="fixed top-0 left-0 right-0 z-50 bg-mysteryBlack/80 backdrop-blur-md border-b border-white/10">
@@ -163,10 +78,10 @@
                 </a>
                 <div class="flex items-center gap-4">
                     <!-- 语言切换 -->
-                    <div class="lang-switcher flex items-center gap-1 text-sm">
-                        <button data-lang="zh-CN" class="lang-btn px-2 py-1 rounded hover:text-neonCyan transition-colors">中文</button>
+                    <div class="dp-lang-switcher flex items-center gap-1 text-sm">
+                        <button data-lang="zh-CN" class="dp-lang-btn px-2 py-1 rounded hover:text-neonCyan transition-colors">中文</button>
                         <span class="text-white/30">|</span>
-                        <button data-lang="en-US" class="lang-btn px-2 py-1 rounded hover:text-neonCyan transition-colors">EN</button>
+                        <button data-lang="en-US" class="dp-lang-btn px-2 py-1 rounded hover:text-neonCyan transition-colors">EN</button>
                     </div>
                     <a href="/app" class="text-white/70 hover:text-neonCyan transition-colors">
                         <i class="fa-solid fa-brain mr-1"></i>
@@ -186,10 +101,10 @@
         <div class="max-w-2xl mx-auto">
 
             <!-- 用户信息卡片 -->
-            <div class="profile-card p-6 mb-6">
+            <div class="dp-container-card p-6 mb-6">
                 <div class="flex items-center gap-4 mb-6">
                     <!-- 头像 -->
-                    <div class="avatar-ring w-20 h-20">
+                    <div class="dp-avatar-ring w-20 h-20">
                         <div class="avatar-inner">
                             <i class="fa-solid fa-user-secret text-3xl text-detectiveGold"></i>
                         </div>
@@ -210,15 +125,15 @@
 
                 <!-- 统计数据 -->
                 <div class="grid grid-cols-3 gap-4">
-                    <div class="stat-card p-4 text-center">
+                    <div class="dp-stat-card p-4 text-center">
                         <div class="text-3xl font-bold text-neonCyan mb-1" id="diaryCount">0</div>
                         <div class="text-white/50 text-sm" data-i18n="profile.totalDiaries">日记总数</div>
                     </div>
-                    <div class="stat-card p-4 text-center">
+                    <div class="dp-stat-card p-4 text-center">
                         <div class="text-3xl font-bold text-detectiveGold mb-1" id="streakCount">0</div>
                         <div class="text-white/50 text-sm" data-i18n="profile.streakDays">连续天数</div>
                     </div>
-                    <div class="stat-card p-4 text-center">
+                    <div class="dp-stat-card p-4 text-center">
                         <div class="text-3xl font-bold text-green-400 mb-1" id="todayStatus">
                             <i class="fa-solid fa-circle-xmark"></i>
                         </div>
@@ -228,7 +143,7 @@
             </div>
 
             <!-- 功能菜单 -->
-            <div class="profile-card p-6 mb-6">
+            <div class="dp-container-card p-6 mb-6">
                 <h2 class="text-lg font-bold mb-4">
                     <i class="fa-solid fa-compass text-neonCyan mr-2"></i>
                     <span data-i18n="profile.quickAccess">快捷入口</span>
@@ -285,7 +200,7 @@
             </div>
 
             <!-- 我的目标 -->
-            <div class="profile-card p-6 mb-6">
+            <div class="dp-container-card p-6 mb-6">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-lg font-bold">
                         <i class="fa-solid fa-bullseye text-detectiveGold mr-2"></i>
@@ -313,7 +228,7 @@
             </div>
 
             <!-- 最近日记 -->
-            <div class="profile-card p-6">
+            <div class="dp-container-card p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-lg font-bold">
                         <i class="fa-solid fa-clock-rotate-left text-detectiveGold mr-2"></i>
@@ -341,9 +256,9 @@
 
     <!-- 添加/编辑目标模态框 -->
     <div id="goalModal" class="fixed inset-0 z-50 hidden">
-        <div class="modal-overlay absolute inset-0" onclick="hideGoalModal()"></div>
+        <div class="dp-modal-overlay absolute inset-0" onclick="hideGoalModal()"></div>
         <div class="flex items-center justify-center min-h-screen p-4 relative z-10">
-            <div class="modal-content relative p-6 max-w-md w-full">
+            <div class="dp-modal-content relative p-6 max-w-md w-full">
                 <h3 id="goalModalTitle" class="text-xl font-bold mb-4 text-center">
                     <i class="fa-solid fa-bullseye text-detectiveGold mr-2"></i>
                     <span data-i18n="goals.addGoal">添加目标</span>
@@ -354,13 +269,13 @@
 
                     <div class="mb-4">
                         <label class="block text-white/70 text-sm mb-2" data-i18n="goals.goalTitle">目标标题</label>
-                        <input type="text" id="goalTitle" class="goal-input w-full px-4 py-3"
+                        <input type="text" id="goalTitle" class="dp-input w-full px-4 py-3"
                                placeholder="例如：每天阅读30分钟" data-i18n-placeholder="goals.titlePlaceholder" required maxlength="255">
                     </div>
 
                     <div class="mb-6">
                         <label class="block text-white/70 text-sm mb-2" data-i18n="goals.goalDescription">目标描述（选填）</label>
-                        <textarea id="goalDescription" class="goal-input w-full px-4 py-3 h-24 resize-none"
+                        <textarea id="goalDescription" class="dp-input w-full px-4 py-3 h-24 resize-none"
                                   placeholder="描述你想达成的具体目标..." data-i18n-placeholder="goals.descriptionPlaceholder"></textarea>
                     </div>
 
@@ -382,9 +297,9 @@
 
     <!-- 删除确认模态框 -->
     <div id="deleteGoalModal" class="fixed inset-0 z-50 hidden">
-        <div class="modal-overlay absolute inset-0" onclick="hideDeleteGoalModal()"></div>
+        <div class="dp-modal-overlay absolute inset-0" onclick="hideDeleteGoalModal()"></div>
         <div class="flex items-center justify-center min-h-screen p-4 relative z-10">
-            <div class="modal-content relative p-6 max-w-sm w-full">
+            <div class="dp-modal-content relative p-6 max-w-sm w-full">
                 <h3 class="text-xl font-bold mb-4 text-center">
                     <i class="fa-solid fa-exclamation-triangle text-red-500 mr-2"></i>
                     <span data-i18n="goals.deleteConfirmTitle">确认删除</span>
@@ -421,7 +336,7 @@
             if (!container) return;
             for (let i = 0; i < 100; i++) {
                 const star = document.createElement('div');
-                star.className = 'star';
+                star.className = 'dp-star';
                 star.style.left = Math.random() * 100 + '%';
                 star.style.top = Math.random() * 100 + '%';
                 star.style.animationDelay = Math.random() * 3 + 's';
@@ -568,7 +483,7 @@
                 container.innerHTML = '';
                 data.goals.forEach(goal => {
                     const card = document.createElement('div');
-                    card.className = `goal-item p-4 ${goal.status === 'completed' ? 'completed' : ''}`;
+                    card.className = `dp-goal-item p-4 ${goal.status === 'completed' ? 'completed' : ''}`;
                     card.innerHTML = `
                         <div class="flex items-start gap-3">
                             <button onclick="toggleGoalStatus(${goal.id}, '${goal.status}')"

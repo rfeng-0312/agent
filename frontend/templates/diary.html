@@ -14,6 +14,7 @@
     <!-- 自定义样式 -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/diary-pages.css') }}">
 
     <!-- Tailwind 配置 -->
     <script>
@@ -31,212 +32,12 @@
         }
     </script>
 
-    <style>
-        /* 日记专属样式 */
-        .diary-container {
-            background: linear-gradient(135deg, rgba(22, 33, 62, 0.9) 0%, rgba(26, 26, 46, 0.95) 100%);
-            border: 1px solid rgba(255, 215, 0, 0.2);
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-
-        .diary-textarea {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
-            resize: none;
-            transition: all 0.3s ease;
-        }
-
-        .diary-textarea:focus {
-            border-color: rgba(0, 212, 255, 0.5);
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
-            outline: none;
-        }
-
-        .mood-btn {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: rgba(0, 0, 0, 0.3);
-            border: 2px solid transparent;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 24px;
-        }
-
-        .mood-btn:hover {
-            transform: scale(1.1);
-            background: rgba(255, 215, 0, 0.1);
-        }
-
-        .mood-btn.selected {
-            border-color: #ffd700;
-            background: rgba(255, 215, 0, 0.2);
-            transform: scale(1.15);
-        }
-
-        .ai-response-box {
-            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(255, 215, 0, 0.1) 100%);
-            border: 1px solid rgba(0, 212, 255, 0.3);
-            border-radius: 12px;
-        }
-
-        .ai-avatar {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #00d4ff 0%, #ffd700 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .typing-indicator span {
-            width: 8px;
-            height: 8px;
-            background: #00d4ff;
-            border-radius: 50%;
-            display: inline-block;
-            margin: 0 2px;
-            animation: typing 1.4s infinite ease-in-out both;
-        }
-
-        .typing-indicator span:nth-child(1) { animation-delay: 0s; }
-        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
-        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
-
-        @keyframes typing {
-            0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
-            40% { transform: scale(1); opacity: 1; }
-        }
-
-        .streak-badge {
-            background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
-            color: #1a1a2e;
-            font-weight: bold;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 14px;
-        }
-
-        /* 目标分析选项样式 */
-        .goal-analysis-toggle {
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            transition: all 0.3s ease;
-        }
-
-        .goal-analysis-toggle.active {
-            border-color: rgba(255, 215, 0, 0.3);
-            background: rgba(255, 215, 0, 0.1);
-        }
-
-        .toggle-switch {
-            width: 48px;
-            height: 24px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            position: relative;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .toggle-switch.active {
-            background: linear-gradient(135deg, #00d4ff 0%, #ffd700 100%);
-        }
-
-        .toggle-switch::after {
-            content: '';
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            background: white;
-            border-radius: 50%;
-            top: 2px;
-            left: 2px;
-            transition: all 0.3s ease;
-        }
-
-        .toggle-switch.active::after {
-            left: 26px;
-        }
-
-        .history-range-btn {
-            padding: 6px 12px;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid transparent;
-            color: rgba(255, 255, 255, 0.6);
-            transition: all 0.3s ease;
-            font-size: 13px;
-        }
-
-        .history-range-btn:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .history-range-btn.active {
-            background: rgba(0, 212, 255, 0.2);
-            border-color: rgba(0, 212, 255, 0.5);
-            color: #00d4ff;
-        }
-
-        /* 目标分析回复区域 */
-        .goal-analysis-box {
-            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 140, 0, 0.1) 100%);
-            border: 1px solid rgba(255, 215, 0, 0.3);
-            border-radius: 12px;
-        }
-
-        /* 语言切换样式 */
-        .lang-switcher .lang-btn {
-            opacity: 0.6;
-            transition: all 0.3s ease;
-        }
-        .lang-switcher .lang-btn:hover,
-        .lang-switcher .lang-btn.active {
-            opacity: 1;
-            color: #00d4ff;
-        }
-
-        /* 目标设置模态框样式 */
-        .modal-overlay {
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(4px);
-            z-index: 1;
-        }
-
-        .modal-content {
-            background: linear-gradient(135deg, rgba(22, 33, 62, 0.98) 0%, rgba(26, 26, 46, 0.98) 100%);
-            border: 1px solid rgba(255, 215, 0, 0.2);
-            border-radius: 16px;
-        }
-
-        .goal-input {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            color: white;
-            transition: all 0.3s ease;
-        }
-
-        .goal-input:focus {
-            outline: none;
-            border-color: rgba(0, 212, 255, 0.5);
-            box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.1);
-        }
-
-        .goal-input::placeholder {
-            color: rgba(255, 255, 255, 0.4);
-        }
-    </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-mysteryBlack via-moonlightBlue to-mysteryBlack text-white">
 
     <!-- 星星背景 -->
-    <div class="stars" id="stars"></div>
+    <div class="dp-stars-container" id="stars"></div>
+    <div class="dp-moon"></div>
 
     <!-- 导航栏 -->
     <nav class="fixed top-0 left-0 right-0 z-50 bg-mysteryBlack/80 backdrop-blur-md border-b border-white/10">
@@ -248,16 +49,16 @@
                 </a>
                 <div class="flex items-center gap-4">
                     <!-- 语言切换 -->
-                    <div class="lang-switcher flex items-center gap-1 text-sm">
-                        <button data-lang="zh-CN" class="lang-btn px-2 py-1 rounded hover:text-neonCyan transition-colors">中文</button>
+                    <div class="dp-lang-switcher flex items-center gap-1 text-sm">
+                        <button data-lang="zh-CN" class="dp-lang-btn px-2 py-1 rounded hover:text-neonCyan transition-colors">中文</button>
                         <span class="text-white/30">|</span>
-                        <button data-lang="en-US" class="lang-btn px-2 py-1 rounded hover:text-neonCyan transition-colors">EN</button>
+                        <button data-lang="en-US" class="dp-lang-btn px-2 py-1 rounded hover:text-neonCyan transition-colors">EN</button>
                     </div>
                     <a href="/diary/list" class="text-white/70 hover:text-white transition-colors">
                         <i class="fa-solid fa-clock-rotate-left mr-1"></i>
                         <span data-i18n="diary.history">历史记录</span>
                     </a>
-                    <div id="streakBadge" class="streak-badge hidden">
+                    <div id="streakBadge" class="dp-streak-badge hidden">
                         <i class="fa-solid fa-fire mr-1"></i>
                         <span id="streakCount">0</span> <span data-i18n="diary.days">天</span>
                     </div>
@@ -285,7 +86,7 @@
             </div>
 
             <!-- 日记容器 -->
-            <div class="diary-container p-6">
+            <div class="dp-container-card p-6">
 
                 <!-- 心情选择 -->
                 <div class="mb-6">
@@ -294,11 +95,11 @@
                         <span data-i18n="diary.moodLabel">今天心情怎么样？</span>
                     </label>
                     <div class="flex justify-center gap-4">
-                        <button class="mood-btn" data-mood="1" title="很差">😢</button>
-                        <button class="mood-btn" data-mood="2" title="不太好">😕</button>
-                        <button class="mood-btn" data-mood="3" title="一般">😐</button>
-                        <button class="mood-btn" data-mood="4" title="不错">😊</button>
-                        <button class="mood-btn" data-mood="5" title="很棒">😄</button>
+                        <button class="dp-mood-btn" data-mood="1" title="很差">😢</button>
+                        <button class="dp-mood-btn" data-mood="2" title="不太好">😕</button>
+                        <button class="dp-mood-btn" data-mood="3" title="一般">😐</button>
+                        <button class="dp-mood-btn" data-mood="4" title="不错">😊</button>
+                        <button class="dp-mood-btn" data-mood="5" title="很棒">😄</button>
                     </div>
                 </div>
 
@@ -310,7 +111,7 @@
                     </label>
                     <textarea
                         id="diaryContent"
-                        class="diary-textarea w-full h-64 p-4 rounded-lg text-lg"
+                        class="dp-textarea w-full h-64 p-4 rounded-lg text-lg"
                         placeholder="今天发生了什么？有什么想说的吗..."
                         data-i18n-placeholder="diary.placeholder"
                     ></textarea>
@@ -325,13 +126,13 @@
 
                 <!-- 目标分析选项 (有目标时才显示) -->
                 <div id="goalAnalysisSection" class="mb-6 hidden">
-                    <div class="goal-analysis-toggle p-4" id="goalAnalysisToggle">
+                    <div class="dp-toggle-section p-4" id="goalAnalysisToggle">
                         <div class="flex items-center justify-between mb-3">
                             <div class="flex items-center gap-2">
                                 <i class="fa-solid fa-bullseye text-detectiveGold"></i>
                                 <span class="font-bold" data-i18n="diary.goalAnalysis.label">目标进度分析</span>
                             </div>
-                            <div class="toggle-switch" id="goalAnalysisSwitch" onclick="toggleGoalAnalysis()"></div>
+                            <div class="dp-toggle-switch" id="goalAnalysisSwitch" onclick="toggleGoalAnalysis()"></div>
                         </div>
                         <p class="text-white/50 text-sm" data-i18n="diary.goalAnalysis.desc">
                             启用后，小柯会根据你的目标和历史日记分析进度
@@ -341,13 +142,13 @@
                         <div id="historyRangeSection" class="hidden mt-4 pt-4 border-t border-white/10">
                             <div class="text-white/70 text-sm mb-2" data-i18n="diary.goalAnalysis.historyRange">分析历史范围</div>
                             <div class="flex gap-2">
-                                <button class="history-range-btn active" data-range="7" onclick="selectHistoryRange(7)">
+                                <button class="dp-range-btn active" data-range="7" onclick="selectHistoryRange(7)">
                                     <span data-i18n="diary.goalAnalysis.days7">最近7天</span>
                                 </button>
-                                <button class="history-range-btn" data-range="30" onclick="selectHistoryRange(30)">
+                                <button class="dp-range-btn" data-range="30" onclick="selectHistoryRange(30)">
                                     <span data-i18n="diary.goalAnalysis.days30">最近30天</span>
                                 </button>
-                                <button class="history-range-btn" data-range="all" onclick="selectHistoryRange(null)">
+                                <button class="dp-range-btn" data-range="all" onclick="selectHistoryRange(null)">
                                     <span data-i18n="diary.goalAnalysis.allHistory">全部</span>
                                 </button>
                             </div>
@@ -377,9 +178,9 @@
                 <div id="aiResponseSection" class="hidden mt-8 space-y-4">
 
                     <!-- 情感回复区域 -->
-                    <div class="ai-response-box p-4">
+                    <div class="dp-ai-response-box p-4">
                         <div class="flex items-start gap-3">
-                            <div class="ai-avatar flex-shrink-0">
+                            <div class="dp-ai-avatar flex-shrink-0">
                                 <i class="fa-solid fa-user-secret text-mysteryBlack"></i>
                             </div>
                             <div class="flex-1">
@@ -390,7 +191,7 @@
                                 <div id="aiResponseContent" class="text-white/90 leading-relaxed">
                                     <!-- 情感回复内容 -->
                                 </div>
-                                <div id="typingIndicator" class="typing-indicator hidden">
+                                <div id="typingIndicator" class="dp-typing-indicator hidden">
                                     <span></span><span></span><span></span>
                                 </div>
                             </div>
@@ -398,9 +199,9 @@
                     </div>
 
                     <!-- 目标分析区域 (有目标分析时显示) -->
-                    <div id="goalAnalysisResponse" class="goal-analysis-box p-4 hidden">
+                    <div id="goalAnalysisResponse" class="dp-goal-analysis-box p-4 hidden">
                         <div class="flex items-start gap-3">
-                            <div class="ai-avatar flex-shrink-0" style="background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);">
+                            <div class="dp-ai-avatar dp-ai-avatar-gold flex-shrink-0">
                                 <i class="fa-solid fa-bullseye text-mysteryBlack"></i>
                             </div>
                             <div class="flex-1">
@@ -411,7 +212,7 @@
                                 <div id="goalAnalysisContent" class="text-white/90 leading-relaxed prose prose-invert prose-sm max-w-none">
                                     <!-- 目标分析内容 -->
                                 </div>
-                                <div id="goalTypingIndicator" class="typing-indicator hidden">
+                                <div id="goalTypingIndicator" class="dp-typing-indicator hidden">
                                     <span></span><span></span><span></span>
                                 </div>
                             </div>
@@ -438,9 +239,9 @@
 
     <!-- 添加目标模态框 -->
     <div id="goalModal" class="fixed inset-0 z-50 hidden">
-        <div class="modal-overlay absolute inset-0" onclick="hideGoalModal()"></div>
+        <div class="dp-modal-overlay absolute inset-0" onclick="hideGoalModal()"></div>
         <div class="flex items-center justify-center min-h-screen p-4 relative z-10">
-            <div class="modal-content relative p-6 max-w-md w-full">
+            <div class="dp-modal-content relative p-6 max-w-md w-full">
                 <h3 id="goalModalTitle" class="text-xl font-bold mb-4 text-center">
                     <i class="fa-solid fa-bullseye text-detectiveGold mr-2"></i>
                     <span data-i18n="goals.addGoal">添加目标</span>
@@ -451,13 +252,13 @@
 
                     <div class="mb-4">
                         <label class="block text-white/70 text-sm mb-2" data-i18n="goals.goalTitle">目标标题</label>
-                        <input type="text" id="goalTitle" class="goal-input w-full px-4 py-3"
+                        <input type="text" id="goalTitle" class="dp-input w-full px-4 py-3"
                                placeholder="例如：每天阅读30分钟" data-i18n-placeholder="goals.titlePlaceholder" required maxlength="255">
                     </div>
 
                     <div class="mb-6">
                         <label class="block text-white/70 text-sm mb-2" data-i18n="goals.goalDescription">目标描述（选填）</label>
-                        <textarea id="goalDescription" class="goal-input w-full px-4 py-3 h-24 resize-none"
+                        <textarea id="goalDescription" class="dp-input w-full px-4 py-3 h-24 resize-none"
                                   placeholder="描述你想达成的具体目标..." data-i18n-placeholder="goals.descriptionPlaceholder"></textarea>
                     </div>
 
@@ -515,7 +316,7 @@
             if (!container) return;
             for (let i = 0; i < 100; i++) {
                 const star = document.createElement('div');
-                star.className = 'star';
+                star.className = 'dp-star';
                 star.style.left = Math.random() * 100 + '%';
                 star.style.top = Math.random() * 100 + '%';
                 star.style.animationDelay = Math.random() * 3 + 's';
@@ -526,9 +327,9 @@
         }
 
         // 心情选择
-        document.querySelectorAll('.mood-btn').forEach(btn => {
+        document.querySelectorAll('.dp-mood-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+                document.querySelectorAll('.dp-mood-btn').forEach(b => b.classList.remove('selected'));
                 btn.classList.add('selected');
                 selectedMood = parseInt(btn.dataset.mood);
             });
@@ -544,7 +345,7 @@
             diaryContent.value = '';
             charCount.textContent = '0';
             selectedMood = null;
-            document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+            document.querySelectorAll('.dp-mood-btn').forEach(b => b.classList.remove('selected'));
             aiResponseSection.classList.add('hidden');
             aiResponseContent.innerHTML = '';
             goalAnalysisResponse.classList.add('hidden');
@@ -574,7 +375,7 @@
             historyRange = range;
 
             // 更新按钮状态
-            document.querySelectorAll('.history-range-btn').forEach(btn => {
+            document.querySelectorAll('.dp-range-btn').forEach(btn => {
                 const btnRange = btn.dataset.range;
                 if ((range === null && btnRange === 'all') || (btnRange == range)) {
                     btn.classList.add('active');
