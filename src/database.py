@@ -74,6 +74,18 @@ def init_database():
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ''')
 
+        # 添加 goal_analysis 字段（如果不存在）
+        try:
+            cursor.execute('''
+                ALTER TABLE diaries ADD COLUMN goal_analysis TEXT DEFAULT NULL COMMENT '目标进度分析' AFTER ai_response
+            ''')
+            logger.info("Added goal_analysis column to diaries table")
+        except Error as e:
+            if 'Duplicate column name' in str(e):
+                pass  # 字段已存在，忽略
+            else:
+                logger.warning(f"ALTER TABLE diaries: {e}")
+
         # 创建用户目标表
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS user_goals (

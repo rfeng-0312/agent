@@ -328,15 +328,11 @@
 
 /* ========== 7. 统一模态框样式 ========== */
 .dp-modal-overlay {
-    position: fixed;
+    position: absolute;
     inset: 0;
     background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(4px);
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
+    z-index: 1;
 }
 
 .dp-modal-content {
