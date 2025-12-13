@@ -342,7 +342,7 @@
     <!-- 添加/编辑目标模态框 -->
     <div id="goalModal" class="fixed inset-0 z-50 hidden">
         <div class="modal-overlay absolute inset-0" onclick="hideGoalModal()"></div>
-        <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="flex items-center justify-center min-h-screen p-4 relative z-10">
             <div class="modal-content relative p-6 max-w-md w-full">
                 <h3 id="goalModalTitle" class="text-xl font-bold mb-4 text-center">
                     <i class="fa-solid fa-bullseye text-detectiveGold mr-2"></i>
@@ -383,7 +383,7 @@
     <!-- 删除确认模态框 -->
     <div id="deleteGoalModal" class="fixed inset-0 z-50 hidden">
         <div class="modal-overlay absolute inset-0" onclick="hideDeleteGoalModal()"></div>
-        <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="flex items-center justify-center min-h-screen p-4 relative z-10">
             <div class="modal-content relative p-6 max-w-sm w-full">
                 <h3 class="text-xl font-bold mb-4 text-center">
                     <i class="fa-solid fa-exclamation-triangle text-red-500 mr-2"></i>
