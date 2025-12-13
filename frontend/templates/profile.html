@@ -614,8 +614,6 @@
             document.getElementById('goalModalTitle').innerHTML = '<i class="fa-solid fa-bullseye text-detectiveGold mr-2"></i><span data-i18n="goals.addGoal">添加目标</span>';
             document.getElementById('goalModal').classList.remove('hidden');
             document.getElementById('goalTitle').focus();
-            // 重新应用i18n
-            if (window.i18n) window.i18n.updatePageTranslations();
         }
 
         // 编辑目标
@@ -635,7 +633,6 @@
                 document.getElementById('goalModalTitle').innerHTML = '<i class="fa-solid fa-pen text-detectiveGold mr-2"></i><span data-i18n="goals.editGoal">编辑目标</span>';
                 document.getElementById('goalModal').classList.remove('hidden');
                 document.getElementById('goalTitle').focus();
-                if (window.i18n) window.i18n.updatePageTranslations();
             } catch (error) {
                 console.error('Edit goal error:', error);
             }
