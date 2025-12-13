@@ -553,7 +553,7 @@
             const noGoals = document.getElementById('noGoals');
 
             try {
-                const response = await fetch('/api/goals');
+                const response = await fetch('/api/goals?status=all');
                 const data = await response.json();
 
                 if (!data.success || !data.goals || data.goals.length === 0) {
