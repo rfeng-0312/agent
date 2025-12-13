@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="diary.detailPageTitle">日记详情 | 名侦探作业帮</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        neonCyan: '#00d4ff',
+                        detectiveGold: '#ffd700',
+                        mysteryBlack: '#1a1a2e',
+                        moonlightBlue: '#16213e',
+                        conanRed: '#E31D2B',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .diary-detail-card {
+            background: linear-gradient(135deg, rgba(22, 33, 62, 0.9) 0%, rgba(26, 26, 46, 0.95) 100%);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .ai-response-box {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(255, 215, 0, 0.1) 100%);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 12px;
+        }
+
+        .ai-avatar {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #00d4ff 0%, #ffd700 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .mood-display {
+            font-size: 48px;
+            line-height: 1;
+        }
+
+        .diary-content {
+            white-space: pre-wrap;
+            line-height: 1.8;
+        }
+
+        .delete-btn {
+            background: rgba(227, 29, 43, 0.2);
+            border: 1px solid rgba(227, 29, 43, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            background: rgba(227, 29, 43, 0.4);
+            border-color: rgba(227, 29, 43, 0.6);
+        }
+
+        /* 语言切换样式 */
+        .lang-switcher .lang-btn {
+            opacity: 0.6;
+            transition: all 0.3s ease;
+        }
+        .lang-switcher .lang-btn:hover,
+        .lang-switcher .lang-btn.active {
+            opacity: 1;
+            color: #00d4ff;
+        }
+
+        /* 加载动画 */
+        .loading-spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #00d4ff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 删除确认弹窗 */
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, rgba(22, 33, 62, 0.98) 0%, rgba(26, 26, 46, 0.98) 100%);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 16px;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-mysteryBlack via-moonlightBlue to-mysteryBlack text-white">
+
+    <!-- 星星背景 -->
+    <div class="stars" id="stars"></div>
+
+    <!-- 导航栏 -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-mysteryBlack/80 backdrop-blur-md border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <a href="/" class="flex items-center gap-3">
+                    <i class="fa-solid fa-magnifying-glass text-neonCyan text-xl"></i>
+                    <span class="text-xl font-bold bg-gradient-to-r from-neonCyan to-detectiveGold bg-clip-text text-transparent" data-i18n="common.appName">名侦探作业帮</span>
+                </a>
+                <div class="flex items-center gap-4">
+                    <!-- 语言切换 -->
+                    <div class="lang-switcher flex items-center gap-1 text-sm">
+                        <button data-lang="zh-CN" class="lang-btn px-2 py-1 rounded hover:text-neonCyan transition-colors">中文</button>
+                        <span class="text-white/30">|</span>
+                        <button data-lang="en-US" class="lang-btn px-2 py-1 rounded hover:text-neonCyan transition-colors">EN</button>
+                    </div>
+                    <a href="/diary/list" class="text-white/70 hover:text-white transition-colors">
+                        <i class="fa-solid fa-list mr-1"></i>
+                        <span data-i18n="diary.backToList">返回列表</span>
+                    </a>
+                    <a href="/profile" class="text-white/70 hover:text-neonCyan transition-colors flex items-center gap-1">
+                        <i class="fa-solid fa-user-circle text-neonCyan"></i>
+                        <span class="hidden sm:inline" data-i18n="common.profile">个人主页</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容 -->
+    <main class="pt-24 pb-12 px-4">
+        <div class="max-w-2xl mx-auto">
+
+            <!-- 加载状态 -->
+            <div id="loadingState" class="text-center py-16">
+                <div class="loading-spinner mx-auto mb-4"></div>
+                <p class="text-white/50" data-i18n="common.loading">加载中...</p>
+            </div>
+
+            <!-- 错误状态 -->
+            <div id="errorState" class="hidden text-center py-16">
+                <i class="fa-solid fa-exclamation-triangle text-6xl text-conanRed/50 mb-4"></i>
+                <p class="text-white/50 mb-4" data-i18n="diary.notFound">日记不存在或已被删除</p>
+                <a href="/diary/list" class="inline-block px-6 py-3 rounded-lg bg-gradient-to-r from-neonCyan to-detectiveGold text-mysteryBlack font-bold">
+                    <i class="fa-solid fa-arrow-left mr-2"></i>
+                    <span data-i18n="diary.backToList">返回列表</span>
+                </a>
+            </div>
+
+            <!-- 日记详情 -->
+            <div id="diaryDetail" class="hidden">
+                <!-- 日期和心情 -->
+                <div class="diary-detail-card p-6 mb-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-4">
+                            <div class="mood-display" id="moodEmoji">📝</div>
+                            <div>
+                                <div class="text-white/50 text-sm" data-i18n="diary.createdAt">创建时间</div>
+                                <div id="diaryDate" class="text-lg font-bold">-</div>
+                            </div>
+                        </div>
+                        <button onclick="showDeleteModal()" class="delete-btn px-4 py-2 rounded-lg text-conanRed">
+                            <i class="fa-solid fa-trash-alt mr-1"></i>
+                            <span data-i18n="diary.delete">删除</span>
+                        </button>
+                    </div>
+
+                    <!-- 日记内容 -->
+                    <div class="mb-6">
+                        <h2 class="text-white/50 text-sm mb-2">
+                            <i class="fa-solid fa-pen mr-1"></i>
+                            <span data-i18n="diary.contentTitle">日记内容</span>
+                        </h2>
+                        <div id="diaryContent" class="diary-content text-white/90 bg-black/20 rounded-lg p-4">
+                            <!-- 日记内容 -->
+                        </div>
+                    </div>
+
+                    <!-- AI回复 -->
+                    <div id="aiResponseSection">
+                        <h2 class="text-white/50 text-sm mb-2">
+                            <i class="fa-solid fa-comment mr-1"></i>
+                            <span data-i18n="diary.aiResponseTitle">小柯的回复</span>
+                        </h2>
+                        <div class="ai-response-box p-4">
+                            <div class="flex items-start gap-3">
+                                <div class="ai-avatar">
+                                    <i class="fa-solid fa-user-secret text-mysteryBlack text-xl"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="font-bold text-detectiveGold mb-2">小柯</div>
+                                    <div id="aiResponse" class="text-white/90 leading-relaxed">
+                                        <!-- AI回复内容 -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 无AI回复 -->
+                    <div id="noAiResponse" class="hidden text-center py-4">
+                        <p class="text-white/50" data-i18n="diary.noAiResponse">小柯还没有回复这篇日记</p>
+                    </div>
+                </div>
+
+                <!-- 操作按钮 -->
+                <div class="flex gap-4">
+                    <a href="/diary/list" class="flex-1 py-3 rounded-lg border border-white/20 text-white/70 hover:bg-white/10 transition-colors text-center">
+                        <i class="fa-solid fa-arrow-left mr-2"></i>
+                        <span data-i18n="diary.backToList">返回列表</span>
+                    </a>
+                    <a href="/diary" class="flex-1 py-3 rounded-lg bg-gradient-to-r from-neonCyan to-detectiveGold text-mysteryBlack font-bold text-center">
+                        <i class="fa-solid fa-pen mr-2"></i>
+                        <span data-i18n="diary.writeNew">写新日记</span>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- 删除确认弹窗 -->
+    <div id="deleteModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-overlay absolute inset-0" onclick="hideDeleteModal()"></div>
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="modal-content relative p-6 max-w-sm w-full">
+                <h3 class="text-xl font-bold mb-4 text-center">
+                    <i class="fa-solid fa-exclamation-triangle text-conanRed mr-2"></i>
+                    <span data-i18n="diary.deleteConfirmTitle">确认删除</span>
+                </h3>
+                <p class="text-white/70 text-center mb-6" data-i18n="diary.deleteConfirmMessage">
+                    删除后无法恢复，确定要删除这篇日记吗？
+                </p>
+                <div class="flex gap-4">
+                    <button onclick="hideDeleteModal()" class="flex-1 py-3 rounded-lg border border-white/20 text-white/70 hover:bg-white/10 transition-colors">
+                        <span data-i18n="common.cancel">取消</span>
+                    </button>
+                    <button onclick="deleteDiary()" class="flex-1 py-3 rounded-lg bg-conanRed text-white font-bold hover:bg-conanRed/80 transition-colors">
+                        <i class="fa-solid fa-trash-alt mr-2"></i>
+                        <span data-i18n="diary.confirmDelete">确认删除</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 国际化支持 -->
+    <script src="{{ url_for('static', filename='js/translations/zh-CN.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/translations/en-US.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
+
+    <script>
+        const moodEmojis = ['', '😢', '😕', '😐', '😊', '😄'];
+        let currentDiaryId = null;
+
+        // 从URL获取日记ID
+        function getDiaryIdFromUrl() {
+            const path = window.location.pathname;
+            const match = path.match(/\/diary\/(\d+)/);
+            return match ? parseInt(match[1]) : null;
+        }
+
+        // 生成星星背景
+        function createStars() {
+            const container = document.getElementById('stars');
+            if (!container) return;
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                star.style.width = Math.random() * 3 + 1 + 'px';
+                star.style.height = star.style.width;
+                container.appendChild(star);
+            }
+        }
+
+        // 格式化日期
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const lang = window.i18n ? window.i18n.getCurrentLanguage() : 'zh-CN';
+
+            if (lang === 'en-US') {
+                return date.toLocaleDateString('en-US', {
+                    year: 'numeric', month: 'long', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+            }
+            return date.toLocaleDateString('zh-CN', {
+                year: 'numeric', month: 'long', day: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+        }
+
+        // 加载日记详情
+        async function loadDiary() {
+            currentDiaryId = getDiaryIdFromUrl();
+
+            if (!currentDiaryId) {
+                showError();
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/diary/${currentDiaryId}`);
+                const data = await response.json();
+
+                document.getElementById('loadingState').classList.add('hidden');
+
+                if (!data.success) {
+                    showError();
+                    return;
+                }
+
+                const diary = data.diary;
+
+                // 显示日记详情
+                document.getElementById('diaryDetail').classList.remove('hidden');
+
+                // 填充内容
+                document.getElementById('moodEmoji').textContent = moodEmojis[diary.mood_score] || '📝';
+                document.getElementById('diaryDate').textContent = formatDate(diary.created_at);
+                document.getElementById('diaryContent').textContent = diary.content;
+
+                // AI回复
+                if (diary.ai_response) {
+                    document.getElementById('aiResponse').textContent = diary.ai_response;
+                    document.getElementById('aiResponseSection').classList.remove('hidden');
+                    document.getElementById('noAiResponse').classList.add('hidden');
+                } else {
+                    document.getElementById('aiResponseSection').classList.add('hidden');
+                    document.getElementById('noAiResponse').classList.remove('hidden');
+                }
+
+            } catch (error) {
+                console.error('Load diary error:', error);
+                showError();
+            }
+        }
+
+        // 显示错误状态
+        function showError() {
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('errorState').classList.remove('hidden');
+        }
+
+        // 显示删除确认弹窗
+        function showDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+
+        // 隐藏删除确认弹窗
+        function hideDeleteModal() {
+            document.getElementById('deleteModal').classList.add('hidden');
+        }
+
+        // 删除日记
+        async function deleteDiary() {
+            if (!currentDiaryId) return;
+
+            try {
+                const response = await fetch(`/api/diary/${currentDiaryId}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    window.location.href = '/diary/list';
+                } else {
+                    alert(data.message || '删除失败');
+                }
+            } catch (error) {
+                console.error('Delete diary error:', error);
+                alert('删除失败，请重试');
+            }
+
+            hideDeleteModal();
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            createStars();
+            loadDiary();
+        });
+    </script>
+</body>
+</html>

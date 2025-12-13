@@ -18,7 +18,9 @@ const translations_en = {
         back: "Back",
         backToHome: "Back to Home",
         user: "User",
-        or: "or"
+        or: "or",
+        profile: "Profile",
+        qaApp: "Smart Q&A"
     },
 
     // ===== Home Page home.html =====
@@ -345,6 +347,7 @@ const translations_en = {
     diary: {
         pageTitle: "Write Diary | Detective Study Helper",
         listPageTitle: "My Diaries | Detective Study Helper",
+        detailPageTitle: "Diary Details | Detective Study Helper",
         title: "Today's Growth Record",
         subtitle: "Record your feelings, Xiao Ke will accompany you",
         moodLabel: "How do you feel today?",
@@ -366,6 +369,17 @@ const translations_en = {
         emptyError: "Please write something before saving~",
         aiError: "Xiao Ke is temporarily unavailable, but your diary has been saved~",
         todayWritten: "Today recorded",
+        // Diary detail page
+        backToList: "Back to List",
+        delete: "Delete",
+        deleteConfirmTitle: "Confirm Delete",
+        deleteConfirmMessage: "This action cannot be undone. Are you sure you want to delete this diary?",
+        confirmDelete: "Confirm Delete",
+        notFound: "Diary not found or has been deleted",
+        createdAt: "Created at",
+        contentTitle: "Diary Content",
+        aiResponseTitle: "Xiao Ke's Response",
+        noAiResponse: "Xiao Ke hasn't responded to this diary yet",
         mood: {
             1: "Very Bad",
             2: "Not Good",
@@ -373,6 +387,26 @@ const translations_en = {
             4: "Good",
             5: "Great"
         }
+    },
+
+    // ===== Profile =====
+    profile: {
+        pageTitle: "Profile | Detective Study Helper",
+        memberSince: "Member since",
+        totalDiaries: "Total Diaries",
+        streakDays: "Day Streak",
+        todayDiary: "Today's Check-in",
+        quickAccess: "Quick Access",
+        writeDiary: "Write Diary",
+        writeDiaryDesc: "Record today's mood and story",
+        diaryHistory: "Diary History",
+        diaryHistoryDesc: "View all diary entries",
+        qaApp: "Smart Q&A",
+        qaAppDesc: "AI helps solve your study problems",
+        recentDiaries: "Recent Diaries",
+        viewAll: "View All",
+        noDiaries: "No diary yet. Start recording!",
+        startWriting: "Write First"
     }
 };
 

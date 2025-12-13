@@ -19,7 +19,9 @@ const translations_zh = {
         back: "返回",
         backToHome: "返回首页",
         user: "用户",
-        or: "或"
+        or: "或",
+        profile: "个人主页",
+        qaApp: "智能问答"
     },
 
     // ===== 首页 home.html =====
@@ -346,6 +348,7 @@ const translations_zh = {
     diary: {
         pageTitle: "写日记 | 名侦探作业帮",
         listPageTitle: "我的日记 | 名侦探作业帮",
+        detailPageTitle: "日记详情 | 名侦探作业帮",
         title: "今日成长记录",
         subtitle: "记录你的心情，小柯会陪伴你",
         moodLabel: "今天心情怎么样？",
@@ -367,6 +370,17 @@ const translations_zh = {
         emptyError: "请写点什么再保存哦~",
         aiError: "小柯暂时无法回复，但你的日记已保存~",
         todayWritten: "今日已记录",
+        // 日记详情页
+        backToList: "返回列表",
+        delete: "删除",
+        deleteConfirmTitle: "确认删除",
+        deleteConfirmMessage: "删除后无法恢复，确定要删除这篇日记吗？",
+        confirmDelete: "确认删除",
+        notFound: "日记不存在或已被删除",
+        createdAt: "创建时间",
+        contentTitle: "日记内容",
+        aiResponseTitle: "小柯的回复",
+        noAiResponse: "小柯还没有回复这篇日记",
         mood: {
             1: "很差",
             2: "不太好",
@@ -374,6 +388,26 @@ const translations_zh = {
             4: "不错",
             5: "很棒"
         }
+    },
+
+    // ===== 个人主页 =====
+    profile: {
+        pageTitle: "个人主页 | 名侦探作业帮",
+        memberSince: "加入时间",
+        totalDiaries: "日记总数",
+        streakDays: "连续天数",
+        todayDiary: "今日打卡",
+        quickAccess: "快捷入口",
+        writeDiary: "写日记",
+        writeDiaryDesc: "记录今天的心情和故事",
+        diaryHistory: "日记历史",
+        diaryHistoryDesc: "查看所有日记记录",
+        qaApp: "智能问答",
+        qaAppDesc: "AI帮你解答学习问题",
+        recentDiaries: "最近日记",
+        viewAll: "查看全部",
+        noDiaries: "还没有日记，开始记录吧！",
+        startWriting: "写第一篇"
     }
 };
 

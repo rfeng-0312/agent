@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="profile.pageTitle">个人主页 | 名侦探作业帮</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        neonCyan: '#00d4ff',
+                        detectiveGold: '#ffd700',
+                        mysteryBlack: '#1a1a2e',
+                        moonlightBlue: '#16213e',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .profile-card {
+            background: linear-gradient(135deg, rgba(22, 33, 62, 0.9) 0%, rgba(26, 26, 46, 0.95) 100%);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-color: rgba(0, 212, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .menu-item {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .menu-item:hover {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: rgba(0, 212, 255, 0.3);
+            transform: translateX(4px);
+        }
+
+        .avatar-ring {
+            background: linear-gradient(135deg, #00d4ff 0%, #ffd700 100%);
+            padding: 3px;
+            border-radius: 50%;
+        }
+
+        .avatar-inner {
+            background: #1a1a2e;
+            border-radius: 50%;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .diary-preview {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .diary-preview:hover {
+            border-color: rgba(0, 212, 255, 0.3);
+        }
+
+        /* 语言切换样式 */
+        .lang-switcher .lang-btn {
+            opacity: 0.6;
+            transition: all 0.3s ease;
+        }
+        .lang-switcher .lang-btn:hover,
+        .lang-switcher .lang-btn.active {
+            opacity: 1;
+            color: #00d4ff;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-mysteryBlack via-moonlightBlue to-mysteryBlack text-white">
+
+    <!-- 星星背景 -->
+    <div class="stars" id="stars"></div>
+
+    <!-- 导航栏 -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-mysteryBlack/80 backdrop-blur-md border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <a href="/" class="flex items-center gap-3">
+                    <i class="fa-solid fa-magnifying-glass text-neonCyan text-xl"></i>
+                    <span class="text-xl font-bold bg-gradient-to-r from-neonCyan to-detectiveGold bg-clip-text text-transparent" data-i18n="common.appName">名侦探作业帮</span>
+                </a>
+                <div class="flex items-center gap-4">
+                    <!-- 语言切换 -->
+                    <div class="lang-switcher flex items-center gap-1 text-sm">
+                        <button data-lang="zh-CN" class="lang-btn px-2 py-1 rounded hover:text-neonCyan transition-colors">中文</button>
+                        <span class="text-white/30">|</span>
+                        <button data-lang="en-US" class="lang-btn px-2 py-1 rounded hover:text-neonCyan transition-colors">EN</button>
+                    </div>
+                    <a href="/app" class="text-white/70 hover:text-neonCyan transition-colors">
+                        <i class="fa-solid fa-brain mr-1"></i>
+                        <span data-i18n="common.qaApp">智能问答</span>
+                    </a>
+                    <button onclick="logout()" class="text-white/70 hover:text-conanRed transition-colors">
+                        <i class="fa-solid fa-sign-out-alt mr-1"></i>
+                        <span data-i18n="common.logout">退出</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容 -->
+    <main class="pt-24 pb-12 px-4">
+        <div class="max-w-2xl mx-auto">
+
+            <!-- 用户信息卡片 -->
+            <div class="profile-card p-6 mb-6">
+                <div class="flex items-center gap-4 mb-6">
+                    <!-- 头像 -->
+                    <div class="avatar-ring w-20 h-20">
+                        <div class="avatar-inner">
+                            <i class="fa-solid fa-user-secret text-3xl text-detectiveGold"></i>
+                        </div>
+                    </div>
+                    <!-- 用户信息 -->
+                    <div class="flex-1">
+                        <h1 id="profileName" class="text-2xl font-bold mb-1">用户</h1>
+                        <p id="profileEmail" class="text-white/50 text-sm">
+                            <i class="fa-solid fa-envelope mr-1"></i>
+                            <span>loading...</span>
+                        </p>
+                        <p id="profileJoinDate" class="text-white/50 text-sm mt-1">
+                            <i class="fa-solid fa-calendar mr-1"></i>
+                            <span data-i18n="profile.memberSince">加入时间</span>: <span id="joinDate">-</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 统计数据 -->
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="stat-card p-4 text-center">
+                        <div class="text-3xl font-bold text-neonCyan mb-1" id="diaryCount">0</div>
+                        <div class="text-white/50 text-sm" data-i18n="profile.totalDiaries">日记总数</div>
+                    </div>
+                    <div class="stat-card p-4 text-center">
+                        <div class="text-3xl font-bold text-detectiveGold mb-1" id="streakCount">0</div>
+                        <div class="text-white/50 text-sm" data-i18n="profile.streakDays">连续天数</div>
+                    </div>
+                    <div class="stat-card p-4 text-center">
+                        <div class="text-3xl font-bold text-green-400 mb-1" id="todayStatus">
+                            <i class="fa-solid fa-circle-xmark"></i>
+                        </div>
+                        <div class="text-white/50 text-sm" data-i18n="profile.todayDiary">今日打卡</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 功能菜单 -->
+            <div class="profile-card p-6 mb-6">
+                <h2 class="text-lg font-bold mb-4">
+                    <i class="fa-solid fa-compass text-neonCyan mr-2"></i>
+                    <span data-i18n="profile.quickAccess">快捷入口</span>
+                </h2>
+                <div class="space-y-3">
+                    <!-- 写日记 -->
+                    <a href="/diary" class="menu-item p-4 flex items-center gap-4 block">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-r from-neonCyan to-detectiveGold flex items-center justify-center">
+                            <i class="fa-solid fa-feather-pointed text-mysteryBlack text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="font-bold" data-i18n="profile.writeDiary">写日记</div>
+                            <div class="text-white/50 text-sm" data-i18n="profile.writeDiaryDesc">记录今天的心情和故事</div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-white/30"></i>
+                    </a>
+
+                    <!-- 日记历史 -->
+                    <a href="/diary/list" class="menu-item p-4 flex items-center gap-4 block">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                            <i class="fa-solid fa-book text-white text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="font-bold" data-i18n="profile.diaryHistory">日记历史</div>
+                            <div class="text-white/50 text-sm" data-i18n="profile.diaryHistoryDesc">查看所有日记记录</div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-white/30"></i>
+                    </a>
+
+                    <!-- 智能问答 -->
+                    <a href="/app" class="menu-item p-4 flex items-center gap-4 block">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center">
+                            <i class="fa-solid fa-brain text-white text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="font-bold" data-i18n="profile.qaApp">智能问答</div>
+                            <div class="text-white/50 text-sm" data-i18n="profile.qaAppDesc">AI帮你解答学习问题</div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-white/30"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 最近日记 -->
+            <div class="profile-card p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-bold">
+                        <i class="fa-solid fa-clock-rotate-left text-detectiveGold mr-2"></i>
+                        <span data-i18n="profile.recentDiaries">最近日记</span>
+                    </h2>
+                    <a href="/diary/list" class="text-neonCyan text-sm hover:underline" data-i18n="profile.viewAll">查看全部</a>
+                </div>
+
+                <div id="recentDiaries" class="space-y-3">
+                    <!-- 动态加载 -->
+                </div>
+
+                <div id="noDiaries" class="hidden text-center py-8">
+                    <i class="fa-solid fa-book-open text-4xl text-white/20 mb-3"></i>
+                    <p class="text-white/50" data-i18n="profile.noDiaries">还没有日记，开始记录吧！</p>
+                    <a href="/diary" class="inline-block mt-4 px-6 py-2 rounded-lg bg-gradient-to-r from-neonCyan to-detectiveGold text-mysteryBlack font-bold">
+                        <i class="fa-solid fa-pen mr-2"></i>
+                        <span data-i18n="profile.startWriting">写第一篇</span>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- 国际化支持 -->
+    <script src="{{ url_for('static', filename='js/translations/zh-CN.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/translations/en-US.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
+
+    <script>
+        const moodEmojis = ['', '😢', '😕', '😐', '😊', '😄'];
+
+        // 生成星星背景
+        function createStars() {
+            const container = document.getElementById('stars');
+            if (!container) return;
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                star.style.width = Math.random() * 3 + 1 + 'px';
+                star.style.height = star.style.width;
+                container.appendChild(star);
+            }
+        }
+
+        // 加载用户信息
+        async function loadUserInfo() {
+            try {
+                const response = await fetch('/api/auth/user');
+                const data = await response.json();
+
+                if (!data.logged_in) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                document.getElementById('profileName').textContent = data.user.name;
+
+                const emailEl = document.getElementById('profileEmail');
+                if (data.user.email) {
+                    emailEl.innerHTML = `<i class="fa-solid fa-envelope mr-1"></i>${data.user.email}`;
+                } else if (data.user.phone) {
+                    emailEl.innerHTML = `<i class="fa-solid fa-phone mr-1"></i>${data.user.phone}`;
+                } else {
+                    emailEl.classList.add('hidden');
+                }
+
+            } catch (error) {
+                console.error('Load user info error:', error);
+                window.location.href = '/login';
+            }
+        }
+
+        // 加载日记统计
+        async function loadDiaryStats() {
+            try {
+                // 加载日记列表获取总数
+                const diariesRes = await fetch('/api/diaries?limit=1&offset=0');
+                const diariesData = await diariesRes.json();
+                if (diariesData.success) {
+                    document.getElementById('diaryCount').textContent = diariesData.total;
+                }
+
+                // 加载连续天数
+                const streakRes = await fetch('/api/diary/streak');
+                const streakData = await streakRes.json();
+                document.getElementById('streakCount').textContent = streakData.streak || 0;
+
+                // 检查今日状态
+                const todayRes = await fetch('/api/diary/status/today');
+                const todayData = await todayRes.json();
+                const todayEl = document.getElementById('todayStatus');
+                if (todayData.has_diary) {
+                    todayEl.innerHTML = '<i class="fa-solid fa-circle-check text-green-400"></i>';
+                } else {
+                    todayEl.innerHTML = '<i class="fa-solid fa-circle-xmark text-white/30"></i>';
+                }
+
+            } catch (error) {
+                console.error('Load diary stats error:', error);
+            }
+        }
+
+        // 加载最近日记
+        async function loadRecentDiaries() {
+            try {
+                const response = await fetch('/api/diaries?limit=3&offset=0');
+                const data = await response.json();
+
+                const container = document.getElementById('recentDiaries');
+                const noDiaries = document.getElementById('noDiaries');
+
+                if (!data.success || data.diaries.length === 0) {
+                    container.classList.add('hidden');
+                    noDiaries.classList.remove('hidden');
+                    return;
+                }
+
+                container.innerHTML = '';
+                data.diaries.forEach(diary => {
+                    const date = new Date(diary.created_at);
+                    const dateStr = date.toLocaleDateString('zh-CN', {
+                        month: 'short', day: 'numeric'
+                    });
+
+                    const preview = diary.content.length > 60
+                        ? diary.content.substring(0, 60) + '...'
+                        : diary.content;
+
+                    const card = document.createElement('a');
+                    card.href = `/diary/${diary.id}`;
+                    card.className = 'diary-preview p-4 flex items-center gap-3 block';
+                    card.innerHTML = `
+                        <div class="text-2xl">${moodEmojis[diary.mood_score] || '📝'}</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-white/50 text-xs mb-1">${dateStr}</div>
+                            <div class="text-white/90 text-sm truncate">${preview}</div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-white/30"></i>
+                    `;
+                    container.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error('Load recent diaries error:', error);
+            }
+        }
+
+        // 登出
+        async function logout() {
+            try {
+                await fetch('/api/auth/logout', { method: 'POST' });
+                window.location.href = '/';
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            createStars();
+            loadUserInfo();
+            loadDiaryStats();
+            loadRecentDiaries();
+        });
+    </script>
+</body>
+</html>

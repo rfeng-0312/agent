@@ -131,6 +131,24 @@ def diary_list_page():
     return render_template('diary_list.html')
 
 
+@app.route('/diary/<int:diary_id>')
+def diary_detail_page(diary_id):
+    """日记详情页面 - 需要登录"""
+    if 'user_id' not in session:
+        return redirect(url_for('login_page'))
+    return render_template('diary_detail.html')
+
+
+# ==================== 个人主页路由 ====================
+
+@app.route('/profile')
+def profile_page():
+    """个人主页 - 需要登录"""
+    if 'user_id' not in session:
+        return redirect(url_for('login_page'))
+    return render_template('profile.html')
+
+
 # ==================== 认证 API 路由 ====================
 
 @app.route('/api/auth/register', methods=['POST'])
