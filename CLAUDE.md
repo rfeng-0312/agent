@@ -4,13 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-名侦探作业帮 (Detective Study Helper) is an AI-powered educational web application for solving physics and chemistry problems.
+名侦探作业帮 (Detective Study Helper) is an AI-powered educational web application for solving physics and chemistry problems, with diary journaling and goal tracking features.
 
 - **Dual API Support**: Text queries via DeepSeek API (deepseek-reasoner), image recognition via Doubao API (doubao-seed-1-6-251015)
 - **Flask Backend**: RESTful API with Server-Sent Events for streaming responses
-- **MySQL Database**: User authentication with Zeabur-hosted MySQL
+- **MySQL Database**: User authentication, diaries, and goals with Zeabur-hosted MySQL
 - **Vanilla Frontend**: Pure HTML5, CSS3, JavaScript with Detective Conan theme
-- **Chinese Language**: Fully localized interface and responses
+- **Bilingual i18n**: Supports `zh-CN` and `en-US` via cookie-based language switching
 
 ## Development Commands
 
@@ -50,15 +50,17 @@ When `deep_think=true`:
 - SSE events include `stage` (solving/verifying), `verify_thinking`, `verify_answer`
 
 ### Backend (`src/`)
-- `app.py` - Flask routes, SSE streaming, session management, auth endpoints
-- `database.py` - MySQL connection with mysql-connector-python, user CRUD (register, login, reset password), SHA-256 password hashing
+- `app.py` - Flask routes, SSE streaming, session management, auth/diary/goal endpoints
+- `database.py` - MySQL connection, user CRUD, diary CRUD (with AI responses, streak tracking), goal CRUD (with status: active/completed/archived)
 - `doubao_api.py` - DoubaoClient class for image+text queries (uses OpenAI SDK compatibility), image compression via Pillow, streaming with reasoning_content support
-- `prompts.py` - Subject-specific system prompts (physics/chemistry/competition/verification)
+- `prompts.py` / `prompts_en.py` - Subject-specific system prompts (physics/chemistry/competition/verification) in Chinese and English
 
 ### Frontend (`frontend/`)
-- `templates/` - Jinja2 templates: `index.html`, `login.html`, `register.html`, `reset_password.html`, `result.html`
+- `templates/` - Jinja2 templates: `home.html`, `index.html`, `login.html`, `register.html`, `reset_password.html`, `result.html`, `profile.html`, `diary.html`, `diary_list.html`, `diary_detail.html`
 - `static/css/` - Theming with CSS variables (blue=physics, red=chemistry)
 - `static/js/` - EventSource for SSE, drag-drop file upload
+- `static/js/i18n.js` - Language switching logic
+- `static/js/translations/` - Translation files (`zh-CN.js`, `en-US.js`)
 
 ### API Endpoints
 
@@ -79,6 +81,26 @@ When `deep_think=true`:
 | `/api/auth/check-account` | POST | Check if email/phone exists |
 | `/api/auth/reset-password` | POST | Reset password |
 | `/api/auth/user` | GET | Get current logged-in user |
+
+**Diary endpoints:**
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/api/diaries` | GET | List user diaries (with pagination) |
+| `/api/diary` | POST | Create diary entry |
+| `/api/diary/<id>` | GET | Get single diary |
+| `/api/diary/<id>` | DELETE | Delete diary |
+| `/api/diary/generate-ai` | POST | Generate AI response for diary (SSE) |
+| `/api/diary/status/today` | GET | Check if user wrote diary today |
+| `/api/diary/streak` | GET | Get consecutive diary streak days |
+
+**Goal endpoints:**
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/api/goals` | GET | List user goals (filter by status) |
+| `/api/goals` | POST | Create new goal |
+| `/api/goal/<id>` | GET | Get single goal |
+| `/api/goal/<id>` | PUT | Update goal (title, description, status) |
+| `/api/goal/<id>` | DELETE | Delete goal |
 
 ### Environment Variables (`src/.env`)
 ```
@@ -130,6 +152,18 @@ Response saved separately: `data/sessions/{session_id}_response.json`
 - Passwords hashed with SHA-256
 - Login via email or phone number
 - Flask session stores user_id, user_name, scores
+
+### Diary AI Responses
+- Uses Doubao API for generating AI responses to diary entries
+- Can analyze recent diaries with `history_range` parameter (e.g., "week", "month")
+- Supports goal progress analysis via `goal_analysis` field
+- Tracks consecutive diary writing streaks
+
+### i18n Language Support
+- Language stored in browser cookie (`lang`)
+- Supported values: `zh-CN` (default), `en-US`
+- `get_current_language()` reads cookie in requests
+- Prompts selected via `get_subject_prompt_by_lang()` etc.
 
 ## File Organization Rules
 

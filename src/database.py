@@ -556,7 +556,7 @@ def get_recent_diaries(user_id, days=None, limit=50):
         limit: 最大返回条数
 
     Returns:
-        日记列表，每条包含 content, mood_score, created_at
+        日记列表，每条包含 id, content, mood_score, created_at
     """
     connection = get_db_connection()
     if not connection:
@@ -567,7 +567,7 @@ def get_recent_diaries(user_id, days=None, limit=50):
 
         if days:
             cursor.execute('''
-                SELECT content, mood_score, created_at
+                SELECT id, content, mood_score, created_at
                 FROM diaries
                 WHERE user_id = %s AND created_at >= DATE_SUB(NOW(), INTERVAL %s DAY)
                 ORDER BY created_at DESC
@@ -575,7 +575,7 @@ def get_recent_diaries(user_id, days=None, limit=50):
             ''', (user_id, days, limit))
         else:
             cursor.execute('''
-                SELECT content, mood_score, created_at
+                SELECT id, content, mood_score, created_at
                 FROM diaries
                 WHERE user_id = %s
                 ORDER BY created_at DESC
