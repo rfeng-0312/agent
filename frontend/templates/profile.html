@@ -245,6 +245,18 @@
                         <i class="fa-solid fa-chevron-right text-white/30"></i>
                     </a>
 
+                    <!-- 设置目标 - 显眼位置 -->
+                    <button onclick="showAddGoalModal()" class="menu-item p-4 flex items-center gap-4 w-full text-left">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 flex items-center justify-center">
+                            <i class="fa-solid fa-bullseye text-white text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="font-bold" data-i18n="profile.setGoals">设置目标</div>
+                            <div class="text-white/50 text-sm" data-i18n="profile.setGoalsDesc">制定目标，AI帮你追踪进度</div>
+                        </div>
+                        <i class="fa-solid fa-plus text-detectiveGold"></i>
+                    </button>
+
                     <!-- 日记历史 -->
                     <a href="/diary/list" class="menu-item p-4 flex items-center gap-4 block">
                         <div class="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
@@ -536,14 +548,14 @@
 
         // 加载目标列表
         async function loadGoals() {
+            const container = document.getElementById('goalsList');
+            const noGoals = document.getElementById('noGoals');
+
             try {
                 const response = await fetch('/api/goals');
                 const data = await response.json();
 
-                const container = document.getElementById('goalsList');
-                const noGoals = document.getElementById('noGoals');
-
-                if (!data.success || data.goals.length === 0) {
+                if (!data.success || !data.goals || data.goals.length === 0) {
                     container.classList.add('hidden');
                     noGoals.classList.remove('hidden');
                     return;
@@ -581,6 +593,9 @@
 
             } catch (error) {
                 console.error('Load goals error:', error);
+                // 出错时也显示空状态，让用户可以添加目标
+                container.classList.add('hidden');
+                noGoals.classList.remove('hidden');
             }
         }
 

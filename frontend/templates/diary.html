@@ -324,6 +324,18 @@
                     </div>
                 </div>
 
+                <!-- 没有目标时显示设置目标提示 -->
+                <div id="noGoalsHint" class="mb-6 hidden">
+                    <a href="/profile" class="block p-4 rounded-lg border border-dashed border-detectiveGold/30 hover:border-detectiveGold/60 hover:bg-detectiveGold/5 transition-all text-center">
+                        <i class="fa-solid fa-bullseye text-detectiveGold text-2xl mb-2"></i>
+                        <p class="text-white/70 text-sm" data-i18n="diary.setGoalsHint">还没有设置目标？去个人主页设置目标，AI会帮你追踪进度</p>
+                        <span class="inline-block mt-2 text-detectiveGold text-sm">
+                            <i class="fa-solid fa-arrow-right mr-1"></i>
+                            <span data-i18n="diary.goSetGoals">去设置目标</span>
+                        </span>
+                    </a>
+                </div>
+
                 <!-- 保存按钮 -->
                 <button id="saveBtn" class="w-full py-4 rounded-lg bg-gradient-to-r from-neonCyan to-detectiveGold text-mysteryBlack font-bold text-lg transition-all hover:shadow-lg hover:shadow-neonCyan/30 disabled:opacity-50 disabled:cursor-not-allowed">
                     <i class="fa-solid fa-paper-plane mr-2"></i>
@@ -502,6 +514,8 @@
 
         // 加载用户目标（检查是否有目标）
         async function loadUserGoals() {
+            const noGoalsHint = document.getElementById('noGoalsHint');
+
             try {
                 const response = await fetch('/api/goals');
                 const data = await response.json();
@@ -509,12 +523,17 @@
                 if (data.success && data.goals && data.goals.length > 0) {
                     hasGoals = true;
                     goalAnalysisSection.classList.remove('hidden');
+                    noGoalsHint.classList.add('hidden');
                 } else {
                     hasGoals = false;
                     goalAnalysisSection.classList.add('hidden');
+                    noGoalsHint.classList.remove('hidden');  // 显示设置目标提示
                 }
             } catch (error) {
                 console.error('Load user goals error:', error);
+                hasGoals = false;
+                goalAnalysisSection.classList.add('hidden');
+                noGoalsHint.classList.remove('hidden');  // 出错时也显示设置目标提示
             }
         }
 

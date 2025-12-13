@@ -400,7 +400,10 @@ const translations_en = {
         aiResponse: {
             emotionalTitle: "Xiao Ke's Response",
             goalAnalysisTitle: "Goal Progress Analysis"
-        }
+        },
+        // Set goals hint
+        setGoalsHint: "No goals set yet? Go to profile to set goals, AI will help track your progress",
+        goSetGoals: "Set Goals"
     },
 
     // ===== Profile =====
@@ -420,7 +423,9 @@ const translations_en = {
         recentDiaries: "Recent Diaries",
         viewAll: "View All",
         noDiaries: "No diary yet. Start recording!",
-        startWriting: "Write First"
+        startWriting: "Write First",
+        setGoals: "Set Goals",
+        setGoalsDesc: "Set goals, AI will track your progress"
     },
 
     // ===== Goals =====

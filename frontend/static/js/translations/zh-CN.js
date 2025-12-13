@@ -401,7 +401,10 @@ const translations_zh = {
         aiResponse: {
             emotionalTitle: "小柯的回复",
             goalAnalysisTitle: "目标进度分析"
-        }
+        },
+        // 设置目标提示
+        setGoalsHint: "还没有设置目标？去个人主页设置目标，AI会帮你追踪进度",
+        goSetGoals: "去设置目标"
     },
 
     // ===== 个人主页 =====
@@ -421,7 +424,9 @@ const translations_zh = {
         recentDiaries: "最近日记",
         viewAll: "查看全部",
         noDiaries: "还没有日记，开始记录吧！",
-        startWriting: "写第一篇"
+        startWriting: "写第一篇",
+        setGoals: "设置目标",
+        setGoalsDesc: "制定目标，AI帮你追踪进度"
     },
 
     // ===== 目标管理 =====
