@@ -1103,9 +1103,8 @@ Please give a warm response based on the user's diary."""
             if chunk.choices[0].delta.content:
                 content_chunk = chunk.choices[0].delta.content
                 emotional_response += content_chunk
-                # 同时发送 emotional 和 content 类型，保持向后兼容
+                # 只发送 emotional 类型（移除重复的 content 类型，避免前端显示两次）
                 yield f"data: {json.dumps({'type': 'emotional', 'content': content_chunk}, ensure_ascii=False)}\n\n"
-                yield f"data: {json.dumps({'type': 'content', 'content': content_chunk}, ensure_ascii=False)}\n\n"
 
         # 保存情感回复到数据库
         update_diary_ai_response(diary_id, emotional_response)

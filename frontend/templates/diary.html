@@ -749,7 +749,11 @@
                         todayStatus.classList.remove('hidden');
                     } else if (data.type === 'error') {
                         eventSource.close();
-                        throw new Error(data.message);
+                        console.error('AI response error:', data.message);
+                        typingIndicator.classList.add('hidden');
+                        goalTypingIndicator.classList.add('hidden');
+                        aiResponseContent.innerHTML = '<p class="text-red-400">' +
+                            (window.i18n ? i18n.t('diary.aiError') : '小柯暂时无法回复，但你的日记已保存~') + '</p>';
                     }
                 };
 
