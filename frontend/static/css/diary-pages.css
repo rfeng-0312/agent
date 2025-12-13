@@ -862,42 +862,47 @@
    温暖色系：珊瑚/蜜桃/腮红/薰衣草
    ============================================ */
 
-/* ========== 14. 梦幻主题 - CSS变量 ========== */
+/* ========== 14. 梦幻主题 - CSS变量 (蓝紫暖调融合版) ========== */
 :root {
-    /* 温暖梦幻色系 */
-    --dp-dream-coral: #FF7B7B;
-    --dp-dream-peach: #FFAB91;
-    --dp-dream-blush: #FFB6C1;
-    --dp-dream-lavender: #D8B4E2;
-    --dp-dream-lilac: #E8DAEF;
-    --dp-dream-sky: #87CEEB;
+    /* 蓝紫暖调融合色系 */
+    --dp-dream-coral: #E8A0A0;       /* 降低饱和度的珊瑚 */
+    --dp-dream-peach: #F0C4B8;       /* 更柔和的蜜桃 */
+    --dp-dream-blush: #E8B4C8;       /* 偏紫的玫瑰粉 */
+    --dp-dream-lavender: #B8A9C9;    /* 偏蓝的薰衣草 */
+    --dp-dream-lilac: #C8B8D8;       /* 更蓝的淡紫 */
+    --dp-dream-sky: #9D8EC9;         /* 长春花蓝紫替代天蓝 */
 
-    /* 背景深色 */
-    --dp-dream-purple-dark: #2D1B4E;
-    --dp-dream-purple-mid: #4A2C6A;
-    --dp-dream-rose-dark: #5C3D5E;
-    --dp-dream-bg-base: #1a1028;
+    /* 背景深色 - 与主站统一 */
+    --dp-dream-purple-dark: #0f0c29; /* 与主站一致 */
+    --dp-dream-purple-mid: #2D1B4E;
+    --dp-dream-rose-dark: #4A3C6A;   /* 更偏蓝紫 */
+    --dp-dream-bg-base: #0f0c29;     /* 与主站一致 */
 
-    /* 梦幻阴影 */
-    --dp-dream-glow-coral: 0 0 20px rgba(255, 123, 123, 0.3);
-    --dp-dream-glow-lavender: 0 0 20px rgba(216, 180, 226, 0.3);
-    --dp-dream-glow-blush: 0 0 20px rgba(255, 182, 193, 0.3);
+    /* 梦幻阴影 - 蓝紫暖调融合 */
+    --dp-dream-glow-coral: 0 0 20px rgba(232, 160, 160, 0.3);
+    --dp-dream-glow-lavender: 0 0 20px rgba(184, 169, 201, 0.3);
+    --dp-dream-glow-blush: 0 0 20px rgba(232, 180, 200, 0.3);
 }
 
-/* ========== 15. 梦幻主题 - 渐变背景 ========== */
+/* ========== 15. 梦幻主题 - 渐变背景 (蓝紫暖调融合版) ========== */
 .dp-dream-bg-twilight {
     background:
-        radial-gradient(ellipse 80% 60% at 10% 20%, rgba(216, 180, 226, 0.25) 0%, transparent 50%),
-        radial-gradient(ellipse 70% 50% at 90% 80%, rgba(255, 171, 145, 0.2) 0%, transparent 50%),
-        radial-gradient(ellipse 60% 40% at 50% 50%, rgba(135, 206, 235, 0.12) 0%, transparent 60%),
-        radial-gradient(ellipse 50% 30% at 30% 70%, rgba(255, 123, 123, 0.15) 0%, transparent 50%),
+        /* 蓝紫光晕 - 增加 */
+        radial-gradient(ellipse 70% 50% at 80% 30%, rgba(157, 142, 201, 0.15) 0%, transparent 50%),
+        /* 薰衣草光晕 */
+        radial-gradient(ellipse 80% 60% at 10% 20%, rgba(184, 169, 201, 0.2) 0%, transparent 50%),
+        /* 玫瑰光晕 - 降低强度 */
+        radial-gradient(ellipse 60% 40% at 90% 80%, rgba(232, 180, 200, 0.12) 0%, transparent 50%),
+        /* 柔和珊瑚光晕 */
+        radial-gradient(ellipse 50% 30% at 30% 70%, rgba(232, 160, 160, 0.1) 0%, transparent 50%),
+        /* 基础渐变 - 与主站统一 */
         linear-gradient(160deg,
-            #1a1028 0%,
-            #2D1B4E 20%,
-            #4A2C6A 40%,
-            #5C3D5E 60%,
-            #4A2C6A 80%,
-            #1a1028 100%);
+            #0f0c29 0%,
+            #1a1535 20%,
+            #2D1B4E 40%,
+            #4A3C6A 60%,
+            #2D1B4E 80%,
+            #0f0c29 100%);
     background-attachment: fixed;
     min-height: 100vh;
 }
@@ -911,28 +916,28 @@
     overflow: hidden;
 }
 
-/* 萤火虫粒子 */
+/* 萤火虫粒子 (蓝紫暖调融合) */
 .dp-dream-particle {
     position: absolute;
     border-radius: 50%;
     background: radial-gradient(circle,
         rgba(255, 255, 255, 0.9) 0%,
-        rgba(255, 182, 193, 0.6) 40%,
+        rgba(184, 169, 201, 0.6) 40%,
         transparent 70%);
     box-shadow:
-        0 0 6px rgba(255, 182, 193, 0.5),
-        0 0 12px rgba(216, 180, 226, 0.3);
+        0 0 6px rgba(184, 169, 201, 0.5),
+        0 0 12px rgba(157, 142, 201, 0.3);
     animation: dp-firefly-float var(--duration, 8s) ease-in-out infinite;
     animation-delay: var(--delay, 0s);
 }
 
-/* 大型光球 */
+/* 大型光球 (蓝紫暖调融合) */
 .dp-dream-orb {
     position: absolute;
     border-radius: 50%;
     background: radial-gradient(circle,
-        rgba(255, 171, 145, 0.35) 0%,
-        rgba(216, 180, 226, 0.2) 40%,
+        rgba(157, 142, 201, 0.3) 0%,
+        rgba(184, 169, 201, 0.2) 40%,
         transparent 70%);
     filter: blur(8px);
     animation: dp-orb-drift var(--duration, 15s) ease-in-out infinite;
@@ -958,29 +963,29 @@
 
 .dp-dream-halo.coral {
     background: radial-gradient(circle,
-        rgba(255, 123, 123, 0.5) 0%,
-        rgba(255, 171, 145, 0.3) 50%,
+        rgba(232, 160, 160, 0.4) 0%,      /* 柔和珊瑚 */
+        rgba(232, 180, 200, 0.25) 50%,    /* 玫瑰 */
         transparent 70%);
 }
 
 .dp-dream-halo.lavender {
     background: radial-gradient(circle,
-        rgba(216, 180, 226, 0.45) 0%,
-        rgba(232, 218, 239, 0.25) 50%,
+        rgba(184, 169, 201, 0.45) 0%,     /* 薰衣草 */
+        rgba(200, 184, 216, 0.25) 50%,   /* 淡紫 */
         transparent 70%);
 }
 
 .dp-dream-halo.peach {
     background: radial-gradient(circle,
-        rgba(255, 171, 145, 0.45) 0%,
-        rgba(255, 182, 193, 0.25) 50%,
+        rgba(240, 196, 184, 0.4) 0%,      /* 柔和蜜桃 */
+        rgba(232, 180, 200, 0.22) 50%,   /* 玫瑰 */
         transparent 70%);
 }
 
 .dp-dream-halo.sky {
     background: radial-gradient(circle,
-        rgba(135, 206, 235, 0.35) 0%,
-        rgba(216, 180, 226, 0.2) 50%,
+        rgba(157, 142, 201, 0.4) 0%,      /* 长春花蓝紫 */
+        rgba(184, 169, 201, 0.22) 50%,   /* 薰衣草 */
         transparent 70%);
 }
 
@@ -993,35 +998,35 @@
     overflow: hidden;
 }
 
-/* 旋转圆环 */
+/* 旋转圆环 (蓝紫暖调融合) */
 .dp-dream-ring {
     position: absolute;
-    border: 1px solid rgba(255, 182, 193, 0.3);
+    border: 1px solid rgba(184, 169, 201, 0.3);
     border-radius: 50%;
     animation: dp-ring-rotate var(--duration, 30s) linear infinite;
 }
 
 .dp-dream-ring.coral {
-    border-color: rgba(255, 123, 123, 0.25);
-    box-shadow: 0 0 20px rgba(255, 123, 123, 0.1);
+    border-color: rgba(232, 160, 160, 0.25);
+    box-shadow: 0 0 20px rgba(232, 160, 160, 0.1);
 }
 
 .dp-dream-ring.lavender {
-    border-color: rgba(216, 180, 226, 0.3);
-    box-shadow: 0 0 20px rgba(216, 180, 226, 0.1);
+    border-color: rgba(184, 169, 201, 0.3);
+    box-shadow: 0 0 20px rgba(184, 169, 201, 0.1);
 }
 
 .dp-dream-ring.peach {
-    border-color: rgba(255, 171, 145, 0.25);
-    box-shadow: 0 0 20px rgba(255, 171, 145, 0.1);
+    border-color: rgba(240, 196, 184, 0.25);
+    box-shadow: 0 0 20px rgba(240, 196, 184, 0.1);
 }
 
-/* 浮动菱形 */
+/* 浮动菱形 (蓝紫暖调融合) */
 .dp-dream-diamond {
     position: absolute;
     width: 20px;
     height: 20px;
-    border: 1px solid rgba(255, 182, 193, 0.3);
+    border: 1px solid rgba(184, 169, 201, 0.3);
     transform: rotate(45deg);
     animation: dp-diamond-float 8s ease-in-out infinite;
     animation-delay: var(--delay, 0s);
@@ -1030,47 +1035,47 @@
 .dp-dream-diamond.small {
     width: 12px;
     height: 12px;
-    border-color: rgba(216, 180, 226, 0.25);
+    border-color: rgba(200, 184, 216, 0.25);
 }
 
 .dp-dream-diamond.large {
     width: 30px;
     height: 30px;
-    border-color: rgba(255, 123, 123, 0.2);
+    border-color: rgba(157, 142, 201, 0.2);
 }
 
-/* 流光线条 */
+/* 流光线条 (蓝紫暖调融合) */
 .dp-dream-line {
     position: absolute;
     height: 1px;
     background: linear-gradient(90deg,
         transparent 0%,
-        rgba(255, 182, 193, 0.4) 50%,
+        rgba(184, 169, 201, 0.4) 50%,
         transparent 100%);
     animation: dp-line-shimmer 4s ease-in-out infinite;
     animation-delay: var(--delay, 0s);
 }
 
-/* 漂浮圆点 */
+/* 漂浮圆点 (蓝紫暖调融合) */
 .dp-dream-dot {
     position: absolute;
     width: 4px;
     height: 4px;
-    background: rgba(255, 182, 193, 0.6);
+    background: rgba(184, 169, 201, 0.6);
     border-radius: 50%;
     animation: dp-dot-pulse 3s ease-in-out infinite;
     animation-delay: var(--delay, 0s);
 }
 
-/* ========== 19. 梦幻主题 - 立体浮动卡片 ========== */
+/* ========== 19. 梦幻主题 - 立体浮动卡片 (蓝紫暖调融合版) ========== */
 .dp-dream-card {
     background: linear-gradient(135deg,
-        rgba(45, 27, 78, 0.85) 0%,
-        rgba(92, 61, 94, 0.9) 50%,
-        rgba(74, 44, 106, 0.85) 100%);
+        rgba(15, 12, 41, 0.9) 0%,     /* 与主站一致的深紫 */
+        rgba(45, 27, 78, 0.85) 50%,
+        rgba(74, 60, 106, 0.9) 100%);
     backdrop-filter: blur(25px);
     -webkit-backdrop-filter: blur(25px);
-    border: 1px solid rgba(255, 182, 193, 0.2);
+    border: 1px solid rgba(184, 169, 201, 0.2);  /* 薰衣草边框 */
     border-radius: 24px;
     position: relative;
     overflow: hidden;
@@ -1079,9 +1084,9 @@
     /* 多层阴影实现立体感 */
     box-shadow:
         0 4px 6px rgba(0, 0, 0, 0.1),
-        0 10px 20px rgba(45, 27, 78, 0.2),
+        0 10px 20px rgba(15, 12, 41, 0.2),
         0 20px 40px rgba(0, 0, 0, 0.15),
-        0 30px 60px rgba(45, 27, 78, 0.1),
+        0 30px 60px rgba(15, 12, 41, 0.1),
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
 
     animation: dp-card-breathe 6s ease-in-out infinite;
@@ -1097,9 +1102,9 @@
     height: 3px;
     background: linear-gradient(90deg,
         transparent,
-        var(--dp-dream-coral),
-        var(--dp-dream-peach),
-        var(--dp-dream-lavender),
+        var(--dp-dream-sky),       /* 长春花蓝紫 */
+        var(--dp-dream-lavender),  /* 薰衣草紫 */
+        var(--dp-dream-blush),     /* 玫瑰粉 */
         transparent);
     opacity: 0.6;
     transition: opacity 0.3s ease;
@@ -1121,13 +1126,13 @@
 
 .dp-dream-card:hover {
     transform: translateY(-8px) scale(1.01);
-    border-color: rgba(255, 182, 193, 0.4);
+    border-color: rgba(157, 142, 201, 0.4);  /* 长春花蓝紫 */
     box-shadow:
         0 8px 12px rgba(0, 0, 0, 0.15),
-        0 16px 32px rgba(45, 27, 78, 0.25),
+        0 16px 32px rgba(15, 12, 41, 0.25),
         0 32px 64px rgba(0, 0, 0, 0.2),
-        0 0 40px rgba(255, 123, 123, 0.15),
-        0 0 60px rgba(216, 180, 226, 0.1),
+        0 0 40px rgba(157, 142, 201, 0.15),   /* 蓝紫光晕 */
+        0 0 60px rgba(232, 180, 200, 0.08),   /* 玫瑰光晕 */
         inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
@@ -1135,13 +1140,13 @@
     opacity: 1;
 }
 
-/* AI回复框 - 梦幻版 */
+/* AI回复框 - 梦幻版 (蓝紫暖调融合) */
 .dp-dream-ai-response {
     background: linear-gradient(135deg,
-        rgba(255, 123, 123, 0.08) 0%,
-        rgba(216, 180, 226, 0.12) 50%,
-        rgba(255, 171, 145, 0.08) 100%);
-    border: 1px solid rgba(255, 182, 193, 0.25);
+        rgba(157, 142, 201, 0.08) 0%,
+        rgba(184, 169, 201, 0.12) 50%,
+        rgba(232, 180, 200, 0.08) 100%);
+    border: 1px solid rgba(184, 169, 201, 0.25);
     border-radius: 16px;
     padding: 1rem;
     position: relative;
@@ -1156,27 +1161,27 @@
     right: 0;
     height: 2px;
     background: linear-gradient(90deg,
-        var(--dp-dream-coral),
-        var(--dp-dream-peach),
-        var(--dp-dream-lavender));
+        var(--dp-dream-sky),
+        var(--dp-dream-lavender),
+        var(--dp-dream-blush));
 }
 
-/* AI头像 - 梦幻版 */
+/* AI头像 - 梦幻版 (蓝紫暖调融合) */
 .dp-dream-ai-avatar {
     width: 44px;
     height: 44px;
     background: linear-gradient(135deg,
-        var(--dp-dream-coral) 0%,
-        var(--dp-dream-peach) 50%,
-        var(--dp-dream-lavender) 100%);
+        var(--dp-dream-sky) 0%,
+        var(--dp-dream-lavender) 50%,
+        var(--dp-dream-blush) 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
     box-shadow:
-        0 0 15px rgba(255, 123, 123, 0.3),
-        0 0 30px rgba(216, 180, 226, 0.2);
+        0 0 15px rgba(157, 142, 201, 0.3),
+        0 0 30px rgba(184, 169, 201, 0.2);
     animation: dp-avatar-glow 3s ease-in-out infinite;
 }
 
@@ -1185,7 +1190,7 @@
     font-size: 18px;
 }
 
-/* ========== 20. 梦幻主题 - 按钮样式 ========== */
+/* ========== 20. 梦幻主题 - 按钮样式 (蓝紫暖调融合版) ========== */
 .dp-dream-btn-primary {
     display: inline-flex;
     align-items: center;
@@ -1193,11 +1198,12 @@
     gap: 0.5rem;
     padding: 1rem 2rem;
     background: linear-gradient(135deg,
-        var(--dp-dream-coral),
-        var(--dp-dream-peach),
-        var(--dp-dream-blush));
+        #9D8EC9,      /* 长春花蓝紫 */
+        #B8A9C9,      /* 薰衣草紫 */
+        #E8B4C8,      /* 玫瑰粉 */
+        #F0C4B8);     /* 柔和蜜桃 */
     background-size: 200% 200%;
-    color: var(--dp-dream-purple-dark);
+    color: #1a1028;
     font-weight: 700;
     font-size: 1rem;
     border-radius: 16px;
@@ -1207,17 +1213,17 @@
     position: relative;
     overflow: hidden;
     box-shadow:
-        0 4px 15px rgba(255, 123, 123, 0.35),
-        0 8px 25px rgba(255, 171, 145, 0.2);
+        0 4px 15px rgba(157, 142, 201, 0.35),
+        0 8px 25px rgba(232, 180, 200, 0.2);
     animation: dp-btn-gradient 4s ease infinite;
 }
 
 .dp-dream-btn-primary:hover {
     transform: translateY(-3px) scale(1.02);
     box-shadow:
-        0 6px 20px rgba(255, 123, 123, 0.45),
-        0 12px 35px rgba(255, 171, 145, 0.3),
-        0 0 30px rgba(255, 182, 193, 0.2);
+        0 6px 20px rgba(157, 142, 201, 0.45),
+        0 12px 35px rgba(232, 180, 200, 0.3),
+        0 0 30px rgba(184, 169, 201, 0.2);
 }
 
 .dp-dream-btn-primary:active {
@@ -1250,38 +1256,38 @@
     left: 100%;
 }
 
-/* 次要按钮 - 梦幻版 */
+/* 次要按钮 - 梦幻版 (蓝紫暖调融合) */
 .dp-dream-btn-secondary {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
     padding: 0.875rem 1.5rem;
-    background: rgba(255, 182, 193, 0.1);
-    color: var(--dp-dream-blush);
+    background: rgba(184, 169, 201, 0.1);
+    color: var(--dp-dream-lavender);
     font-weight: 600;
     border-radius: 12px;
-    border: 1px solid rgba(255, 182, 193, 0.3);
+    border: 1px solid rgba(184, 169, 201, 0.3);
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .dp-dream-btn-secondary:hover {
-    background: rgba(255, 182, 193, 0.2);
-    border-color: var(--dp-dream-coral);
-    color: var(--dp-dream-coral);
-    box-shadow: 0 0 20px rgba(255, 123, 123, 0.2);
+    background: rgba(184, 169, 201, 0.2);
+    border-color: var(--dp-dream-sky);
+    color: var(--dp-dream-sky);
+    box-shadow: 0 0 20px rgba(157, 142, 201, 0.2);
 }
 
-/* ========== 21. 梦幻主题 - 心情按钮 ========== */
+/* ========== 21. 梦幻主题 - 心情按钮 (蓝紫暖调融合版) ========== */
 .dp-dream-mood-btn {
     width: 56px;
     height: 56px;
     border-radius: 50%;
     background: linear-gradient(145deg,
         rgba(255, 255, 255, 0.08),
-        rgba(45, 27, 78, 0.3));
-    border: 2px solid rgba(255, 182, 193, 0.2);
+        rgba(15, 12, 41, 0.3));
+    border: 2px solid rgba(184, 169, 201, 0.2);
     cursor: pointer;
     transition: all 0.3s ease;
     font-size: 26px;
@@ -1298,7 +1304,7 @@
     inset: 0;
     border-radius: 50%;
     background: radial-gradient(circle,
-        rgba(255, 182, 193, 0.2) 0%,
+        rgba(184, 169, 201, 0.2) 0%,
         transparent 70%);
     opacity: 0;
     transition: opacity 0.3s ease;
@@ -1306,10 +1312,10 @@
 
 .dp-dream-mood-btn:hover {
     transform: scale(1.15);
-    border-color: rgba(255, 182, 193, 0.5);
+    border-color: rgba(184, 169, 201, 0.5);
     background: linear-gradient(145deg,
-        rgba(255, 182, 193, 0.15),
-        rgba(45, 27, 78, 0.4));
+        rgba(184, 169, 201, 0.15),
+        rgba(15, 12, 41, 0.4));
 }
 
 .dp-dream-mood-btn:hover::before {
@@ -1317,24 +1323,24 @@
 }
 
 .dp-dream-mood-btn.selected {
-    border-color: var(--dp-dream-coral);
+    border-color: var(--dp-dream-sky);
     background: linear-gradient(145deg,
-        rgba(255, 123, 123, 0.2),
-        rgba(255, 171, 145, 0.15));
+        rgba(157, 142, 201, 0.2),
+        rgba(232, 180, 200, 0.15));
     transform: scale(1.2);
     box-shadow:
-        0 0 20px rgba(255, 123, 123, 0.4),
-        0 0 40px rgba(255, 182, 193, 0.2),
-        inset 0 0 15px rgba(255, 123, 123, 0.1);
+        0 0 20px rgba(157, 142, 201, 0.4),
+        0 0 40px rgba(184, 169, 201, 0.2),
+        inset 0 0 15px rgba(157, 142, 201, 0.1);
     animation: dp-mood-pulse 2s ease-in-out infinite;
 }
 
-/* ========== 22. 梦幻主题 - 输入框 ========== */
+/* ========== 22. 梦幻主题 - 输入框 (蓝紫暖调融合版) ========== */
 .dp-dream-input {
     width: 100%;
     padding: 1rem 1.25rem;
-    background: rgba(45, 27, 78, 0.4);
-    border: 1px solid rgba(255, 182, 193, 0.15);
+    background: rgba(15, 12, 41, 0.4);
+    border: 1px solid rgba(184, 169, 201, 0.15);
     border-radius: 14px;
     color: white;
     font-size: 1rem;
@@ -1347,18 +1353,18 @@
 
 .dp-dream-input:focus {
     outline: none;
-    border-color: rgba(255, 123, 123, 0.5);
+    border-color: rgba(157, 142, 201, 0.5);  /* 长春花蓝紫 */
     box-shadow:
-        0 0 0 3px rgba(255, 123, 123, 0.1),
-        0 0 20px rgba(255, 182, 193, 0.15);
-    background: rgba(45, 27, 78, 0.5);
+        0 0 0 3px rgba(157, 142, 201, 0.1),
+        0 0 20px rgba(184, 169, 201, 0.15);
+    background: rgba(15, 12, 41, 0.5);
 }
 
 .dp-dream-textarea {
     width: 100%;
     padding: 1rem 1.25rem;
-    background: rgba(45, 27, 78, 0.4);
-    border: 1px solid rgba(255, 182, 193, 0.15);
+    background: rgba(15, 12, 41, 0.4);
+    border: 1px solid rgba(184, 169, 201, 0.15);
     border-radius: 14px;
     color: white;
     font-size: 1rem;
@@ -1369,14 +1375,14 @@
 
 .dp-dream-textarea:focus {
     outline: none;
-    border-color: rgba(255, 123, 123, 0.5);
+    border-color: rgba(157, 142, 201, 0.5);  /* 长春花蓝紫 */
     box-shadow:
-        0 0 0 3px rgba(255, 123, 123, 0.1),
-        0 0 20px rgba(255, 182, 193, 0.15);
-    background: rgba(45, 27, 78, 0.5);
+        0 0 0 3px rgba(157, 142, 201, 0.1),
+        0 0 20px rgba(184, 169, 201, 0.15);
+    background: rgba(15, 12, 41, 0.5);
 }
 
-/* ========== 23. 梦幻主题 - 月亮光球 ========== */
+/* ========== 23. 梦幻主题 - 月亮光球 (蓝紫暖调融合版) ========== */
 .dp-dream-moon-orb {
     position: fixed;
     top: 80px;
@@ -1384,38 +1390,38 @@
     width: 70px;
     height: 70px;
     background: radial-gradient(circle at 35% 35%,
-        rgba(255, 245, 238, 0.95) 0%,
-        rgba(255, 182, 193, 0.7) 30%,
-        rgba(216, 180, 226, 0.4) 60%,
+        rgba(240, 240, 255, 0.95) 0%,       /* 更白 */
+        rgba(184, 169, 201, 0.7) 30%,       /* 薰衣草 */
+        rgba(157, 142, 201, 0.4) 60%,       /* 长春花蓝紫 */
         transparent 80%);
     border-radius: 50%;
     box-shadow:
-        0 0 40px 20px rgba(255, 182, 193, 0.3),
-        0 0 80px 40px rgba(216, 180, 226, 0.2),
-        0 0 120px 60px rgba(255, 171, 145, 0.1);
+        0 0 40px 20px rgba(184, 169, 201, 0.3),
+        0 0 80px 40px rgba(157, 142, 201, 0.2),
+        0 0 120px 60px rgba(232, 180, 200, 0.1);
     z-index: 2;
     pointer-events: none;
     animation: dp-dream-moon-pulse 6s ease-in-out infinite;
 }
 
-/* 月亮光晕 */
+/* 月亮光晕 (蓝紫暖调融合) */
 .dp-dream-moon-orb::before {
     content: '';
     position: absolute;
     inset: -20px;
     border-radius: 50%;
     background: radial-gradient(circle,
-        rgba(255, 182, 193, 0.15) 0%,
+        rgba(184, 169, 201, 0.15) 0%,
         transparent 70%);
     animation: dp-moon-halo-breathe 4s ease-in-out infinite;
 }
 
-/* 梦幻导航栏 */
+/* 梦幻导航栏 (蓝紫暖调融合) */
 .dp-dream-nav {
-    background: rgba(26, 16, 40, 0.85);
+    background: rgba(15, 12, 41, 0.85);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(255, 182, 193, 0.1);
+    border-bottom: 1px solid rgba(184, 169, 201, 0.1);
 }
 
 /* 梦幻打字指示器 */
@@ -1534,23 +1540,23 @@
     }
 }
 
-/* 卡片呼吸 */
+/* 卡片呼吸 (蓝紫暖调融合) */
 @keyframes dp-card-breathe {
     0%, 100% {
         box-shadow:
             0 4px 6px rgba(0, 0, 0, 0.1),
-            0 10px 20px rgba(45, 27, 78, 0.2),
+            0 10px 20px rgba(15, 12, 41, 0.2),
             0 20px 40px rgba(0, 0, 0, 0.15),
-            0 30px 60px rgba(45, 27, 78, 0.1),
+            0 30px 60px rgba(15, 12, 41, 0.1),
             inset 0 1px 0 rgba(255, 255, 255, 0.1);
     }
     50% {
         box-shadow:
             0 6px 8px rgba(0, 0, 0, 0.12),
-            0 12px 24px rgba(45, 27, 78, 0.22),
+            0 12px 24px rgba(15, 12, 41, 0.22),
             0 24px 48px rgba(0, 0, 0, 0.17),
-            0 35px 70px rgba(45, 27, 78, 0.12),
-            0 0 30px rgba(255, 182, 193, 0.08),
+            0 35px 70px rgba(15, 12, 41, 0.12),
+            0 0 30px rgba(184, 169, 201, 0.08),
             inset 0 1px 0 rgba(255, 255, 255, 0.12);
     }
 }
@@ -1568,36 +1574,36 @@
     }
 }
 
-/* 心情按钮脉冲 */
+/* 心情按钮脉冲 (蓝紫暖调融合) */
 @keyframes dp-mood-pulse {
     0%, 100% {
         box-shadow:
-            0 0 20px rgba(255, 123, 123, 0.4),
-            0 0 40px rgba(255, 182, 193, 0.2),
-            inset 0 0 15px rgba(255, 123, 123, 0.1);
+            0 0 20px rgba(157, 142, 201, 0.4),
+            0 0 40px rgba(184, 169, 201, 0.2),
+            inset 0 0 15px rgba(157, 142, 201, 0.1);
     }
     50% {
         box-shadow:
-            0 0 30px rgba(255, 123, 123, 0.5),
-            0 0 60px rgba(255, 182, 193, 0.3),
-            inset 0 0 20px rgba(255, 123, 123, 0.15);
+            0 0 30px rgba(157, 142, 201, 0.5),
+            0 0 60px rgba(184, 169, 201, 0.3),
+            inset 0 0 20px rgba(157, 142, 201, 0.15);
     }
 }
 
-/* 月亮脉冲 */
+/* 月亮脉冲 (蓝紫暖调融合) */
 @keyframes dp-dream-moon-pulse {
     0%, 100% {
         box-shadow:
-            0 0 40px 20px rgba(255, 182, 193, 0.3),
-            0 0 80px 40px rgba(216, 180, 226, 0.2),
-            0 0 120px 60px rgba(255, 171, 145, 0.1);
+            0 0 40px 20px rgba(184, 169, 201, 0.3),
+            0 0 80px 40px rgba(157, 142, 201, 0.2),
+            0 0 120px 60px rgba(232, 180, 200, 0.1);
         transform: scale(1);
     }
     50% {
         box-shadow:
-            0 0 50px 25px rgba(255, 182, 193, 0.4),
-            0 0 100px 50px rgba(216, 180, 226, 0.25),
-            0 0 150px 75px rgba(255, 171, 145, 0.15);
+            0 0 50px 25px rgba(184, 169, 201, 0.4),
+            0 0 100px 50px rgba(157, 142, 201, 0.25),
+            0 0 150px 75px rgba(232, 180, 200, 0.15);
         transform: scale(1.05);
     }
 }
@@ -1614,17 +1620,17 @@
     }
 }
 
-/* AI头像发光 */
+/* AI头像发光 (蓝紫暖调融合) */
 @keyframes dp-avatar-glow {
     0%, 100% {
         box-shadow:
-            0 0 15px rgba(255, 123, 123, 0.3),
-            0 0 30px rgba(216, 180, 226, 0.2);
+            0 0 15px rgba(157, 142, 201, 0.3),
+            0 0 30px rgba(184, 169, 201, 0.2);
     }
     50% {
         box-shadow:
-            0 0 20px rgba(255, 123, 123, 0.4),
-            0 0 40px rgba(216, 180, 226, 0.3);
+            0 0 20px rgba(157, 142, 201, 0.4),
+            0 0 40px rgba(184, 169, 201, 0.3);
     }
 }
 
