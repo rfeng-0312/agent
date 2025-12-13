@@ -1036,7 +1036,7 @@ def generate_deep_think_response(session_id, session_data):
 
 def generate_diary_ai_response(session_id, session_data):
     """
-    日记AI回复的流式响应生成器
+    日记AI回复的流式响应生成器 (使用豆包模型)
     支持双重回复：情感回复 + 目标进度分析（可选）
 
     SSE事件类型：
@@ -1057,53 +1057,98 @@ def generate_diary_ai_response(session_id, session_data):
     goal_analysis_response = ""
 
     try:
+        # ==================== 获取历史日记（情感回复也需要） ====================
+        recent_diaries = []
+        if user_id:
+            recent_diaries = get_recent_diaries(user_id, days=history_range or 7, limit=10)
+
+        # 构建历史日记摘要
+        diary_summaries = []
+        for d in recent_diaries:
+            if d['id'] != diary_id:
+                summary = d['content'][:150] + "..." if len(d['content']) > 150 else d['content']
+                mood = d.get('mood_score', 3)
+                mood_emoji = ['', '😢', '😕', '😐', '😊', '😄'][mood] if mood and 1 <= mood <= 5 else ''
+                date_str = d['created_at'].strftime('%m/%d') if hasattr(d['created_at'], 'strftime') else str(d['created_at'])[:10]
+                diary_summaries.append(f"[{date_str}] {mood_emoji} {summary}")
+
+        history_context = "\n".join(diary_summaries[:5]) if diary_summaries else ""
+
         # ==================== 阶段1：情感回复 ====================
         stage_message = 'Xiao Ke is thinking...' if lang == 'en-US' else '小柯正在思考回复...'
         yield f"data: {json.dumps({'type': 'stage', 'stage': 'emotional', 'message': stage_message}, ensure_ascii=False)}\n\n"
 
-        # 日记回复的系统提示词（支持多语言）
+        # 情感回复系统提示词（优化版 - 更自然，接入历史日记）
         if lang == 'en-US':
-            emotional_prompt = """You are "Xiao Ke", a warm and empathetic AI companion.
+            emotional_system = """You are "Xiao Ke", a warm and understanding AI friend who genuinely cares about the user.
 
-Your traits:
-- Chat like a friend, don't lecture
-- Good at finding highlights in user's words
-- Comfort when user is down, celebrate when user is happy
-- Occasionally use Detective Conan's classic quotes (like "There's only one truth")
-- Keep responses concise, around 100-150 words
-- IMPORTANT: Always respond in English
+Your personality:
+- Warm, authentic, and emotionally intelligent
+- Talk like a close friend, not a therapist or coach
+- Notice details and emotional shifts in what users share
+- Celebrate small wins, offer genuine comfort during tough times
+- Use casual, natural language (can include emojis occasionally)
+- Keep responses around 80-120 words, conversational tone
 
-Please give a warm response based on the user's diary."""
-            user_content = f"User's diary today:\n\n{content}"
+Important: You have context from the user's recent diary entries. Use this to provide more personalized, connected responses. Reference their recent experiences when relevant."""
+
+            if history_context:
+                user_content = f"""Recent diary entries for context:
+{history_context}
+
+Today's diary:
+{content}
+
+Please respond warmly to today's entry, connecting it to their recent experiences where relevant."""
+            else:
+                user_content = f"""Today's diary:
+{content}
+
+Please respond warmly to this entry."""
         else:
-            emotional_prompt = """你是"小柯"，一个温暖、有同理心的AI伙伴。
+            emotional_system = """你是"小柯"，一个真诚温暖、善解人意的AI朋友。
 
-你的特点：
-- 像朋友一样聊天，不说教
-- 善于发现用户话语中的亮点
-- 在用户低落时给予安慰，在用户开心时一起庆祝
-- 偶尔用柯南的经典台词点缀（如"真相只有一个"）
-- 回复简短有力，100-150字左右
+你的性格特点：
+- 温暖真诚，情感细腻
+- 像好朋友一样聊天，不说教、不敷衍
+- 善于捕捉用户话语中的情感变化和细节
+- 开心时一起庆祝，低落时给予真诚的陪伴和理解
+- 语言自然随性，可以适当用表情符号
+- 回复控制在80-120字，对话感强
 
-请根据用户的日记内容，给出温暖的回应。"""
-            user_content = f"用户今天的日记：\n\n{content}"
+重要：你可以看到用户最近的日记记录。利用这些背景信息，给出更有连续性、更贴心的回复。适当提及他们最近的经历。"""
+
+            if history_context:
+                user_content = f"""用户最近的日记（供参考）：
+{history_context}
+
+今天的日记：
+{content}
+
+请温暖地回应今天的日记，适当联系他们最近的经历。"""
+            else:
+                user_content = f"""今天的日记：
+{content}
+
+请温暖地回应这篇日记。"""
 
         messages = [
-            {"role": "system", "content": emotional_prompt},
+            {"role": "system", "content": emotional_system},
             {"role": "user", "content": user_content}
         ]
 
-        stream = client.chat.completions.create(
-            model=DEEPSEEK_MODEL,
+        # 使用豆包模型进行情感回复
+        stream = doubao_client.client.chat.completions.create(
+            model=doubao_client.model,
             messages=messages,
-            stream=True
+            stream=True,
+            max_tokens=500
         )
 
         for chunk in stream:
-            if chunk.choices[0].delta.content:
+            if chunk.choices and chunk.choices[0].delta.content:
                 content_chunk = chunk.choices[0].delta.content
                 emotional_response += content_chunk
-                # 只发送 emotional 类型（移除重复的 content 类型，避免前端显示两次）
                 yield f"data: {json.dumps({'type': 'emotional', 'content': content_chunk}, ensure_ascii=False)}\n\n"
 
         # 保存情感回复到数据库
@@ -1111,100 +1156,100 @@ Please give a warm response based on the user's diary."""
 
         # ==================== 阶段2：目标进度分析（可选） ====================
         if enable_goal_analysis and user_id:
-            # 获取用户目标
             goals = get_user_goals(user_id, 'active')
 
             if goals:
                 stage_msg = 'Analyzing goal progress...' if lang == 'en-US' else '正在分析目标进度...'
                 yield f"data: {json.dumps({'type': 'stage', 'stage': 'goal_analysis', 'message': stage_msg}, ensure_ascii=False)}\n\n"
 
-                # 获取历史日记
-                recent_diaries = get_recent_diaries(user_id, days=history_range, limit=50)
-
-                # 构建目标列表文本
+                # 构建目标列表
                 goals_text = "\n".join([
-                    f"- {g['title']}" + (f": {g['description']}" if g.get('description') else "")
+                    f"• {g['title']}" + (f"（{g['description']}）" if g.get('description') else "")
                     for g in goals
                 ])
 
-                # 构建历史日记摘要（每篇最多200字）
-                diary_summaries = []
-                for d in recent_diaries:
-                    if d['id'] != diary_id:  # 排除当前日记
+                # 扩展历史日记范围用于目标分析
+                extended_diaries = get_recent_diaries(user_id, days=history_range, limit=30)
+                extended_summaries = []
+                for d in extended_diaries:
+                    if d['id'] != diary_id:
                         summary = d['content'][:200] + "..." if len(d['content']) > 200 else d['content']
-                        date_str = d['created_at'].strftime('%m/%d') if hasattr(d['created_at'], 'strftime') else str(d['created_at'])[:10]
-                        diary_summaries.append(f"[{date_str}] {summary}")
+                        date_str = d['created_at'].strftime('%Y-%m-%d') if hasattr(d['created_at'], 'strftime') else str(d['created_at'])[:10]
+                        extended_summaries.append(f"【{date_str}】{summary}")
 
-                no_history_text = "(No recent diary entries)" if lang == 'en-US' else "（暂无历史日记）"
-                history_text = "\n".join(diary_summaries[:20]) if diary_summaries else no_history_text
+                history_label = f"最近{history_range}天" if history_range else "全部"
+                history_text = "\n\n".join(extended_summaries[:15]) if extended_summaries else "（暂无历史日记）"
 
+                # 目标分析提示词（优化版 - 更实用的建议）
                 if lang == 'en-US':
-                    history_label = f"Last {history_range} days" if history_range else "All"
-                else:
-                    history_label = f"最近{history_range}天" if history_range else "全部"
+                    goal_system = """You are a practical life coach who helps users achieve their goals through diary analysis.
 
-                # 目标分析提示词（支持多语言）
-                if lang == 'en-US':
-                    goal_analysis_prompt = f"""You are a growth coach helping users track their goal progress.
+Your approach:
+- Analyze ACTUAL behaviors and patterns from diary entries
+- Give SPECIFIC, actionable suggestions (not generic advice)
+- Identify trends: improving, stable, or declining
+- Celebrate concrete progress, address real obstacles
+- Be encouraging but honest about areas needing attention"""
 
-User's goals:
+                    goal_prompt = f"""User's Goals:
 {goals_text}
 
-Recent diary summary ({history_label}):
+Diary History ({history_label}):
 {history_text}
 
-Today's diary:
+Today's Entry:
 {content}
 
-Please analyze each goal in this format:
+For each goal, analyze:
 ### 🎯 [Goal Name]
-**Progress**: [Good progress/Needs attention/Just started]
-**Recent Performance**: [Relevant content from diaries]
-**Suggestions**: [1-2 specific suggestions]
+**Trend**: [📈 Improving / ➡️ Stable / 📉 Needs attention]
+**Evidence**: [Specific behaviors/mentions from diaries]
+**Next Step**: [ONE concrete action for this week]
 
-Requirements:
-- Keep each goal analysis under 100 words
-- Be warm and encouraging, don't lecture
-- If a goal isn't mentioned in diary, briefly remind user to focus on it
-- IMPORTANT: Always respond in English"""
-                    system_content = "You are a professional growth coach who excels at analyzing user goal completion from diaries. Always respond in English."
+Keep each analysis under 80 words. Be specific, not generic."""
                 else:
-                    goal_analysis_prompt = f"""你是一位成长教练，帮助用户追踪目标进度。
+                    goal_system = """你是一位务实的成长教练，通过分析日记帮助用户实现目标。
 
-用户设定的目标：
+你的分析风格：
+- 从日记中找出用户的实际行为和模式
+- 给出具体、可执行的建议（不要泛泛而谈）
+- 识别趋势：进步中、保持稳定、还是需要关注
+- 肯定具体的进展，正视真实的困难
+- 鼓励但诚实，不回避问题"""
+
+                    goal_prompt = f"""用户的目标：
 {goals_text}
 
-近期日记摘要（{history_label}）：
+日记历史（{history_label}）：
 {history_text}
 
 今天的日记：
 {content}
 
-请针对每个目标进行分析，格式如下：
-### 🎯 [目标名称]
-**进度评估**：[进展良好/需要关注/刚开始]
-**近期表现**：[从日记中发现的相关内容]
-**建议**：[1-2条具体建议]
+请对每个目标进行分析：
 
-要求：
-- 每个目标分析控制在100字内
-- 语气温和鼓励，不要说教
-- 如果日记中没有提到某目标，也要简要提醒用户关注"""
-                    system_content = "你是一位专业的成长教练，擅长从日记中分析用户的目标完成情况。"
+### 🎯 [目标名称]
+**趋势判断**：[📈 在进步 / ➡️ 保持中 / 📉 需关注]
+**依据**：[从日记中找到的具体行为或提及]
+**下一步**：[本周可以做的一件具体的事]
+
+每个目标分析控制在80字内。要具体，不要空泛。"""
 
                 messages = [
-                    {"role": "system", "content": system_content},
-                    {"role": "user", "content": goal_analysis_prompt}
+                    {"role": "system", "content": goal_system},
+                    {"role": "user", "content": goal_prompt}
                 ]
 
-                stream = client.chat.completions.create(
-                    model=DEEPSEEK_MODEL,
+                # 使用豆包模型进行目标分析
+                stream = doubao_client.client.chat.completions.create(
+                    model=doubao_client.model,
                     messages=messages,
-                    stream=True
+                    stream=True,
+                    max_tokens=1000
                 )
 
                 for chunk in stream:
-                    if chunk.choices[0].delta.content:
+                    if chunk.choices and chunk.choices[0].delta.content:
                         content_chunk = chunk.choices[0].delta.content
                         goal_analysis_response += content_chunk
                         yield f"data: {json.dumps({'type': 'goal_analysis', 'content': content_chunk}, ensure_ascii=False)}\n\n"
