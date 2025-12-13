@@ -32,15 +32,40 @@
         }
     </script>
 
-</head>
-<body class="min-h-screen bg-gradient-to-br from-mysteryBlack via-moonlightBlue to-mysteryBlack text-white">
+    <!-- Markdown渲染 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-    <!-- 星星背景 -->
-    <div class="dp-stars-container" id="stars"></div>
-    <div class="dp-moon"></div>
+</head>
+<body class="min-h-screen dp-dream-bg-twilight text-white">
+
+    <!-- 梦幻光晕层 -->
+    <div class="dp-dream-halo-container">
+        <div class="dp-dream-halo coral" style="width: 300px; height: 300px; top: 8%; left: 5%; --duration: 8s;"></div>
+        <div class="dp-dream-halo lavender" style="width: 400px; height: 400px; top: 45%; right: 8%; --duration: 10s; --delay: 2s;"></div>
+        <div class="dp-dream-halo peach" style="width: 350px; height: 350px; bottom: 15%; left: 25%; --duration: 9s; --delay: 1s;"></div>
+        <div class="dp-dream-halo sky" style="width: 250px; height: 250px; top: 20%; right: 30%; --duration: 7s; --delay: 3s;"></div>
+    </div>
+
+    <!-- 梦幻粒子层 -->
+    <div class="dp-dream-particles" id="dreamParticles"></div>
+
+    <!-- 几何装饰层 -->
+    <div class="dp-dream-geo-container">
+        <div class="dp-dream-ring coral" style="width: 200px; height: 200px; top: 12%; right: 18%; --duration: 35s;"></div>
+        <div class="dp-dream-ring lavender" style="width: 150px; height: 150px; bottom: 20%; left: 12%; --duration: 28s;"></div>
+        <div class="dp-dream-ring peach" style="width: 100px; height: 100px; top: 60%; left: 8%; --duration: 22s;"></div>
+        <div class="dp-dream-diamond" style="top: 25%; left: 6%; --delay: 0s;"></div>
+        <div class="dp-dream-diamond small" style="top: 70%; right: 12%; --delay: 2s;"></div>
+        <div class="dp-dream-diamond large" style="bottom: 30%; left: 20%; --delay: 4s;"></div>
+        <div class="dp-dream-line" style="top: 35%; left: 3%; width: 80px; --delay: 0s;"></div>
+        <div class="dp-dream-line" style="bottom: 40%; right: 5%; width: 60px; --delay: 2s;"></div>
+    </div>
+
+    <!-- 梦幻月亮 -->
+    <div class="dp-dream-moon-orb"></div>
 
     <!-- 导航栏 -->
-    <nav class="fixed top-0 left-0 right-0 z-50 bg-mysteryBlack/80 backdrop-blur-md border-b border-white/10">
+    <nav class="fixed top-0 left-0 right-0 z-50 dp-dream-nav">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <a href="/" class="flex items-center gap-3">
@@ -86,7 +111,7 @@
             </div>
 
             <!-- 日记容器 -->
-            <div class="dp-container-card p-6">
+            <div class="dp-dream-card p-6">
 
                 <!-- 心情选择 -->
                 <div class="mb-6">
@@ -95,11 +120,11 @@
                         <span data-i18n="diary.moodLabel">今天心情怎么样？</span>
                     </label>
                     <div class="flex justify-center gap-4">
-                        <button class="dp-mood-btn" data-mood="1" title="很差">😢</button>
-                        <button class="dp-mood-btn" data-mood="2" title="不太好">😕</button>
-                        <button class="dp-mood-btn" data-mood="3" title="一般">😐</button>
-                        <button class="dp-mood-btn" data-mood="4" title="不错">😊</button>
-                        <button class="dp-mood-btn" data-mood="5" title="很棒">😄</button>
+                        <button class="dp-dream-mood-btn" data-mood="1" title="很差">😢</button>
+                        <button class="dp-dream-mood-btn" data-mood="2" title="不太好">😕</button>
+                        <button class="dp-dream-mood-btn" data-mood="3" title="一般">😐</button>
+                        <button class="dp-dream-mood-btn" data-mood="4" title="不错">😊</button>
+                        <button class="dp-dream-mood-btn" data-mood="5" title="很棒">😄</button>
                     </div>
                 </div>
 
@@ -111,7 +136,7 @@
                     </label>
                     <textarea
                         id="diaryContent"
-                        class="dp-textarea w-full h-64 p-4 rounded-lg text-lg"
+                        class="dp-dream-textarea w-full h-64 p-4 text-lg"
                         placeholder="今天发生了什么？有什么想说的吗..."
                         data-i18n-placeholder="diary.placeholder"
                     ></textarea>
@@ -169,7 +194,7 @@
                 </div>
 
                 <!-- 保存按钮 -->
-                <button id="saveBtn" class="w-full py-4 rounded-lg bg-gradient-to-r from-neonCyan to-detectiveGold text-mysteryBlack font-bold text-lg transition-all hover:shadow-lg hover:shadow-neonCyan/30 disabled:opacity-50 disabled:cursor-not-allowed">
+                <button id="saveBtn" class="dp-dream-btn-primary w-full">
                     <i class="fa-solid fa-paper-plane mr-2"></i>
                     <span data-i18n="diary.save">保存日记</span>
                 </button>
@@ -178,20 +203,20 @@
                 <div id="aiResponseSection" class="hidden mt-8 space-y-4">
 
                     <!-- 情感回复区域 -->
-                    <div class="dp-ai-response-box p-4">
+                    <div class="dp-dream-ai-response p-4">
                         <div class="flex items-start gap-3">
-                            <div class="dp-ai-avatar flex-shrink-0">
-                                <i class="fa-solid fa-user-secret text-mysteryBlack"></i>
+                            <div class="dp-dream-ai-avatar flex-shrink-0">
+                                <i class="fa-solid fa-user-secret"></i>
                             </div>
                             <div class="flex-1">
-                                <div class="font-bold text-detectiveGold mb-2">
+                                <div class="font-bold mb-2" style="color: var(--dp-dream-coral);">
                                     <i class="fa-solid fa-heart mr-1"></i>
                                     <span data-i18n="diary.aiResponse.emotionalTitle">小柯的回复</span>
                                 </div>
                                 <div id="aiResponseContent" class="text-white/90 leading-relaxed">
                                     <!-- 情感回复内容 -->
                                 </div>
-                                <div id="typingIndicator" class="dp-typing-indicator hidden">
+                                <div id="typingIndicator" class="dp-dream-typing-indicator hidden">
                                     <span></span><span></span><span></span>
                                 </div>
                             </div>
@@ -199,20 +224,20 @@
                     </div>
 
                     <!-- 目标分析区域 (有目标分析时显示) -->
-                    <div id="goalAnalysisResponse" class="dp-goal-analysis-box p-4 hidden">
+                    <div id="goalAnalysisResponse" class="dp-dream-ai-response p-4 hidden">
                         <div class="flex items-start gap-3">
-                            <div class="dp-ai-avatar dp-ai-avatar-gold flex-shrink-0">
-                                <i class="fa-solid fa-bullseye text-mysteryBlack"></i>
+                            <div class="dp-dream-ai-avatar flex-shrink-0" style="background: linear-gradient(135deg, var(--dp-dream-peach), var(--dp-dream-lavender));">
+                                <i class="fa-solid fa-bullseye"></i>
                             </div>
                             <div class="flex-1">
-                                <div class="font-bold text-detectiveGold mb-2">
+                                <div class="font-bold mb-2" style="color: var(--dp-dream-peach);">
                                     <i class="fa-solid fa-chart-line mr-1"></i>
                                     <span data-i18n="diary.aiResponse.goalAnalysisTitle">目标进度分析</span>
                                 </div>
                                 <div id="goalAnalysisContent" class="text-white/90 leading-relaxed prose prose-invert prose-sm max-w-none">
                                     <!-- 目标分析内容 -->
                                 </div>
-                                <div id="goalTypingIndicator" class="dp-typing-indicator hidden">
+                                <div id="goalTypingIndicator" class="dp-dream-typing-indicator hidden">
                                     <span></span><span></span><span></span>
                                 </div>
                             </div>
@@ -221,11 +246,11 @@
 
                     <!-- 继续写或查看历史 -->
                     <div class="flex gap-4 mt-4">
-                        <button onclick="resetForm()" class="flex-1 py-3 rounded-lg border border-white/20 text-white/70 hover:bg-white/10 transition-colors">
+                        <button onclick="resetForm()" class="dp-dream-btn-secondary flex-1">
                             <i class="fa-solid fa-pen mr-2"></i>
                             <span data-i18n="diary.writeAnother">再写一篇</span>
                         </button>
-                        <a href="/diary/list" class="flex-1 py-3 rounded-lg border border-neonCyan/30 text-neonCyan hover:bg-neonCyan/10 transition-colors text-center">
+                        <a href="/diary/list" class="dp-dream-btn-secondary flex-1 text-center" style="color: var(--dp-dream-coral); border-color: rgba(255, 123, 123, 0.3);">
                             <i class="fa-solid fa-book mr-2"></i>
                             <span data-i18n="diary.viewHistory">查看历史</span>
                         </a>
@@ -310,26 +335,44 @@
         const goalAnalysisContent = document.getElementById('goalAnalysisContent');
         const goalTypingIndicator = document.getElementById('goalTypingIndicator');
 
-        // 生成星星背景
-        function createStars() {
-            const container = document.getElementById('stars');
+        // 生成梦幻粒子背景
+        function createDreamParticles() {
+            const container = document.getElementById('dreamParticles');
             if (!container) return;
-            for (let i = 0; i < 100; i++) {
-                const star = document.createElement('div');
-                star.className = 'dp-star';
-                star.style.left = Math.random() * 100 + '%';
-                star.style.top = Math.random() * 100 + '%';
-                star.style.animationDelay = Math.random() * 3 + 's';
-                star.style.width = Math.random() * 3 + 1 + 'px';
-                star.style.height = star.style.width;
-                container.appendChild(star);
+
+            // 45个小萤火虫粒子
+            for (let i = 0; i < 45; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'dp-dream-particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.setProperty('--duration', (6 + Math.random() * 8) + 's');
+                particle.style.setProperty('--delay', Math.random() * 5 + 's');
+                const size = 2 + Math.random() * 4;
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                container.appendChild(particle);
+            }
+
+            // 6个大型光球
+            for (let i = 0; i < 6; i++) {
+                const orb = document.createElement('div');
+                orb.className = 'dp-dream-orb';
+                orb.style.left = Math.random() * 100 + '%';
+                orb.style.top = Math.random() * 100 + '%';
+                orb.style.setProperty('--duration', (12 + Math.random() * 10) + 's');
+                orb.style.setProperty('--delay', Math.random() * 8 + 's');
+                const size = 60 + Math.random() * 100;
+                orb.style.width = size + 'px';
+                orb.style.height = size + 'px';
+                container.appendChild(orb);
             }
         }
 
         // 心情选择
-        document.querySelectorAll('.dp-mood-btn').forEach(btn => {
+        document.querySelectorAll('.dp-dream-mood-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                document.querySelectorAll('.dp-mood-btn').forEach(b => b.classList.remove('selected'));
+                document.querySelectorAll('.dp-dream-mood-btn').forEach(b => b.classList.remove('selected'));
                 btn.classList.add('selected');
                 selectedMood = parseInt(btn.dataset.mood);
             });
@@ -345,7 +388,7 @@
             diaryContent.value = '';
             charCount.textContent = '0';
             selectedMood = null;
-            document.querySelectorAll('.dp-mood-btn').forEach(b => b.classList.remove('selected'));
+            document.querySelectorAll('.dp-dream-mood-btn').forEach(b => b.classList.remove('selected'));
             aiResponseSection.classList.add('hidden');
             aiResponseContent.innerHTML = '';
             goalAnalysisResponse.classList.add('hidden');
@@ -520,6 +563,7 @@
 
                 // 4. 使用SSE接收流式响应
                 const eventSource = new EventSource(`/api/stream/${aiResult.session_id}`);
+                let goalAnalysisRaw = '';  // 累积目标分析的原始Markdown内容
 
                 eventSource.onmessage = (event) => {
                     const data = JSON.parse(event.data);
@@ -535,9 +579,15 @@
                         typingIndicator.classList.add('hidden');
                         aiResponseContent.innerHTML += data.content;
                     } else if (data.type === 'goal_analysis') {
-                        // 目标分析回复
+                        // 目标分析回复 - 累积并渲染Markdown
                         goalTypingIndicator.classList.add('hidden');
-                        goalAnalysisContent.innerHTML += data.content;
+                        goalAnalysisRaw += data.content;
+                        // 使用marked渲染Markdown
+                        if (typeof marked !== 'undefined') {
+                            goalAnalysisContent.innerHTML = marked.parse(goalAnalysisRaw);
+                        } else {
+                            goalAnalysisContent.innerHTML = goalAnalysisRaw;
+                        }
                     } else if (data.type === 'done') {
                         eventSource.close();
                         saveBtn.disabled = false;
@@ -615,7 +665,7 @@
 
         // 页面加载时
         document.addEventListener('DOMContentLoaded', () => {
-            createStars();
+            createDreamParticles();
             loadStreak();
             checkTodayStatus();
             loadUserGoals();
