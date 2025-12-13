@@ -353,7 +353,7 @@ def get_diary_by_id(diary_id, user_id):
     try:
         cursor = connection.cursor(dictionary=True)
         cursor.execute('''
-            SELECT id, content, ai_response, mood_score, created_at, updated_at
+            SELECT id, content, ai_response, goal_analysis, mood_score, created_at, updated_at
             FROM diaries WHERE id = %s AND user_id = %s
         ''', (diary_id, user_id))
 
@@ -383,6 +383,7 @@ def get_user_diaries(user_id, limit=20, offset=0):
             SELECT id,
                    LEFT(content, 100) as content,
                    LEFT(ai_response, 50) as ai_response,
+                   LEFT(goal_analysis, 80) as goal_analysis,
                    mood_score,
                    created_at
             FROM diaries

@@ -190,6 +190,7 @@
 
                     const contentPreview = diary.content + (diary.content.length >= 100 ? '...' : '');
                     const aiPreview = diary.ai_response ? diary.ai_response + '...' : '';
+                    const goalPreview = diary.goal_analysis ? diary.goal_analysis.replace(/[#*`]/g, '').substring(0, 60) + '...' : '';
 
                     card.innerHTML = `
                         <div class="flex items-start gap-4">
@@ -198,6 +199,7 @@
                                 <div class="text-sm text-white/50 mb-1">${dateStr}</div>
                                 <p class="text-white/90 line-clamp-2">${contentPreview}</p>
                                 ${aiPreview ? `<p class="text-neonCyan/70 text-sm mt-2 line-clamp-1"><i class="fa-solid fa-comment mr-1"></i>${aiPreview}</p>` : ''}
+                                ${goalPreview ? `<p class="text-pink-400/70 text-sm mt-1 line-clamp-1"><i class="fa-solid fa-bullseye mr-1"></i>${goalPreview}</p>` : ''}
                             </div>
                             <i class="fa-solid fa-chevron-right text-white/30 mt-2"></i>
                         </div>

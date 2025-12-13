@@ -6,6 +6,8 @@
     <title data-i18n="diary.detailPageTitle">日记详情 | 名侦探作业帮</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Markdown渲染 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
@@ -143,6 +145,19 @@
                     <div id="noAiResponse" class="hidden text-center py-4">
                         <p class="text-white/50" data-i18n="diary.noAiResponse">小柯还没有回复这篇日记</p>
                     </div>
+
+                    <!-- 目标分析 -->
+                    <div id="goalAnalysisSection" class="hidden mt-6">
+                        <h2 class="text-white/50 text-sm mb-2">
+                            <i class="fa-solid fa-bullseye mr-1"></i>
+                            <span data-i18n="diary.goalAnalysisTitle">目标进度分析</span>
+                        </h2>
+                        <div class="dp-goal-analysis-box p-4 bg-gradient-to-br from-pink-500/10 to-purple-500/10 rounded-xl border border-pink-300/20">
+                            <div id="goalAnalysisContent" class="text-white/90 leading-relaxed">
+                                <!-- 目标分析内容（Markdown渲染） -->
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- 操作按钮 -->
@@ -263,6 +278,19 @@
                 } else {
                     document.getElementById('aiResponseSection').classList.add('hidden');
                     document.getElementById('noAiResponse').classList.remove('hidden');
+                }
+
+                // 目标分析（使用Markdown渲染）
+                if (diary.goal_analysis) {
+                    const goalContent = document.getElementById('goalAnalysisContent');
+                    if (typeof marked !== 'undefined') {
+                        goalContent.innerHTML = marked.parse(diary.goal_analysis);
+                    } else {
+                        goalContent.textContent = diary.goal_analysis;
+                    }
+                    document.getElementById('goalAnalysisSection').classList.remove('hidden');
+                } else {
+                    document.getElementById('goalAnalysisSection').classList.add('hidden');
                 }
 
             } catch (error) {
