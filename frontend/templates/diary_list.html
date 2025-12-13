@@ -198,10 +198,17 @@
             }
         }
 
+        // 获取当前语言
+        function getCurrentLang() {
+            // 从 cookie 获取语言设置
+            const match = document.cookie.match(/(?:^|;\s*)lang=([^;]*)/);
+            return match ? match[1] : 'zh-CN';
+        }
+
         // 格式化日期
         function formatDate(dateStr) {
             const date = new Date(dateStr);
-            const lang = window.i18n ? window.i18n.getCurrentLanguage() : 'zh-CN';
+            const lang = getCurrentLang();
 
             if (lang === 'en-US') {
                 return date.toLocaleDateString('en-US', {

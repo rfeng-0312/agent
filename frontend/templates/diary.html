@@ -120,6 +120,76 @@
             font-size: 14px;
         }
 
+        /* 目标分析选项样式 */
+        .goal-analysis-toggle {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .goal-analysis-toggle.active {
+            border-color: rgba(255, 215, 0, 0.3);
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .toggle-switch {
+            width: 48px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: linear-gradient(135deg, #00d4ff 0%, #ffd700 100%);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active::after {
+            left: 26px;
+        }
+
+        .history-range-btn {
+            padding: 6px 12px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid transparent;
+            color: rgba(255, 255, 255, 0.6);
+            transition: all 0.3s ease;
+            font-size: 13px;
+        }
+
+        .history-range-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .history-range-btn.active {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: rgba(0, 212, 255, 0.5);
+            color: #00d4ff;
+        }
+
+        /* 目标分析回复区域 */
+        .goal-analysis-box {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 140, 0, 0.1) 100%);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 12px;
+        }
+
         /* 语言切换样式 */
         .lang-switcher .lang-btn {
             opacity: 0.6;
@@ -222,6 +292,38 @@
                     </div>
                 </div>
 
+                <!-- 目标分析选项 (有目标时才显示) -->
+                <div id="goalAnalysisSection" class="mb-6 hidden">
+                    <div class="goal-analysis-toggle p-4" id="goalAnalysisToggle">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-bullseye text-detectiveGold"></i>
+                                <span class="font-bold" data-i18n="diary.goalAnalysis.label">目标进度分析</span>
+                            </div>
+                            <div class="toggle-switch" id="goalAnalysisSwitch" onclick="toggleGoalAnalysis()"></div>
+                        </div>
+                        <p class="text-white/50 text-sm" data-i18n="diary.goalAnalysis.desc">
+                            启用后，小柯会根据你的目标和历史日记分析进度
+                        </p>
+
+                        <!-- 历史范围选择 (启用目标分析后显示) -->
+                        <div id="historyRangeSection" class="hidden mt-4 pt-4 border-t border-white/10">
+                            <div class="text-white/70 text-sm mb-2" data-i18n="diary.goalAnalysis.historyRange">分析历史范围</div>
+                            <div class="flex gap-2">
+                                <button class="history-range-btn active" data-range="7" onclick="selectHistoryRange(7)">
+                                    <span data-i18n="diary.goalAnalysis.days7">最近7天</span>
+                                </button>
+                                <button class="history-range-btn" data-range="30" onclick="selectHistoryRange(30)">
+                                    <span data-i18n="diary.goalAnalysis.days30">最近30天</span>
+                                </button>
+                                <button class="history-range-btn" data-range="all" onclick="selectHistoryRange(null)">
+                                    <span data-i18n="diary.goalAnalysis.allHistory">全部</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 保存按钮 -->
                 <button id="saveBtn" class="w-full py-4 rounded-lg bg-gradient-to-r from-neonCyan to-detectiveGold text-mysteryBlack font-bold text-lg transition-all hover:shadow-lg hover:shadow-neonCyan/30 disabled:opacity-50 disabled:cursor-not-allowed">
                     <i class="fa-solid fa-paper-plane mr-2"></i>
@@ -229,18 +331,44 @@
                 </button>
 
                 <!-- AI回复区域 (初始隐藏) -->
-                <div id="aiResponseSection" class="hidden mt-8">
+                <div id="aiResponseSection" class="hidden mt-8 space-y-4">
+
+                    <!-- 情感回复区域 -->
                     <div class="ai-response-box p-4">
                         <div class="flex items-start gap-3">
                             <div class="ai-avatar flex-shrink-0">
                                 <i class="fa-solid fa-user-secret text-mysteryBlack"></i>
                             </div>
                             <div class="flex-1">
-                                <div class="font-bold text-detectiveGold mb-2" id="aiCharacterName">小柯</div>
+                                <div class="font-bold text-detectiveGold mb-2">
+                                    <i class="fa-solid fa-heart mr-1"></i>
+                                    <span data-i18n="diary.aiResponse.emotionalTitle">小柯的回复</span>
+                                </div>
                                 <div id="aiResponseContent" class="text-white/90 leading-relaxed">
-                                    <!-- AI回复内容 -->
+                                    <!-- 情感回复内容 -->
                                 </div>
                                 <div id="typingIndicator" class="typing-indicator hidden">
+                                    <span></span><span></span><span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 目标分析区域 (有目标分析时显示) -->
+                    <div id="goalAnalysisResponse" class="goal-analysis-box p-4 hidden">
+                        <div class="flex items-start gap-3">
+                            <div class="ai-avatar flex-shrink-0" style="background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);">
+                                <i class="fa-solid fa-bullseye text-mysteryBlack"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-bold text-detectiveGold mb-2">
+                                    <i class="fa-solid fa-chart-line mr-1"></i>
+                                    <span data-i18n="diary.aiResponse.goalAnalysisTitle">目标进度分析</span>
+                                </div>
+                                <div id="goalAnalysisContent" class="text-white/90 leading-relaxed prose prose-invert prose-sm max-w-none">
+                                    <!-- 目标分析内容 -->
+                                </div>
+                                <div id="goalTypingIndicator" class="typing-indicator hidden">
                                     <span></span><span></span><span></span>
                                 </div>
                             </div>
@@ -275,6 +403,9 @@
         // 状态变量
         let selectedMood = null;
         let isSaving = false;
+        let enableGoalAnalysis = false;
+        let historyRange = 7;  // 默认7天
+        let hasGoals = false;
 
         // DOM元素
         const diaryContent = document.getElementById('diaryContent');
@@ -286,6 +417,13 @@
         const streakBadge = document.getElementById('streakBadge');
         const streakCount = document.getElementById('streakCount');
         const todayStatus = document.getElementById('todayStatus');
+        const goalAnalysisSection = document.getElementById('goalAnalysisSection');
+        const goalAnalysisSwitch = document.getElementById('goalAnalysisSwitch');
+        const goalAnalysisToggle = document.getElementById('goalAnalysisToggle');
+        const historyRangeSection = document.getElementById('historyRangeSection');
+        const goalAnalysisResponse = document.getElementById('goalAnalysisResponse');
+        const goalAnalysisContent = document.getElementById('goalAnalysisContent');
+        const goalTypingIndicator = document.getElementById('goalTypingIndicator');
 
         // 生成星星背景
         function createStars() {
@@ -325,9 +463,59 @@
             document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
             aiResponseSection.classList.add('hidden');
             aiResponseContent.innerHTML = '';
+            goalAnalysisResponse.classList.add('hidden');
+            goalAnalysisContent.innerHTML = '';
             saveBtn.disabled = false;
             saveBtn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i>' +
                 (window.i18n ? i18n.t('diary.save') : '保存日记');
+        }
+
+        // 切换目标分析开关
+        function toggleGoalAnalysis() {
+            enableGoalAnalysis = !enableGoalAnalysis;
+
+            if (enableGoalAnalysis) {
+                goalAnalysisSwitch.classList.add('active');
+                goalAnalysisToggle.classList.add('active');
+                historyRangeSection.classList.remove('hidden');
+            } else {
+                goalAnalysisSwitch.classList.remove('active');
+                goalAnalysisToggle.classList.remove('active');
+                historyRangeSection.classList.add('hidden');
+            }
+        }
+
+        // 选择历史范围
+        function selectHistoryRange(range) {
+            historyRange = range;
+
+            // 更新按钮状态
+            document.querySelectorAll('.history-range-btn').forEach(btn => {
+                const btnRange = btn.dataset.range;
+                if ((range === null && btnRange === 'all') || (btnRange == range)) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        // 加载用户目标（检查是否有目标）
+        async function loadUserGoals() {
+            try {
+                const response = await fetch('/api/goals');
+                const data = await response.json();
+
+                if (data.success && data.goals && data.goals.length > 0) {
+                    hasGoals = true;
+                    goalAnalysisSection.classList.remove('hidden');
+                } else {
+                    hasGoals = false;
+                    goalAnalysisSection.classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('Load user goals error:', error);
+            }
         }
 
         // 保存日记
@@ -368,15 +556,26 @@
                 typingIndicator.classList.remove('hidden');
                 aiResponseContent.innerHTML = '';
 
-                // 3. 请求AI回复
+                // 3. 请求AI回复（带目标分析参数）
                 const aiResponse = await fetch(`/api/diary/${saveResult.diary_id}/ai-response`, {
-                    method: 'POST'
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        enable_goal_analysis: enableGoalAnalysis && hasGoals,
+                        history_range: historyRange
+                    })
                 });
 
                 const aiResult = await aiResponse.json();
 
                 if (!aiResult.success) {
                     throw new Error(aiResult.message);
+                }
+
+                // 如果启用了目标分析，显示目标分析区域
+                if (enableGoalAnalysis && hasGoals) {
+                    goalAnalysisResponse.classList.remove('hidden');
+                    goalTypingIndicator.classList.remove('hidden');
                 }
 
                 // 4. 使用SSE接收流式响应
@@ -388,9 +587,17 @@
                     if (data.type === 'stage') {
                         // 显示阶段信息
                         console.log('Stage:', data.stage, data.message);
-                    } else if (data.type === 'content') {
+                        if (data.stage === 'goal_analysis') {
+                            goalTypingIndicator.classList.remove('hidden');
+                        }
+                    } else if (data.type === 'content' || data.type === 'emotional') {
+                        // 情感回复
                         typingIndicator.classList.add('hidden');
                         aiResponseContent.innerHTML += data.content;
+                    } else if (data.type === 'goal_analysis') {
+                        // 目标分析回复
+                        goalTypingIndicator.classList.add('hidden');
+                        goalAnalysisContent.innerHTML += data.content;
                     } else if (data.type === 'done') {
                         eventSource.close();
                         saveBtn.disabled = false;
@@ -410,8 +617,11 @@
                 eventSource.onerror = () => {
                     eventSource.close();
                     typingIndicator.classList.add('hidden');
-                    aiResponseContent.innerHTML = window.i18n ?
-                        i18n.t('diary.aiError') : '小柯暂时无法回复，但你的日记已保存~';
+                    goalTypingIndicator.classList.add('hidden');
+                    if (!aiResponseContent.innerHTML) {
+                        aiResponseContent.innerHTML = window.i18n ?
+                            i18n.t('diary.aiError') : '小柯暂时无法回复，但你的日记已保存~';
+                    }
                     saveBtn.disabled = false;
                     saveBtn.innerHTML = '<i class="fa-solid fa-check mr-2"></i>' +
                         (window.i18n ? i18n.t('diary.saved') : '已保存');
@@ -464,6 +674,7 @@
             createStars();
             loadStreak();
             checkTodayStatus();
+            loadUserGoals();
         });
     </script>
 </body>

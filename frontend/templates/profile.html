@@ -85,6 +85,56 @@
             border-color: rgba(0, 212, 255, 0.3);
         }
 
+        /* 目标卡片样式 */
+        .goal-item {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .goal-item:hover {
+            border-color: rgba(255, 215, 0, 0.3);
+        }
+
+        .goal-item.completed {
+            opacity: 0.6;
+        }
+
+        .goal-item.completed .goal-title {
+            text-decoration: line-through;
+        }
+
+        /* 模态框样式 */
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, rgba(22, 33, 62, 0.98) 0%, rgba(26, 26, 46, 0.98) 100%);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 16px;
+        }
+
+        .goal-input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .goal-input:focus {
+            outline: none;
+            border-color: rgba(0, 212, 255, 0.5);
+            box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.1);
+        }
+
+        .goal-input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
         /* 语言切换样式 */
         .lang-switcher .lang-btn {
             opacity: 0.6;
@@ -221,6 +271,34 @@
                 </div>
             </div>
 
+            <!-- 我的目标 -->
+            <div class="profile-card p-6 mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-bold">
+                        <i class="fa-solid fa-bullseye text-detectiveGold mr-2"></i>
+                        <span data-i18n="goals.myGoals">我的目标</span>
+                    </h2>
+                    <button onclick="showAddGoalModal()" class="text-neonCyan text-sm hover:underline flex items-center gap-1">
+                        <i class="fa-solid fa-plus"></i>
+                        <span data-i18n="goals.addGoal">添加目标</span>
+                    </button>
+                </div>
+
+                <div id="goalsList" class="space-y-3">
+                    <!-- 动态加载目标列表 -->
+                </div>
+
+                <div id="noGoals" class="hidden text-center py-8">
+                    <i class="fa-solid fa-bullseye text-4xl text-white/20 mb-3"></i>
+                    <p class="text-white/50 mb-2" data-i18n="goals.noGoals">还没有设定目标</p>
+                    <p class="text-white/30 text-sm mb-4" data-i18n="goals.noGoalsDesc">设定目标后，AI会在日记中帮你追踪进度</p>
+                    <button onclick="showAddGoalModal()" class="inline-block px-6 py-2 rounded-lg bg-gradient-to-r from-neonCyan to-detectiveGold text-mysteryBlack font-bold">
+                        <i class="fa-solid fa-plus mr-2"></i>
+                        <span data-i18n="goals.addFirst">添加第一个目标</span>
+                    </button>
+                </div>
+            </div>
+
             <!-- 最近日记 -->
             <div class="profile-card p-6">
                 <div class="flex items-center justify-between mb-4">
@@ -247,6 +325,74 @@
 
         </div>
     </main>
+
+    <!-- 添加/编辑目标模态框 -->
+    <div id="goalModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-overlay absolute inset-0" onclick="hideGoalModal()"></div>
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="modal-content relative p-6 max-w-md w-full">
+                <h3 id="goalModalTitle" class="text-xl font-bold mb-4 text-center">
+                    <i class="fa-solid fa-bullseye text-detectiveGold mr-2"></i>
+                    <span data-i18n="goals.addGoal">添加目标</span>
+                </h3>
+
+                <form id="goalForm" onsubmit="saveGoal(event)">
+                    <input type="hidden" id="goalId" value="">
+
+                    <div class="mb-4">
+                        <label class="block text-white/70 text-sm mb-2" data-i18n="goals.goalTitle">目标标题</label>
+                        <input type="text" id="goalTitle" class="goal-input w-full px-4 py-3"
+                               placeholder="例如：每天阅读30分钟" data-i18n-placeholder="goals.titlePlaceholder" required maxlength="255">
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-white/70 text-sm mb-2" data-i18n="goals.goalDescription">目标描述（选填）</label>
+                        <textarea id="goalDescription" class="goal-input w-full px-4 py-3 h-24 resize-none"
+                                  placeholder="描述你想达成的具体目标..." data-i18n-placeholder="goals.descriptionPlaceholder"></textarea>
+                    </div>
+
+                    <div class="flex gap-4">
+                        <button type="button" onclick="hideGoalModal()"
+                                class="flex-1 py-3 rounded-lg border border-white/20 text-white/70 hover:bg-white/10 transition-colors">
+                            <span data-i18n="common.cancel">取消</span>
+                        </button>
+                        <button type="submit"
+                                class="flex-1 py-3 rounded-lg bg-gradient-to-r from-neonCyan to-detectiveGold text-mysteryBlack font-bold">
+                            <i class="fa-solid fa-check mr-2"></i>
+                            <span data-i18n="common.confirm">确认</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 删除确认模态框 -->
+    <div id="deleteGoalModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-overlay absolute inset-0" onclick="hideDeleteGoalModal()"></div>
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="modal-content relative p-6 max-w-sm w-full">
+                <h3 class="text-xl font-bold mb-4 text-center">
+                    <i class="fa-solid fa-exclamation-triangle text-red-500 mr-2"></i>
+                    <span data-i18n="goals.deleteConfirmTitle">确认删除</span>
+                </h3>
+                <p class="text-white/70 text-center mb-6" data-i18n="goals.deleteConfirmMessage">
+                    确定要删除这个目标吗？
+                </p>
+                <div class="flex gap-4">
+                    <button onclick="hideDeleteGoalModal()"
+                            class="flex-1 py-3 rounded-lg border border-white/20 text-white/70 hover:bg-white/10 transition-colors">
+                        <span data-i18n="common.cancel">取消</span>
+                    </button>
+                    <button onclick="confirmDeleteGoal()"
+                            class="flex-1 py-3 rounded-lg bg-red-500 text-white font-bold hover:bg-red-600 transition-colors">
+                        <i class="fa-solid fa-trash-alt mr-2"></i>
+                        <span data-i18n="common.confirm">确认</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- 国际化支持 -->
     <script src="{{ url_for('static', filename='js/translations/zh-CN.js') }}"></script>
@@ -385,12 +531,213 @@
             }
         }
 
+        // ==================== 目标管理功能 ====================
+        let deleteGoalId = null;
+
+        // 加载目标列表
+        async function loadGoals() {
+            try {
+                const response = await fetch('/api/goals');
+                const data = await response.json();
+
+                const container = document.getElementById('goalsList');
+                const noGoals = document.getElementById('noGoals');
+
+                if (!data.success || data.goals.length === 0) {
+                    container.classList.add('hidden');
+                    noGoals.classList.remove('hidden');
+                    return;
+                }
+
+                container.classList.remove('hidden');
+                noGoals.classList.add('hidden');
+
+                container.innerHTML = '';
+                data.goals.forEach(goal => {
+                    const card = document.createElement('div');
+                    card.className = `goal-item p-4 ${goal.status === 'completed' ? 'completed' : ''}`;
+                    card.innerHTML = `
+                        <div class="flex items-start gap-3">
+                            <button onclick="toggleGoalStatus(${goal.id}, '${goal.status}')"
+                                    class="mt-1 w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${goal.status === 'completed' ? 'bg-green-500 border-green-500' : 'border-white/30 hover:border-detectiveGold'}">
+                                ${goal.status === 'completed' ? '<i class="fa-solid fa-check text-white text-xs"></i>' : ''}
+                            </button>
+                            <div class="flex-1 min-w-0">
+                                <div class="goal-title font-bold text-white/90">${escapeHtml(goal.title)}</div>
+                                ${goal.description ? `<div class="text-white/50 text-sm mt-1">${escapeHtml(goal.description)}</div>` : ''}
+                            </div>
+                            <div class="flex items-center gap-2 flex-shrink-0">
+                                <button onclick="editGoal(${goal.id})" class="text-white/30 hover:text-neonCyan transition-colors p-1">
+                                    <i class="fa-solid fa-pen text-sm"></i>
+                                </button>
+                                <button onclick="showDeleteGoalModal(${goal.id})" class="text-white/30 hover:text-red-500 transition-colors p-1">
+                                    <i class="fa-solid fa-trash-alt text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error('Load goals error:', error);
+            }
+        }
+
+        // HTML转义
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 显示添加目标模态框
+        function showAddGoalModal() {
+            document.getElementById('goalId').value = '';
+            document.getElementById('goalTitle').value = '';
+            document.getElementById('goalDescription').value = '';
+            document.getElementById('goalModalTitle').innerHTML = '<i class="fa-solid fa-bullseye text-detectiveGold mr-2"></i><span data-i18n="goals.addGoal">添加目标</span>';
+            document.getElementById('goalModal').classList.remove('hidden');
+            document.getElementById('goalTitle').focus();
+            // 重新应用i18n
+            if (window.i18n) window.i18n.updatePageTranslations();
+        }
+
+        // 编辑目标
+        async function editGoal(goalId) {
+            try {
+                const response = await fetch(`/api/goal/${goalId}`);
+                const data = await response.json();
+
+                if (!data.success) {
+                    alert('目标不存在');
+                    return;
+                }
+
+                document.getElementById('goalId').value = data.goal.id;
+                document.getElementById('goalTitle').value = data.goal.title;
+                document.getElementById('goalDescription').value = data.goal.description || '';
+                document.getElementById('goalModalTitle').innerHTML = '<i class="fa-solid fa-pen text-detectiveGold mr-2"></i><span data-i18n="goals.editGoal">编辑目标</span>';
+                document.getElementById('goalModal').classList.remove('hidden');
+                document.getElementById('goalTitle').focus();
+                if (window.i18n) window.i18n.updatePageTranslations();
+            } catch (error) {
+                console.error('Edit goal error:', error);
+            }
+        }
+
+        // 隐藏目标模态框
+        function hideGoalModal() {
+            document.getElementById('goalModal').classList.add('hidden');
+        }
+
+        // 保存目标
+        async function saveGoal(event) {
+            event.preventDefault();
+
+            const goalId = document.getElementById('goalId').value;
+            const title = document.getElementById('goalTitle').value.trim();
+            const description = document.getElementById('goalDescription').value.trim();
+
+            if (!title) {
+                alert('请输入目标标题');
+                return;
+            }
+
+            try {
+                let response;
+                if (goalId) {
+                    // 更新
+                    response = await fetch(`/api/goal/${goalId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ title, description })
+                    });
+                } else {
+                    // 创建
+                    response = await fetch('/api/goals', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ title, description })
+                    });
+                }
+
+                const data = await response.json();
+                if (data.success) {
+                    hideGoalModal();
+                    loadGoals();
+                } else {
+                    alert(data.message || '保存失败');
+                }
+            } catch (error) {
+                console.error('Save goal error:', error);
+                alert('保存失败，请重试');
+            }
+        }
+
+        // 切换目标状态
+        async function toggleGoalStatus(goalId, currentStatus) {
+            const newStatus = currentStatus === 'completed' ? 'active' : 'completed';
+
+            try {
+                const response = await fetch(`/api/goal/${goalId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    loadGoals();
+                } else {
+                    alert(data.message || '更新失败');
+                }
+            } catch (error) {
+                console.error('Toggle goal status error:', error);
+            }
+        }
+
+        // 显示删除确认模态框
+        function showDeleteGoalModal(goalId) {
+            deleteGoalId = goalId;
+            document.getElementById('deleteGoalModal').classList.remove('hidden');
+        }
+
+        // 隐藏删除确认模态框
+        function hideDeleteGoalModal() {
+            deleteGoalId = null;
+            document.getElementById('deleteGoalModal').classList.add('hidden');
+        }
+
+        // 确认删除目标
+        async function confirmDeleteGoal() {
+            if (!deleteGoalId) return;
+
+            try {
+                const response = await fetch(`/api/goal/${deleteGoalId}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    hideDeleteGoalModal();
+                    loadGoals();
+                } else {
+                    alert(data.message || '删除失败');
+                }
+            } catch (error) {
+                console.error('Delete goal error:', error);
+                alert('删除失败，请重试');
+            }
+        }
+
         // 初始化
         document.addEventListener('DOMContentLoaded', () => {
             createStars();
             loadUserInfo();
             loadDiaryStats();
             loadRecentDiaries();
+            loadGoals();
         });
     </script>
 </body>

@@ -386,6 +386,20 @@ const translations_en = {
             3: "Okay",
             4: "Good",
             5: "Great"
+        },
+        // Goal analysis options
+        goalAnalysis: {
+            label: "Goal Progress Analysis",
+            desc: "When enabled, Xiao Ke will analyze your goal progress based on your goals and diary history",
+            historyRange: "Analysis History Range",
+            days7: "Last 7 days",
+            days30: "Last 30 days",
+            allHistory: "All"
+        },
+        // AI response titles
+        aiResponse: {
+            emotionalTitle: "Xiao Ke's Response",
+            goalAnalysisTitle: "Goal Progress Analysis"
         }
     },
 
@@ -407,6 +421,22 @@ const translations_en = {
         viewAll: "View All",
         noDiaries: "No diary yet. Start recording!",
         startWriting: "Write First"
+    },
+
+    // ===== Goals =====
+    goals: {
+        myGoals: "My Goals",
+        addGoal: "Add Goal",
+        editGoal: "Edit Goal",
+        noGoals: "No goals set yet",
+        noGoalsDesc: "After setting goals, AI will help track your progress in diaries",
+        addFirst: "Add First Goal",
+        goalTitle: "Goal Title",
+        titlePlaceholder: "e.g., Read 30 minutes daily",
+        goalDescription: "Goal Description (Optional)",
+        descriptionPlaceholder: "Describe your specific goal...",
+        deleteConfirmTitle: "Confirm Delete",
+        deleteConfirmMessage: "Are you sure you want to delete this goal?"
     }
 };
 

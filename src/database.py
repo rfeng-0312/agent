@@ -64,11 +64,28 @@ def init_database():
                 user_id INT NOT NULL,
                 content TEXT NOT NULL,
                 ai_response TEXT DEFAULT NULL,
+                goal_analysis TEXT DEFAULT NULL COMMENT '目标进度分析',
                 mood_score INT DEFAULT NULL COMMENT '心情评分 1-5',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
                 INDEX idx_user_id (user_id),
+                INDEX idx_created_at (created_at)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        ''')
+
+        # 创建用户目标表
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS user_goals (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT NOT NULL,
+                title VARCHAR(255) NOT NULL COMMENT '目标标题',
+                description TEXT DEFAULT NULL COMMENT '目标描述',
+                status ENUM('active', 'completed', 'archived') DEFAULT 'active' COMMENT '状态',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                INDEX idx_user_status (user_id, status),
                 INDEX idx_created_at (created_at)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ''')
@@ -500,6 +517,274 @@ def delete_diary(diary_id, user_id):
     except Error as e:
         logger.error(f"Delete diary error: {e}")
         return {'success': False, 'message': f'删除失败: {str(e)}'}
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+def update_diary_goal_analysis(diary_id, goal_analysis):
+    """更新日记的目标分析"""
+    connection = get_db_connection()
+    if not connection:
+        return {'success': False, 'message': '数据库连接失败'}
+
+    try:
+        cursor = connection.cursor()
+        cursor.execute('''
+            UPDATE diaries SET goal_analysis = %s WHERE id = %s
+        ''', (goal_analysis, diary_id))
+
+        connection.commit()
+        return {'success': True, 'message': '目标分析已更新'}
+    except Error as e:
+        logger.error(f"Update diary goal analysis error: {e}")
+        return {'success': False, 'message': f'更新失败: {str(e)}'}
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+def get_recent_diaries(user_id, days=None, limit=50):
+    """
+    获取用户近期日记（用于AI分析）
+
+    Args:
+        user_id: 用户ID
+        days: 天数（7, 30, None表示全部）
+        limit: 最大返回条数
+
+    Returns:
+        日记列表，每条包含 content, mood_score, created_at
+    """
+    connection = get_db_connection()
+    if not connection:
+        return []
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+
+        if days:
+            cursor.execute('''
+                SELECT content, mood_score, created_at
+                FROM diaries
+                WHERE user_id = %s AND created_at >= DATE_SUB(NOW(), INTERVAL %s DAY)
+                ORDER BY created_at DESC
+                LIMIT %s
+            ''', (user_id, days, limit))
+        else:
+            cursor.execute('''
+                SELECT content, mood_score, created_at
+                FROM diaries
+                WHERE user_id = %s
+                ORDER BY created_at DESC
+                LIMIT %s
+            ''', (user_id, limit))
+
+        results = cursor.fetchall()
+        for r in results:
+            r['created_at'] = r['created_at'].isoformat() if r['created_at'] else None
+        return results
+    except Error as e:
+        logger.error(f"Get recent diaries error: {e}")
+        return []
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+# ==================== 目标相关函数 ====================
+
+def create_goal(user_id, title, description=None):
+    """创建新目标"""
+    connection = get_db_connection()
+    if not connection:
+        return {'success': False, 'message': '数据库连接失败', 'goal_id': None}
+
+    try:
+        cursor = connection.cursor()
+        cursor.execute('''
+            INSERT INTO user_goals (user_id, title, description)
+            VALUES (%s, %s, %s)
+        ''', (user_id, title, description))
+
+        connection.commit()
+        goal_id = cursor.lastrowid
+
+        return {'success': True, 'message': '目标创建成功', 'goal_id': goal_id}
+    except Error as e:
+        logger.error(f"Create goal error: {e}")
+        return {'success': False, 'message': f'创建失败: {str(e)}', 'goal_id': None}
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+def get_user_goals(user_id, status='active'):
+    """
+    获取用户目标列表
+
+    Args:
+        user_id: 用户ID
+        status: 目标状态 ('active', 'completed', 'archived', 'all')
+    """
+    connection = get_db_connection()
+    if not connection:
+        return []
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+
+        if status == 'all':
+            cursor.execute('''
+                SELECT id, title, description, status, created_at, updated_at
+                FROM user_goals
+                WHERE user_id = %s
+                ORDER BY created_at DESC
+            ''', (user_id,))
+        else:
+            cursor.execute('''
+                SELECT id, title, description, status, created_at, updated_at
+                FROM user_goals
+                WHERE user_id = %s AND status = %s
+                ORDER BY created_at DESC
+            ''', (user_id, status))
+
+        results = cursor.fetchall()
+        for r in results:
+            r['created_at'] = r['created_at'].isoformat() if r['created_at'] else None
+            r['updated_at'] = r['updated_at'].isoformat() if r['updated_at'] else None
+        return results
+    except Error as e:
+        logger.error(f"Get user goals error: {e}")
+        return []
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+def get_goal_by_id(goal_id, user_id):
+    """获取单个目标详情"""
+    connection = get_db_connection()
+    if not connection:
+        return None
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute('''
+            SELECT id, title, description, status, created_at, updated_at
+            FROM user_goals
+            WHERE id = %s AND user_id = %s
+        ''', (goal_id, user_id))
+
+        result = cursor.fetchone()
+        if result:
+            result['created_at'] = result['created_at'].isoformat() if result['created_at'] else None
+            result['updated_at'] = result['updated_at'].isoformat() if result['updated_at'] else None
+        return result
+    except Error as e:
+        logger.error(f"Get goal error: {e}")
+        return None
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+def update_goal(goal_id, user_id, title=None, description=None, status=None):
+    """更新目标"""
+    connection = get_db_connection()
+    if not connection:
+        return {'success': False, 'message': '数据库连接失败'}
+
+    try:
+        cursor = connection.cursor()
+
+        # 构建动态更新语句
+        updates = []
+        params = []
+
+        if title is not None:
+            updates.append('title = %s')
+            params.append(title)
+        if description is not None:
+            updates.append('description = %s')
+            params.append(description)
+        if status is not None:
+            updates.append('status = %s')
+            params.append(status)
+
+        if not updates:
+            return {'success': False, 'message': '没有要更新的字段'}
+
+        params.extend([goal_id, user_id])
+
+        cursor.execute(f'''
+            UPDATE user_goals SET {', '.join(updates)}
+            WHERE id = %s AND user_id = %s
+        ''', params)
+
+        if cursor.rowcount == 0:
+            return {'success': False, 'message': '目标不存在或无权修改'}
+
+        connection.commit()
+        return {'success': True, 'message': '目标已更新'}
+    except Error as e:
+        logger.error(f"Update goal error: {e}")
+        return {'success': False, 'message': f'更新失败: {str(e)}'}
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+def delete_goal(goal_id, user_id):
+    """删除目标"""
+    connection = get_db_connection()
+    if not connection:
+        return {'success': False, 'message': '数据库连接失败'}
+
+    try:
+        cursor = connection.cursor()
+        cursor.execute('''
+            DELETE FROM user_goals WHERE id = %s AND user_id = %s
+        ''', (goal_id, user_id))
+
+        if cursor.rowcount == 0:
+            return {'success': False, 'message': '目标不存在或无权删除'}
+
+        connection.commit()
+        return {'success': True, 'message': '目标已删除'}
+    except Error as e:
+        logger.error(f"Delete goal error: {e}")
+        return {'success': False, 'message': f'删除失败: {str(e)}'}
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+def get_goal_count(user_id, status='active'):
+    """获取用户目标数量"""
+    connection = get_db_connection()
+    if not connection:
+        return 0
+
+    try:
+        cursor = connection.cursor()
+        if status == 'all':
+            cursor.execute('SELECT COUNT(*) FROM user_goals WHERE user_id = %s', (user_id,))
+        else:
+            cursor.execute('SELECT COUNT(*) FROM user_goals WHERE user_id = %s AND status = %s', (user_id, status))
+        result = cursor.fetchone()
+        return result[0] if result else 0
+    except Error as e:
+        logger.error(f"Get goal count error: {e}")
+        return 0
     finally:
         if connection.is_connected():
             cursor.close()

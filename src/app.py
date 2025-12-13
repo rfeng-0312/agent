@@ -17,7 +17,11 @@ from doubao_api import DoubaoClient
 from database import (
     init_database, register_user, login_user, check_account_exists, reset_password, get_user_by_id,
     create_diary, update_diary_ai_response, get_diary_by_id, get_user_diaries,
-    get_diary_count, check_diary_today, get_diary_streak, delete_diary
+    get_diary_count, check_diary_today, get_diary_streak, delete_diary,
+    # 目标相关
+    create_goal, get_user_goals, get_goal_by_id, update_goal, delete_goal, get_goal_count,
+    # 历史日记和目标分析
+    get_recent_diaries, update_diary_goal_analysis
 )
 
 # Configure logging
@@ -311,7 +315,16 @@ def api_create_diary():
 
 @app.route('/api/diary/<int:diary_id>/ai-response', methods=['POST'])
 def api_generate_ai_response(diary_id):
-    """为日记生成AI回复 API"""
+    """为日记生成AI回复 API
+
+    支持双重回复模式：
+    - 情感回复（默认）
+    - 目标进度分析（可选）
+
+    请求参数：
+    - enable_goal_analysis: bool - 是否启用目标分析
+    - history_range: int|null - 历史日记范围（7/30/null全部）
+    """
     if 'user_id' not in session:
         return jsonify({'success': False, 'message': '请先登录'}), 401
 
@@ -320,12 +333,21 @@ def api_generate_ai_response(diary_id):
         if not diary:
             return jsonify({'success': False, 'message': '日记不存在'})
 
+        # 获取请求参数
+        data = request.get_json() or {}
+        enable_goal_analysis = data.get('enable_goal_analysis', False)
+        history_range = data.get('history_range')  # 7, 30, or None (all)
+
         session_id = datetime.now().strftime('%Y%m%d%H%M%S%f')
 
         session_data = {
             'type': 'diary_ai_response',
             'diary_id': diary_id,
+            'user_id': session['user_id'],
             'content': diary['content'],
+            'mood_score': diary.get('mood_score'),
+            'enable_goal_analysis': enable_goal_analysis,
+            'history_range': history_range,
             'timestamp': str(datetime.now())
         }
 
@@ -406,6 +428,119 @@ def api_diary_streak():
 
     streak = get_diary_streak(session['user_id'])
     return jsonify({'streak': streak})
+
+
+# ==================== 目标管理 API 路由 ====================
+
+@app.route('/api/goals', methods=['GET'])
+def api_get_goals():
+    """获取用户目标列表 API"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '请先登录'}), 401
+
+    try:
+        status = request.args.get('status', 'active')
+        goals = get_user_goals(session['user_id'], status)
+        total = get_goal_count(session['user_id'], status)
+
+        return jsonify({
+            'success': True,
+            'goals': goals,
+            'total': total
+        })
+    except Exception as e:
+        logger.error(f"Get goals API error: {e}")
+        return jsonify({'success': False, 'message': f'获取失败: {str(e)}'})
+
+
+@app.route('/api/goals', methods=['POST'])
+def api_create_goal():
+    """创建目标 API"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '请先登录'}), 401
+
+    try:
+        data = request.get_json()
+        title = data.get('title', '').strip()
+        description = data.get('description', '').strip() or None
+
+        if not title:
+            return jsonify({'success': False, 'message': '目标标题不能为空'})
+
+        if len(title) > 255:
+            return jsonify({'success': False, 'message': '目标标题不能超过255字'})
+
+        result = create_goal(
+            user_id=session['user_id'],
+            title=title,
+            description=description
+        )
+
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Create goal API error: {e}")
+        return jsonify({'success': False, 'message': f'创建失败: {str(e)}'})
+
+
+@app.route('/api/goal/<int:goal_id>', methods=['GET'])
+def api_get_goal(goal_id):
+    """获取单个目标 API"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '请先登录'}), 401
+
+    goal = get_goal_by_id(goal_id, session['user_id'])
+    if not goal:
+        return jsonify({'success': False, 'message': '目标不存在'})
+
+    return jsonify({'success': True, 'goal': goal})
+
+
+@app.route('/api/goal/<int:goal_id>', methods=['PUT'])
+def api_update_goal(goal_id):
+    """更新目标 API"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '请先登录'}), 401
+
+    try:
+        data = request.get_json()
+        title = data.get('title')
+        description = data.get('description')
+        status = data.get('status')
+
+        # 验证标题
+        if title is not None:
+            title = title.strip()
+            if not title:
+                return jsonify({'success': False, 'message': '目标标题不能为空'})
+            if len(title) > 255:
+                return jsonify({'success': False, 'message': '目标标题不能超过255字'})
+
+        # 验证状态
+        if status is not None and status not in ['active', 'completed', 'archived']:
+            return jsonify({'success': False, 'message': '无效的目标状态'})
+
+        result = update_goal(
+            goal_id=goal_id,
+            user_id=session['user_id'],
+            title=title,
+            description=description,
+            status=status
+        )
+
+        return jsonify(result)
+    except Exception as e:
+        logger.error(f"Update goal API error: {e}")
+        return jsonify({'success': False, 'message': f'更新失败: {str(e)}'})
+
+
+@app.route('/api/goal/<int:goal_id>', methods=['DELETE'])
+def api_delete_goal(goal_id):
+    """删除目标 API"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '请先登录'}), 401
+
+    result = delete_goal(goal_id, session['user_id'])
+    return jsonify(result)
 
 
 @app.route('/api/query/text', methods=['POST'])
@@ -901,19 +1036,30 @@ def generate_deep_think_response(session_id, session_data):
 def generate_diary_ai_response(session_id, session_data):
     """
     日记AI回复的流式响应生成器
-    根据日记内容生成温暖的回复
+    支持双重回复：情感回复 + 目标进度分析（可选）
+
+    SSE事件类型：
+    - type: 'emotional' - 情感回复内容
+    - type: 'goal_analysis' - 目标分析内容
+    - type: 'content' - 兼容旧版（等同于emotional）
+    - type: 'stage' - 阶段提示
+    - type: 'done' - 完成信号
     """
     content = session_data['content']
     diary_id = session_data['diary_id']
+    user_id = session_data.get('user_id')
+    enable_goal_analysis = session_data.get('enable_goal_analysis', False)
+    history_range = session_data.get('history_range')  # 7, 30, or None
 
-    ai_response = ""
+    emotional_response = ""
+    goal_analysis_response = ""
 
     try:
-        # 发送开始信号
-        yield f"data: {json.dumps({'type': 'stage', 'stage': 'responding', 'message': '小柯正在思考回复...'}, ensure_ascii=False)}\n\n"
+        # ==================== 阶段1：情感回复 ====================
+        yield f"data: {json.dumps({'type': 'stage', 'stage': 'emotional', 'message': '小柯正在思考回复...'}, ensure_ascii=False)}\n\n"
 
         # 日记回复的系统提示词
-        system_prompt = """你是"小柯"，一个温暖、有同理心的AI伙伴。
+        emotional_prompt = """你是"小柯"，一个温暖、有同理心的AI伙伴。
 
 你的特点：
 - 像朋友一样聊天，不说教
@@ -924,9 +1070,8 @@ def generate_diary_ai_response(session_id, session_data):
 
 请根据用户的日记内容，给出温暖的回应。"""
 
-        # 调用 DeepSeek API 生成回复
         messages = [
-            {"role": "system", "content": system_prompt},
+            {"role": "system", "content": emotional_prompt},
             {"role": "user", "content": f"用户今天的日记：\n\n{content}"}
         ]
 
@@ -939,18 +1084,93 @@ def generate_diary_ai_response(session_id, session_data):
         for chunk in stream:
             if chunk.choices[0].delta.content:
                 content_chunk = chunk.choices[0].delta.content
-                ai_response += content_chunk
+                emotional_response += content_chunk
+                # 同时发送 emotional 和 content 类型，保持向后兼容
+                yield f"data: {json.dumps({'type': 'emotional', 'content': content_chunk}, ensure_ascii=False)}\n\n"
                 yield f"data: {json.dumps({'type': 'content', 'content': content_chunk}, ensure_ascii=False)}\n\n"
 
-        # 发送完成信号
-        yield f"data: {json.dumps({'type': 'done'}, ensure_ascii=False)}\n\n"
+        # 保存情感回复到数据库
+        update_diary_ai_response(diary_id, emotional_response)
 
-        # 保存AI回复到数据库
-        update_diary_ai_response(diary_id, ai_response)
+        # ==================== 阶段2：目标进度分析（可选） ====================
+        if enable_goal_analysis and user_id:
+            # 获取用户目标
+            goals = get_user_goals(user_id, 'active')
+
+            if goals:
+                yield f"data: {json.dumps({'type': 'stage', 'stage': 'goal_analysis', 'message': '正在分析目标进度...'}, ensure_ascii=False)}\n\n"
+
+                # 获取历史日记
+                recent_diaries = get_recent_diaries(user_id, days=history_range, limit=50)
+
+                # 构建目标列表文本
+                goals_text = "\n".join([
+                    f"- {g['title']}" + (f"：{g['description']}" if g.get('description') else "")
+                    for g in goals
+                ])
+
+                # 构建历史日记摘要（每篇最多200字）
+                diary_summaries = []
+                for d in recent_diaries:
+                    if d['id'] != diary_id:  # 排除当前日记
+                        summary = d['content'][:200] + "..." if len(d['content']) > 200 else d['content']
+                        date_str = d['created_at'].strftime('%m/%d') if hasattr(d['created_at'], 'strftime') else str(d['created_at'])[:10]
+                        diary_summaries.append(f"[{date_str}] {summary}")
+
+                history_text = "\n".join(diary_summaries[:20]) if diary_summaries else "（暂无历史日记）"
+                history_label = f"最近{history_range}天" if history_range else "全部"
+
+                # 目标分析提示词
+                goal_analysis_prompt = f"""你是一位成长教练，帮助用户追踪目标进度。
+
+用户设定的目标：
+{goals_text}
+
+近期日记摘要（{history_label}）：
+{history_text}
+
+今天的日记：
+{content}
+
+请针对每个目标进行分析，格式如下：
+### 🎯 [目标名称]
+**进度评估**：[进展良好/需要关注/刚开始]
+**近期表现**：[从日记中发现的相关内容]
+**建议**：[1-2条具体建议]
+
+要求：
+- 每个目标分析控制在100字内
+- 语气温和鼓励，不要说教
+- 如果日记中没有提到某目标，也要简要提醒用户关注"""
+
+                messages = [
+                    {"role": "system", "content": "你是一位专业的成长教练，擅长从日记中分析用户的目标完成情况。"},
+                    {"role": "user", "content": goal_analysis_prompt}
+                ]
+
+                stream = client.chat.completions.create(
+                    model=DEEPSEEK_MODEL,
+                    messages=messages,
+                    stream=True
+                )
+
+                for chunk in stream:
+                    if chunk.choices[0].delta.content:
+                        content_chunk = chunk.choices[0].delta.content
+                        goal_analysis_response += content_chunk
+                        yield f"data: {json.dumps({'type': 'goal_analysis', 'content': content_chunk}, ensure_ascii=False)}\n\n"
+
+                # 保存目标分析到数据库
+                update_diary_goal_analysis(diary_id, goal_analysis_response)
+
+        # ==================== 完成 ====================
+        yield f"data: {json.dumps({'type': 'done'}, ensure_ascii=False)}\n\n"
 
         # 保存到session文件
         response_data = {
-            'ai_response': ai_response,
+            'emotional_response': emotional_response,
+            'goal_analysis_response': goal_analysis_response if goal_analysis_response else None,
+            'ai_response': emotional_response,  # 兼容旧版
             'completed_at': str(datetime.now())
         }
         with open(f'../data/sessions/{session_id}_response.json', 'w', encoding='utf-8') as f:

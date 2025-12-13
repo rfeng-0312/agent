@@ -387,6 +387,20 @@ const translations_zh = {
             3: "一般",
             4: "不错",
             5: "很棒"
+        },
+        // 目标分析选项
+        goalAnalysis: {
+            label: "目标进度分析",
+            desc: "启用后，小柯会根据你的目标和历史日记分析进度",
+            historyRange: "分析历史范围",
+            days7: "最近7天",
+            days30: "最近30天",
+            allHistory: "全部"
+        },
+        // AI回复标题
+        aiResponse: {
+            emotionalTitle: "小柯的回复",
+            goalAnalysisTitle: "目标进度分析"
         }
     },
 
@@ -408,6 +422,22 @@ const translations_zh = {
         viewAll: "查看全部",
         noDiaries: "还没有日记，开始记录吧！",
         startWriting: "写第一篇"
+    },
+
+    // ===== 目标管理 =====
+    goals: {
+        myGoals: "我的目标",
+        addGoal: "添加目标",
+        editGoal: "编辑目标",
+        noGoals: "还没有设定目标",
+        noGoalsDesc: "设定目标后，AI会在日记中帮你追踪进度",
+        addFirst: "添加第一个目标",
+        goalTitle: "目标标题",
+        titlePlaceholder: "例如：每天阅读30分钟",
+        goalDescription: "目标描述（选填）",
+        descriptionPlaceholder: "描述你想达成的具体目标...",
+        deleteConfirmTitle: "确认删除",
+        deleteConfirmMessage: "确定要删除这个目标吗？"
     }
 };
 
