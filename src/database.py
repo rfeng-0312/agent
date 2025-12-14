@@ -50,12 +50,33 @@ def init_database():
                 password_hash VARCHAR(255) NOT NULL,
                 physics_score INT DEFAULT NULL,
                 chemistry_score INT DEFAULT NULL,
+                personalization_enabled TINYINT(1) NOT NULL DEFAULT 1,
+                default_explain_level ENUM('auto','basic','standard','advanced') NOT NULL DEFAULT 'auto',
+                learning_profile_json JSON DEFAULT NULL,
+                learning_profile_updated_at TIMESTAMP NULL DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 UNIQUE KEY unique_email (email),
                 UNIQUE KEY unique_phone (phone)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         ''')
+
+        # Add personalization columns (if missing)
+        alter_users_statements = [
+            ("ALTER TABLE users ADD COLUMN personalization_enabled TINYINT(1) NOT NULL DEFAULT 1 AFTER chemistry_score", "personalization_enabled"),
+            ("ALTER TABLE users ADD COLUMN default_explain_level ENUM('auto','basic','standard','advanced') NOT NULL DEFAULT 'auto' AFTER personalization_enabled", "default_explain_level"),
+            ("ALTER TABLE users ADD COLUMN learning_profile_json JSON DEFAULT NULL AFTER default_explain_level", "learning_profile_json"),
+            ("ALTER TABLE users ADD COLUMN learning_profile_updated_at TIMESTAMP NULL DEFAULT NULL AFTER learning_profile_json", "learning_profile_updated_at"),
+        ]
+        for statement, column_name in alter_users_statements:
+            try:
+                cursor.execute(statement)
+                logger.info(f"Added {column_name} column to users table")
+            except Error as e:
+                if 'Duplicate column name' in str(e):
+                    pass
+                else:
+                    logger.warning(f"ALTER TABLE users ({column_name}): {e}")
 
         # 创建日记表
         cursor.execute('''
@@ -187,7 +208,9 @@ def login_user(account, password):
 
         # 查找用户（通过用户名、邮箱或手机号）
         cursor.execute('''
-            SELECT id, name, email, phone, password_hash, physics_score, chemistry_score
+            SELECT id, name, email, phone, password_hash,
+                   physics_score, chemistry_score,
+                   personalization_enabled, default_explain_level, learning_profile_updated_at
             FROM users
             WHERE name = %s OR email = %s OR phone = %s
         ''', (account, account, account))
@@ -292,13 +315,140 @@ def get_user_by_id(user_id):
     try:
         cursor = connection.cursor(dictionary=True)
         cursor.execute('''
-            SELECT id, name, email, phone, physics_score, chemistry_score
+            SELECT id, name, email, phone,
+                   physics_score, chemistry_score,
+                   personalization_enabled, default_explain_level, learning_profile_updated_at
             FROM users WHERE id = %s
         ''', (user_id,))
         return cursor.fetchone()
     except Error as e:
         logger.error(f"Get user error: {e}")
         return None
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+def update_user_scores(user_id, physics_score=None, chemistry_score=None):
+    """更新用户自评分（0-100）"""
+    if physics_score is None and chemistry_score is None:
+        return {'success': False, 'message': '没有需要更新的分数'}
+
+    connection = get_db_connection()
+    if not connection:
+        return {'success': False, 'message': '数据库连接失败'}
+
+    try:
+        cursor = connection.cursor()
+        updates = []
+        params = []
+        if physics_score is not None:
+            updates.append("physics_score = %s")
+            params.append(physics_score)
+        if chemistry_score is not None:
+            updates.append("chemistry_score = %s")
+            params.append(chemistry_score)
+
+        params.append(user_id)
+        cursor.execute(f'''
+            UPDATE users SET {', '.join(updates)}
+            WHERE id = %s
+        ''', tuple(params))
+        connection.commit()
+        return {'success': True, 'message': '分数更新成功'}
+    except Error as e:
+        logger.error(f"Update user scores error: {e}")
+        return {'success': False, 'message': f'更新失败: {str(e)}'}
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+def get_user_personalization(user_id):
+    """获取用户个性化设置与画像"""
+    connection = get_db_connection()
+    if not connection:
+        return {'success': False, 'message': '数据库连接失败', 'data': None}
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute('''
+            SELECT physics_score, chemistry_score,
+                   personalization_enabled, default_explain_level,
+                   learning_profile_json, learning_profile_updated_at
+            FROM users
+            WHERE id = %s
+        ''', (user_id,))
+        row = cursor.fetchone()
+        if not row:
+            return {'success': False, 'message': '用户不存在', 'data': None}
+        return {'success': True, 'message': 'ok', 'data': row}
+    except Error as e:
+        logger.error(f"Get user personalization error: {e}")
+        return {'success': False, 'message': f'获取失败: {str(e)}', 'data': None}
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+def update_user_personalization(user_id, personalization_enabled=None, default_explain_level=None):
+    """更新用户个性化设置（不涉及画像刷新）"""
+    if personalization_enabled is None and default_explain_level is None:
+        return {'success': False, 'message': '没有需要更新的设置'}
+
+    connection = get_db_connection()
+    if not connection:
+        return {'success': False, 'message': '数据库连接失败'}
+
+    try:
+        cursor = connection.cursor()
+        updates = []
+        params = []
+        if personalization_enabled is not None:
+            updates.append("personalization_enabled = %s")
+            params.append(1 if personalization_enabled else 0)
+        if default_explain_level is not None:
+            updates.append("default_explain_level = %s")
+            params.append(default_explain_level)
+        params.append(user_id)
+
+        cursor.execute(f'''
+            UPDATE users SET {', '.join(updates)}
+            WHERE id = %s
+        ''', tuple(params))
+        connection.commit()
+        return {'success': True, 'message': '设置更新成功'}
+    except Error as e:
+        logger.error(f"Update user personalization error: {e}")
+        return {'success': False, 'message': f'更新失败: {str(e)}'}
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+
+def save_learning_profile(user_id, profile_json, updated_at=None):
+    """保存学习画像（结构化 JSON）"""
+    connection = get_db_connection()
+    if not connection:
+        return {'success': False, 'message': '数据库连接失败'}
+
+    try:
+        cursor = connection.cursor()
+        cursor.execute('''
+            UPDATE users
+            SET learning_profile_json = %s,
+                learning_profile_updated_at = COALESCE(%s, CURRENT_TIMESTAMP)
+            WHERE id = %s
+        ''', (profile_json, updated_at, user_id))
+        connection.commit()
+        return {'success': True, 'message': '画像已保存'}
+    except Error as e:
+        logger.error(f"Save learning profile error: {e}")
+        return {'success': False, 'message': f'保存失败: {str(e)}'}
     finally:
         if connection.is_connected():
             cursor.close()

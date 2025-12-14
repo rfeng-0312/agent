@@ -199,6 +199,73 @@
                 </div>
             </div>
 
+            <!-- 个性化学习设置 -->
+            <div id="personalizationSection" class="dp-container-card p-6 mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-bold">
+                        <i class="fa-solid fa-user-graduate text-detectiveGold mr-2"></i>
+                        <span data-i18n="personalization.profile.title">个性化学习</span>
+                    </h2>
+                    <button id="refreshProfileBtn" class="text-neonCyan text-sm hover:underline flex items-center gap-1">
+                        <i class="fa-solid fa-rotate"></i>
+                        <span data-i18n="personalization.profile.refresh">刷新画像</span>
+                    </button>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between p-4 bg-black/20 rounded-xl border border-white/10">
+                        <div>
+                            <div class="font-bold" data-i18n="personalization.profile.enable">启用画像个性化</div>
+                            <div class="text-white/40 text-sm" data-i18n="personalization.profile.enableDesc">关闭后仍可手动选择讲解层级，但不会使用日记画像</div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="personalizationEnabledToggle" class="sr-only peer" checked>
+                            <div class="w-14 h-7 bg-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-detectiveGold/70"></div>
+                        </label>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-white/70 text-sm mb-2" data-i18n="personalization.profile.physicsScore">物理自评分（0-100）</label>
+                            <input id="physicsScoreInput" type="number" min="0" max="100" class="dp-input w-full px-4 py-3" placeholder="0-100">
+                        </div>
+                        <div>
+                            <label class="block text-white/70 text-sm mb-2" data-i18n="personalization.profile.chemistryScore">化学自评分（0-100）</label>
+                            <input id="chemistryScoreInput" type="number" min="0" max="100" class="dp-input w-full px-4 py-3" placeholder="0-100">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 items-end">
+                        <div>
+                            <label class="block text-white/70 text-sm mb-2" data-i18n="personalization.profile.defaultLevel">默认讲解层级</label>
+                            <select id="defaultExplainLevelSelect" class="dp-input w-full px-4 py-3">
+                                <option value="auto" data-i18n="personalization.level.auto">自动</option>
+                                <option value="basic" data-i18n="personalization.level.basic">基础</option>
+                                <option value="standard" data-i18n="personalization.level.standard">标准</option>
+                                <option value="advanced" data-i18n="personalization.level.advanced">进阶</option>
+                            </select>
+                        </div>
+                        <button id="savePersonalizationBtn" class="dp-dream-btn-primary w-full">
+                            <i class="fa-solid fa-floppy-disk mr-2"></i>
+                            <span data-i18n="personalization.profile.save">保存设置</span>
+                        </button>
+                    </div>
+
+                    <div class="p-4 bg-black/20 rounded-xl border border-white/10">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="font-bold" data-i18n="personalization.profile.summary">学习画像摘要</div>
+                            <div class="text-white/40 text-xs">
+                                <span data-i18n="personalization.profile.updatedAt">更新时间：</span>
+                                <span id="profileUpdatedAt">-</span>
+                            </div>
+                        </div>
+                        <div id="learningProfileSummary" class="text-white/70 text-sm space-y-2">
+                            <div class="text-white/40" data-i18n="personalization.profile.summaryEmpty">暂无画像，点击“刷新画像”生成</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- 我的目标 -->
             <div id="goalsSection" class="dp-container-card p-6 mb-6">
                 <div class="flex items-center justify-between mb-4">
@@ -371,6 +438,134 @@
             } catch (error) {
                 console.error('Load user info error:', error);
                 window.location.href = '/login';
+            }
+        }
+
+        function renderLearningProfileSummary(profile) {
+            const container = document.getElementById('learningProfileSummary');
+            const updatedAtEl = document.getElementById('profileUpdatedAt');
+            if (!container) return;
+
+            if (!profile || Object.keys(profile).length === 0) {
+                container.innerHTML = `<div class="text-white/40" data-i18n="personalization.profile.summaryEmpty">暂无画像，点击“刷新画像”生成</div>`;
+                if (updatedAtEl) updatedAtEl.textContent = '-';
+                if (window.i18n) i18n.applyTranslations();
+                return;
+            }
+
+            const items = [];
+            if (profile.weak_topics?.length) {
+                items.push(`<div><span class="text-white/50" data-i18n="personalization.profile.weakTopics">薄弱点</span>：${escapeHtml(profile.weak_topics.join('、'))}</div>`);
+            }
+            if (profile.preferred_style?.length) {
+                items.push(`<div><span class="text-white/50" data-i18n="personalization.profile.preferredStyle">偏好</span>：${escapeHtml(profile.preferred_style.join('、'))}</div>`);
+            }
+            if (profile.pace) {
+                items.push(`<div><span class="text-white/50" data-i18n="personalization.profile.pace">节奏</span>：${escapeHtml(profile.pace)}</div>`);
+            }
+            if (profile.common_mistakes?.length) {
+                items.push(`<div><span class="text-white/50" data-i18n="personalization.profile.commonMistakes">易错点</span>：${escapeHtml(profile.common_mistakes.join('、'))}</div>`);
+            }
+            if (profile.notes) {
+                items.push(`<div><span class="text-white/50" data-i18n="personalization.profile.notes">备注</span>：${escapeHtml(profile.notes)}</div>`);
+            }
+            container.innerHTML = items.join('') || `<div class="text-white/40" data-i18n="personalization.profile.summaryEmpty">暂无画像，点击“刷新画像”生成</div>`;
+            if (window.i18n) i18n.applyTranslations();
+        }
+
+        async function loadPersonalizationSettings() {
+            try {
+                const resp = await fetch('/api/user/personalization');
+                const data = await resp.json();
+                if (!data.success) return;
+
+                const physicsScoreInput = document.getElementById('physicsScoreInput');
+                const chemistryScoreInput = document.getElementById('chemistryScoreInput');
+                const defaultLevelSelect = document.getElementById('defaultExplainLevelSelect');
+                const enabledToggle = document.getElementById('personalizationEnabledToggle');
+                const updatedAtEl = document.getElementById('profileUpdatedAt');
+
+                if (physicsScoreInput) physicsScoreInput.value = data.scores?.physics_score ?? '';
+                if (chemistryScoreInput) chemistryScoreInput.value = data.scores?.chemistry_score ?? '';
+                if (defaultLevelSelect) defaultLevelSelect.value = data.settings?.default_explain_level || 'auto';
+                if (enabledToggle) enabledToggle.checked = !!data.settings?.personalization_enabled;
+
+                if (updatedAtEl) updatedAtEl.textContent = data.profile?.updated_at ? String(data.profile.updated_at).slice(0, 19).replace('T', ' ') : '-';
+                renderLearningProfileSummary(data.profile?.profile_json || {});
+            } catch (e) {
+                console.error('Load personalization error:', e);
+            }
+        }
+
+        async function savePersonalizationSettings() {
+            const saveBtn = document.getElementById('savePersonalizationBtn');
+            if (saveBtn) saveBtn.disabled = true;
+
+            try {
+                const physicsScoreInput = document.getElementById('physicsScoreInput');
+                const chemistryScoreInput = document.getElementById('chemistryScoreInput');
+                const defaultLevelSelect = document.getElementById('defaultExplainLevelSelect');
+                const enabledToggle = document.getElementById('personalizationEnabledToggle');
+
+                const payloadScores = {};
+                if (physicsScoreInput && physicsScoreInput.value !== '') payloadScores.physics_score = parseInt(physicsScoreInput.value, 10);
+                if (chemistryScoreInput && chemistryScoreInput.value !== '') payloadScores.chemistry_score = parseInt(chemistryScoreInput.value, 10);
+
+                const payloadSettings = {
+                    personalization_enabled: enabledToggle ? !!enabledToggle.checked : true,
+                    default_explain_level: defaultLevelSelect ? defaultLevelSelect.value : 'auto'
+                };
+
+                if (Object.keys(payloadScores).length) {
+                    await fetch('/api/user/scores', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payloadScores)
+                    });
+                }
+
+                const resp = await fetch('/api/user/personalization', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payloadSettings)
+                });
+                const data = await resp.json();
+                if (!data.success) {
+                    alert(data.message || '保存失败');
+                    return;
+                }
+
+                await loadPersonalizationSettings();
+                alert(window.i18n ? i18n.t('common.success') : '保存成功');
+            } catch (e) {
+                console.error('Save personalization error:', e);
+                alert('保存失败，请重试');
+            } finally {
+                if (saveBtn) saveBtn.disabled = false;
+            }
+        }
+
+        async function refreshLearningProfile() {
+            const btn = document.getElementById('refreshProfileBtn');
+            if (btn) btn.disabled = true;
+            try {
+                const resp = await fetch('/api/user/profile/refresh', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+                const data = await resp.json();
+                if (!data.success) {
+                    alert(data.message || '刷新失败');
+                    return;
+                }
+                await loadPersonalizationSettings();
+                alert(window.i18n ? i18n.t('common.success') : '刷新成功');
+            } catch (e) {
+                console.error('Refresh profile error:', e);
+                alert('网络错误，请重试');
+            } finally {
+                if (btn) btn.disabled = false;
             }
         }
 
@@ -666,6 +861,13 @@
             loadDiaryStats();
             loadRecentDiaries();
             loadGoals();
+            loadPersonalizationSettings();
+
+            const saveBtn = document.getElementById('savePersonalizationBtn');
+            if (saveBtn) saveBtn.addEventListener('click', savePersonalizationSettings);
+
+            const refreshBtn = document.getElementById('refreshProfileBtn');
+            if (refreshBtn) refreshBtn.addEventListener('click', refreshLearningProfile);
 
             const params = new URLSearchParams(window.location.search);
             if (params.get('openGoalModal') === '1') {

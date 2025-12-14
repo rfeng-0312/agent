@@ -21,8 +21,25 @@ from database import (
     # 目标相关
     create_goal, get_user_goals, get_goal_by_id, update_goal, delete_goal, get_goal_count,
     # 历史日记和目标分析
-    get_recent_diaries, update_diary_goal_analysis
+    get_recent_diaries, update_diary_goal_analysis,
+    update_user_scores, get_user_personalization, update_user_personalization, save_learning_profile
 )
+
+from personalization import (
+    PromptContext,
+    default_teaching_phase,
+    get_subject_score,
+    resolve_effective_level,
+    sanitize_learning_profile,
+    score_to_level,
+    build_system_prompt_deepseek,
+    build_system_prompt_doubao,
+    build_verifier_system_prompt,
+    normalize_level,
+    is_profile_stale,
+)
+
+from profile_builder import build_learning_profile_from_diaries
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -212,6 +229,9 @@ def api_login():
             session['user_phone'] = result['user'].get('phone')
             session['physics_score'] = result['user'].get('physics_score')
             session['chemistry_score'] = result['user'].get('chemistry_score')
+            session['personalization_enabled'] = bool(result['user'].get('personalization_enabled', True))
+            session['default_explain_level'] = result['user'].get('default_explain_level', 'auto')
+            session['learning_profile_updated_at'] = result['user'].get('learning_profile_updated_at')
 
         return jsonify(result)
     except Exception as e:
@@ -277,9 +297,206 @@ def api_get_current_user():
             'email': session.get('user_email'),
             'phone': session.get('user_phone'),
             'physics_score': session.get('physics_score'),
-            'chemistry_score': session.get('chemistry_score')
+            'chemistry_score': session.get('chemistry_score'),
+            'personalization_enabled': session.get('personalization_enabled', True),
+            'default_explain_level': session.get('default_explain_level', 'auto'),
+            'learning_profile_updated_at': session.get('learning_profile_updated_at')
         }
     })
+
+
+# ==================== 用户个性化设置 API ====================
+
+@app.route('/api/user/scores', methods=['PUT'])
+def api_update_user_scores():
+    """更新用户自评分（0-100）"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '请先登录'}), 401
+
+    try:
+        data = request.get_json() or {}
+        physics_score = data.get('physics_score', None)
+        chemistry_score = data.get('chemistry_score', None)
+
+        def _validate_score(v):
+            if v is None:
+                return None
+            if isinstance(v, bool):
+                raise ValueError("invalid score")
+            iv = int(v)
+            if iv < 0 or iv > 100:
+                raise ValueError("score out of range")
+            return iv
+
+        physics_score = _validate_score(physics_score)
+        chemistry_score = _validate_score(chemistry_score)
+
+        result = update_user_scores(
+            user_id=session['user_id'],
+            physics_score=physics_score,
+            chemistry_score=chemistry_score
+        )
+
+        if result.get('success'):
+            if physics_score is not None:
+                session['physics_score'] = physics_score
+            if chemistry_score is not None:
+                session['chemistry_score'] = chemistry_score
+
+        return jsonify({
+            'success': result.get('success', False),
+            'message': result.get('message', ''),
+            'user': {
+                'physics_score': session.get('physics_score'),
+                'chemistry_score': session.get('chemistry_score')
+            }
+        })
+    except Exception as e:
+        logger.error(f"Update scores API error: {e}")
+        return jsonify({'success': False, 'message': f'更新失败: {str(e)}'}), 400
+
+
+@app.route('/api/user/personalization', methods=['PUT'])
+def api_update_user_personalization():
+    """更新用户个性化设置（开关 + 默认讲解层级）"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '请先登录'}), 401
+
+    try:
+        data = request.get_json() or {}
+        personalization_enabled = data.get('personalization_enabled', None)
+        default_explain_level = data.get('default_explain_level', None)
+
+        if personalization_enabled is not None and not isinstance(personalization_enabled, bool):
+            return jsonify({'success': False, 'message': 'personalization_enabled 必须为布尔值'}), 400
+
+        if default_explain_level is not None:
+            default_explain_level = normalize_level(default_explain_level)
+
+        result = update_user_personalization(
+            user_id=session['user_id'],
+            personalization_enabled=personalization_enabled,
+            default_explain_level=default_explain_level
+        )
+
+        if result.get('success'):
+            if personalization_enabled is not None:
+                session['personalization_enabled'] = bool(personalization_enabled)
+            if default_explain_level is not None:
+                session['default_explain_level'] = default_explain_level
+
+        return jsonify({
+            'success': result.get('success', False),
+            'message': result.get('message', ''),
+            'settings': {
+                'personalization_enabled': session.get('personalization_enabled', True),
+                'default_explain_level': session.get('default_explain_level', 'auto')
+            }
+        })
+    except Exception as e:
+        logger.error(f"Update personalization API error: {e}")
+        return jsonify({'success': False, 'message': f'更新失败: {str(e)}'}), 400
+
+
+@app.route('/api/user/personalization', methods=['GET'])
+def api_get_user_personalization():
+    """获取用户个性化设置与画像摘要"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '请先登录'}), 401
+
+    result = get_user_personalization(session['user_id'])
+    if not result.get('success'):
+        return jsonify({'success': False, 'message': result.get('message', '获取失败')}), 500
+
+    data = result.get('data') or {}
+    physics_score = data.get('physics_score')
+    chemistry_score = data.get('chemistry_score')
+    personalization_enabled = bool(data.get('personalization_enabled', True))
+    default_explain_level = data.get('default_explain_level') or 'auto'
+    updated_at = data.get('learning_profile_updated_at')
+    profile = sanitize_learning_profile(data.get('learning_profile_json'))
+
+    session['personalization_enabled'] = personalization_enabled
+    session['default_explain_level'] = default_explain_level
+    session['physics_score'] = physics_score
+    session['chemistry_score'] = chemistry_score
+    session['learning_profile_updated_at'] = updated_at.isoformat() if hasattr(updated_at, 'isoformat') else updated_at
+
+    return jsonify({
+        'success': True,
+        'scores': {
+            'physics_score': physics_score,
+            'chemistry_score': chemistry_score
+        },
+        'settings': {
+            'personalization_enabled': personalization_enabled,
+            'default_explain_level': default_explain_level
+        },
+        'profile': {
+            'profile_json': profile,
+            'updated_at': updated_at.isoformat() if hasattr(updated_at, 'isoformat') else updated_at,
+            'is_stale': is_profile_stale(updated_at)
+        },
+        'recommendations': {
+            'physics': {'recommended_level': score_to_level(physics_score), 'source': 'score'},
+            'chemistry': {'recommended_level': score_to_level(chemistry_score), 'source': 'score'}
+        }
+    })
+
+
+@app.route('/api/user/profile/refresh', methods=['POST'])
+def api_refresh_learning_profile():
+    """从近期日记生成/刷新学习画像摘要"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '请先登录'}), 401
+
+    if not session.get('personalization_enabled', True):
+        return jsonify({'success': False, 'message': '个性化已关闭，无法刷新画像'}), 400
+
+    try:
+        data = request.get_json() or {}
+        days = int(data.get('days', 14))
+        limit = int(data.get('limit', 30))
+        days = max(1, min(days, 90))
+        limit = max(1, min(limit, 50))
+
+        lang = get_current_language()
+        profile, err = build_learning_profile_from_diaries(
+            user_id=session['user_id'],
+            lang=lang,
+            days=days,
+            limit=limit,
+            deepseek_client=client,
+            deepseek_model=DEEPSEEK_MODEL,
+            doubao_client=doubao_client
+        )
+        if err:
+            return jsonify({'success': False, 'message': err}), 500
+
+        profile_json_str = json.dumps(profile or {}, ensure_ascii=False)
+        save_result = save_learning_profile(session['user_id'], profile_json_str, updated_at=None)
+        if not save_result.get('success'):
+            return jsonify({'success': False, 'message': save_result.get('message', '保存失败')}), 500
+
+        # Refresh updated_at from DB
+        refreshed = get_user_personalization(session['user_id'])
+        updated_at = None
+        if refreshed.get('success') and refreshed.get('data'):
+            updated_at = refreshed['data'].get('learning_profile_updated_at')
+
+        session['learning_profile_updated_at'] = updated_at.isoformat() if hasattr(updated_at, 'isoformat') else updated_at
+
+        return jsonify({
+            'success': True,
+            'message': 'Profile refreshed',
+            'profile': {
+                'profile_json': profile or {},
+                'updated_at': updated_at.isoformat() if hasattr(updated_at, 'isoformat') else updated_at
+            }
+        })
+    except Exception as e:
+        logger.error(f"Refresh profile API error: {e}")
+        return jsonify({'success': False, 'message': f'刷新失败: {str(e)}'}), 500
 
 
 # ==================== 日记 API 路由 ====================
@@ -556,9 +773,41 @@ def handle_text_query():
         if not data or 'question' not in data:
             return jsonify({'error': 'No question provided'}), 400
 
-        question = data['question']
+        question = (data.get('question') or '').strip()
         subject = data.get('subject', 'physics')  # physics or chemistry
-        deep_think = data.get('deep_think', False)  # 深度思考模式
+        deep_think = bool(data.get('deep_think', False))  # 深度思考模式
+        level_override = normalize_level(data.get('level_override'))
+        use_profile_requested = bool(data.get('use_profile', True))
+
+        user_id = session.get('user_id')
+        physics_score = session.get('physics_score')
+        chemistry_score = session.get('chemistry_score')
+        personalization_enabled = bool(session.get('personalization_enabled', True)) if user_id else False
+        default_explain_level = session.get('default_explain_level', 'auto')
+
+        subject_score = get_subject_score(subject, physics_score, chemistry_score)
+        score_level = score_to_level(subject_score)
+        level_effective, level_source = resolve_effective_level(
+            level_override=level_override,
+            default_explain_level=default_explain_level,
+            score_level=score_level
+        )
+        teaching_phase = default_teaching_phase(level_effective)
+
+        use_profile_effective = use_profile_requested and personalization_enabled
+        learning_profile = {}
+        learning_profile_updated_at = None
+        if use_profile_effective and user_id:
+            prof_result = get_user_personalization(user_id)
+            if prof_result.get('success') and prof_result.get('data'):
+                row = prof_result['data']
+                learning_profile = sanitize_learning_profile(row.get('learning_profile_json'))
+                learning_profile_updated_at = row.get('learning_profile_updated_at')
+                session['learning_profile_updated_at'] = (
+                    learning_profile_updated_at.isoformat()
+                    if hasattr(learning_profile_updated_at, 'isoformat')
+                    else learning_profile_updated_at
+                )
 
         # Store question in session for result page
         session_id = datetime.now().strftime('%Y%m%d%H%M%S%f')
@@ -568,6 +817,23 @@ def handle_text_query():
             'subject': subject,
             'deep_think': deep_think,  # 存储深度思考标记
             'lang': lang,  # 存储语言设置
+            'user_id': user_id,
+            'physics_score': physics_score,
+            'chemistry_score': chemistry_score,
+            'subject_score': subject_score,
+            'personalization_enabled_at_request': personalization_enabled,
+            'use_profile_requested': use_profile_requested,
+            'use_profile_effective': use_profile_effective,
+            'learning_profile': learning_profile,
+            'learning_profile_updated_at': (
+                learning_profile_updated_at.isoformat()
+                if hasattr(learning_profile_updated_at, 'isoformat')
+                else learning_profile_updated_at
+            ),
+            'level_override': level_override,
+            'level_effective': level_effective,
+            'level_source': level_source,
+            'teaching_phase': teaching_phase,
             'timestamp': str(datetime.now()),
             'type': 'text_deep' if deep_think else 'text'  # 区分查询类型
         }
@@ -599,9 +865,41 @@ def handle_image_query():
             return jsonify({'error': 'No image provided'}), 400
 
         file = request.files['image']
-        question = request.form.get('question', '')
+        question = (request.form.get('question', '') or '').strip()
         subject = request.form.get('subject', 'physics')
         deep_think = request.form.get('deep_think', 'false').lower() == 'true'  # 深度思考模式
+        level_override = normalize_level(request.form.get('level_override'))
+        use_profile_requested = (request.form.get('use_profile', 'true').lower() != 'false')
+
+        user_id = session.get('user_id')
+        physics_score = session.get('physics_score')
+        chemistry_score = session.get('chemistry_score')
+        personalization_enabled = bool(session.get('personalization_enabled', True)) if user_id else False
+        default_explain_level = session.get('default_explain_level', 'auto')
+
+        subject_score = get_subject_score(subject, physics_score, chemistry_score)
+        score_level = score_to_level(subject_score)
+        level_effective, level_source = resolve_effective_level(
+            level_override=level_override,
+            default_explain_level=default_explain_level,
+            score_level=score_level
+        )
+        teaching_phase = default_teaching_phase(level_effective)
+
+        use_profile_effective = use_profile_requested and personalization_enabled
+        learning_profile = {}
+        learning_profile_updated_at = None
+        if use_profile_effective and user_id:
+            prof_result = get_user_personalization(user_id)
+            if prof_result.get('success') and prof_result.get('data'):
+                row = prof_result['data']
+                learning_profile = sanitize_learning_profile(row.get('learning_profile_json'))
+                learning_profile_updated_at = row.get('learning_profile_updated_at')
+                session['learning_profile_updated_at'] = (
+                    learning_profile_updated_at.isoformat()
+                    if hasattr(learning_profile_updated_at, 'isoformat')
+                    else learning_profile_updated_at
+                )
 
         if file.filename == '':
             return jsonify({'error': 'No image selected'}), 400
@@ -623,6 +921,23 @@ def handle_image_query():
                 'subject': subject,
                 'deep_think': deep_think,  # 存储深度思考标记
                 'lang': lang,  # 存储语言设置
+                'user_id': user_id,
+                'physics_score': physics_score,
+                'chemistry_score': chemistry_score,
+                'subject_score': subject_score,
+                'personalization_enabled_at_request': personalization_enabled,
+                'use_profile_requested': use_profile_requested,
+                'use_profile_effective': use_profile_effective,
+                'learning_profile': learning_profile,
+                'learning_profile_updated_at': (
+                    learning_profile_updated_at.isoformat()
+                    if hasattr(learning_profile_updated_at, 'isoformat')
+                    else learning_profile_updated_at
+                ),
+                'level_override': level_override,
+                'level_effective': level_effective,
+                'level_source': level_source,
+                'teaching_phase': teaching_phase,
                 'image_path': filename,
                 'image_filepath': filepath,  # 保存完整路径供流式API使用
                 'timestamp': str(datetime.now()),
@@ -733,6 +1048,46 @@ def handle_base64_query():
         logger.error(f"Handle base64 query error: {e}")
         return jsonify({'error': str(e)}), 500
 
+
+@app.route('/api/query/reveal', methods=['POST'])
+def api_query_reveal():
+    """Basic 二次给答案：基于 parent_session_id 创建 phase=2 的新 session"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '请先登录'}), 401
+
+    try:
+        data = request.get_json() or {}
+        parent_session_id = (data.get('parent_session_id') or '').strip()
+        if not parent_session_id:
+            return jsonify({'success': False, 'message': 'parent_session_id 不能为空'}), 400
+
+        parent_path = f'../data/sessions/{parent_session_id}.json'
+        if not os.path.exists(parent_path):
+            return jsonify({'success': False, 'message': 'Session not found'}), 404
+
+        with open(parent_path, 'r', encoding='utf-8') as f:
+            parent_data = json.load(f)
+
+        if parent_data.get('user_id') != session['user_id']:
+            return jsonify({'success': False, 'message': 'Forbidden'}), 403
+
+        if parent_data.get('level_effective') != 'basic' or int(parent_data.get('teaching_phase', 2)) != 1:
+            return jsonify({'success': False, 'message': 'Only basic phase=1 can reveal'}), 400
+
+        session_id = datetime.now().strftime('%Y%m%d%H%M%S%f')
+        new_data = dict(parent_data)
+        new_data['parent_session_id'] = parent_session_id
+        new_data['teaching_phase'] = 2
+
+        os.makedirs('../data/sessions', exist_ok=True)
+        with open(f'../data/sessions/{session_id}.json', 'w', encoding='utf-8') as f:
+            json.dump(new_data, f, ensure_ascii=False, indent=2)
+
+        return jsonify({'success': True, 'session_id': session_id, 'redirect_url': f'/result/{session_id}'})
+    except Exception as e:
+        logger.error(f"Reveal API error: {e}")
+        return jsonify({'success': False, 'message': f'失败: {str(e)}'}), 500
+
 # Result page route
 @app.route('/result/<session_id>')
 def result_page(session_id):
@@ -780,12 +1135,33 @@ def stream_response(session_id):
             # 图片流式查询 - 使用豆包API with reasoning
             if query_type == 'image_stream':
                 image_filepath = session_data.get('image_filepath', '')
+                lang = session_data.get('lang', 'zh-CN')
+                level_effective = session_data.get('level_effective', 'standard')
+                teaching_phase = int(session_data.get('teaching_phase', 2))
+                subject_score = session_data.get('subject_score')
+                user_pref_level = session_data.get('level_override', 'auto')
+                profile = session_data.get('learning_profile') if session_data.get('use_profile_effective') else {}
+
+                subject_prompt = get_subject_prompt_by_lang(subject, lang)
+                ctx = PromptContext(
+                    subject=subject,
+                    lang=lang,
+                    level=level_effective,
+                    phase=teaching_phase,
+                    score=subject_score,
+                    user_pref_level=user_pref_level,
+                    profile=profile or {},
+                    deep_think=False,
+                    has_image=True
+                )
+                system_prompt = build_system_prompt_doubao(subject_prompt, ctx)
 
                 # 使用豆包的流式响应（包含思考过程）
                 for event in doubao_client.stream_with_reasoning(
                     text=question,
                     image_path=image_filepath,
-                    subject=subject
+                    subject=subject,
+                    system_prompt=system_prompt
                 ):
                     if event.get('type') == 'thinking':
                         thinking_content += event.get('content', '')
@@ -838,7 +1214,25 @@ def stream_response(session_id):
 
             # For text-only queries, use DeepSeek streaming
             lang = session_data.get('lang', 'zh-CN')
-            system_prompt = get_subject_prompt_by_lang(subject, lang)
+            level_effective = session_data.get('level_effective', 'standard')
+            teaching_phase = int(session_data.get('teaching_phase', 2))
+            subject_score = session_data.get('subject_score')
+            user_pref_level = session_data.get('level_override', 'auto')
+            profile = session_data.get('learning_profile') if session_data.get('use_profile_effective') else {}
+
+            subject_prompt = get_subject_prompt_by_lang(subject, lang)
+            ctx = PromptContext(
+                subject=subject,
+                lang=lang,
+                level=level_effective,
+                phase=teaching_phase,
+                score=subject_score,
+                user_pref_level=user_pref_level,
+                profile=profile or {},
+                deep_think=False,
+                has_image=False
+            )
+            system_prompt = build_system_prompt_deepseek(subject_prompt, ctx)
 
             # Create messages for DeepSeek API
             messages = [
@@ -903,8 +1297,11 @@ def generate_deep_think_response(session_id, session_data):
     image_filepath = session_data.get('image_filepath', '')
     lang = session_data.get('lang', 'zh-CN')  # 获取语言设置
 
-    # 获取竞赛级提示词（支持多语言）
-    competition_prompt = get_competition_prompt_by_lang(subject, lang)
+    level_effective = session_data.get('level_effective', 'standard')
+    teaching_phase = int(session_data.get('teaching_phase', 2))
+    subject_score = session_data.get('subject_score')
+    user_pref_level = session_data.get('level_override', 'auto')
+    profile = session_data.get('learning_profile') if session_data.get('use_profile_effective') else {}
 
     solve_thinking = ""
     solve_answer = ""
@@ -920,10 +1317,25 @@ def generate_deep_think_response(session_id, session_data):
             # 图片问题：使用豆包解答
             logger.info(f"Deep think image query - Stage 1: Doubao solving")
 
+            subject_prompt = get_subject_prompt_by_lang(subject, lang)
+            solve_ctx = PromptContext(
+                subject=subject,
+                lang=lang,
+                level=level_effective,
+                phase=teaching_phase,
+                score=subject_score,
+                user_pref_level=user_pref_level,
+                profile=profile or {},
+                deep_think=True,
+                has_image=True
+            )
+            solve_system_prompt = build_system_prompt_doubao(subject_prompt, solve_ctx)
+
             for event in doubao_client.stream_with_reasoning(
                 text=question if question else "请分析这张图片中的题目并详细解答",
                 image_path=image_filepath,
-                subject=subject
+                subject=subject,
+                system_prompt=solve_system_prompt
             ):
                 if event.get('type') == 'thinking':
                     solve_thinking += event.get('content', '')
@@ -938,8 +1350,22 @@ def generate_deep_think_response(session_id, session_data):
             # 文本问题：使用DeepSeek解答
             logger.info(f"Deep think text query - Stage 1: DeepSeek solving")
 
+            subject_prompt = get_subject_prompt_by_lang(subject, lang)
+            solve_ctx = PromptContext(
+                subject=subject,
+                lang=lang,
+                level=level_effective,
+                phase=teaching_phase,
+                score=subject_score,
+                user_pref_level=user_pref_level,
+                profile=profile or {},
+                deep_think=True,
+                has_image=False
+            )
+            solve_system_prompt = build_system_prompt_deepseek(subject_prompt, solve_ctx)
+
             messages = [
-                {"role": "system", "content": competition_prompt},
+                {"role": "system", "content": solve_system_prompt},
                 {"role": "user", "content": question}
             ]
 
@@ -1000,10 +1426,13 @@ def generate_deep_think_response(session_id, session_data):
             # 文本问题：使用豆包验证（交叉验证）
             logger.info(f"Deep think text query - Stage 2: Doubao verifying")
 
+            verify_system_prompt = build_verifier_system_prompt(subject, lang)
+
             for event in doubao_client.stream_with_reasoning(
                 text=verification_prompt,
                 image_path=None,  # 验证阶段不需要图片
-                subject=subject
+                subject=subject,
+                system_prompt=verify_system_prompt
             ):
                 if event.get('type') == 'thinking':
                     verify_thinking += event.get('content', '')
@@ -1318,6 +1747,9 @@ Keep each analysis under 80 words. Be specific, not generic."""
 @app.route('/api/chat/followup', methods=['POST'])
 def chat_followup():
     """追问对话API - 流式响应"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '请先登录'}), 401
+
     data = request.json
     session_id = data.get('session_id')
     message = data.get('message')
@@ -1335,38 +1767,72 @@ def chat_followup():
             with open(session_file, 'r', encoding='utf-8') as f:
                 session_data = json.load(f)
 
+            if session_data.get('user_id') != session.get('user_id'):
+                yield f"data: {json.dumps({'type': 'error', 'message': 'Forbidden'})}\n\n"
+                return
+
             # 读取原始答案
             original_answer = ''
             try:
                 with open(response_file, 'r', encoding='utf-8') as f:
                     response_data = json.load(f)
-                    original_answer = response_data.get('answer', '')
+                    original_answer = (
+                        response_data.get('answer')
+                        or response_data.get('solve_answer')
+                        or response_data.get('ai_response')
+                        or ''
+                    )
             except FileNotFoundError:
                 pass
 
             subject = session_data.get('subject', 'physics')
             question = session_data.get('question', '')
+            lang = session_data.get('lang', 'zh-CN')
+            deep_think = bool(session_data.get('deep_think', False))
+            level_effective = session_data.get('level_effective', 'standard')
+            teaching_phase = int(session_data.get('teaching_phase', 2))
+            subject_score = session_data.get('subject_score')
+            user_pref_level = session_data.get('level_override', 'auto')
+            profile = session_data.get('learning_profile') if session_data.get('use_profile_effective') else {}
+            has_image = str(session_data.get('type', '')).startswith('image')
 
-            # 构建系统提示词
-            subject_name = '物理' if subject == 'physics' else '化学'
-            system_prompt = f"""你是一位专业的{subject_name}老师，正在帮助学生解答问题。
+            subject_prompt = get_subject_prompt_by_lang(subject, lang)
+            ctx = PromptContext(
+                subject=subject,
+                lang=lang,
+                level=level_effective,
+                phase=teaching_phase,
+                score=subject_score,
+                user_pref_level=user_pref_level,
+                profile=profile or {},
+                deep_think=deep_think,
+                has_image=has_image
+            )
 
-【背景信息】
-学生之前提出了一个问题，你已经给出了详细解答。现在学生有进一步的疑问。
+            base_system_prompt = (
+                build_system_prompt_doubao(subject_prompt, ctx)
+                if has_image
+                else build_system_prompt_deepseek(subject_prompt, ctx)
+            )
+            followup_rules = (
+                "\n\n【追问规则】\n"
+                "1) 必须保持与当前 level/phase 一致。\n"
+                "2) 若 level=basic 且 phase=1：继续引导完成，禁止给最终答案/数值/选项。\n"
+                "3) 只回答追问所需部分，尽量简洁；公式用 LaTeX。\n"
+            ) if lang != 'en-US' else (
+                "\n\n[Follow-up rules]\n"
+                "1) Keep the same level/phase.\n"
+                "2) If level=basic and phase=1: keep guiding; do NOT reveal the final answer/value/option.\n"
+                "3) Answer only what is needed; keep it concise; use LaTeX.\n"
+            )
 
-【原始问题】
-{question[:1000]}
-
-【你之前的解答】
-{original_answer[:2000]}
-
-【当前任务】
-请基于以上背景，回答学生的追问。要求：
-1. 保持与之前解答的一致性
-2. 如果追问涉及之前解答中的内容，直接引用
-3. 如果是新问题，正常解答
-4. 语言简洁清晰，适合学生理解
-5. 如果涉及公式，使用LaTeX格式"""
+            system_prompt = (
+                base_system_prompt
+                + followup_rules
+                + (f"\n\n【原始问题】\n{question[:1200]}\n\n【你之前的输出】\n{original_answer[:2400]}\n"
+                   if lang != 'en-US'
+                   else f"\n\n[Original question]\n{question[:1200]}\n\n[Your prior output]\n{original_answer[:2400]}\n")
+            )
 
             messages = [{"role": "system", "content": system_prompt}]
 
@@ -1377,17 +1843,28 @@ def chat_followup():
             # 添加当前追问
             messages.append({"role": "user", "content": message})
 
-            # 调用豆包API流式返回
-            stream = doubao_client.client.chat.completions.create(
-                model=doubao_client.model,
-                messages=messages,
-                stream=True
-            )
-
-            for chunk in stream:
-                if chunk.choices and chunk.choices[0].delta.content:
-                    content = chunk.choices[0].delta.content
-                    yield f"data: {json.dumps({'type': 'content', 'content': content}, ensure_ascii=False)}\n\n"
+            # 优先使用 DeepSeek（文字题追问更一致），否则回退到豆包
+            if not has_image and client:
+                stream = client.chat.completions.create(
+                    model=DEEPSEEK_MODEL,
+                    messages=messages,
+                    stream=True,
+                    extra_body={"thinking": {"type": "enabled"}}
+                )
+                for chunk in stream:
+                    delta = chunk.choices[0].delta
+                    if getattr(delta, 'content', None):
+                        yield f"data: {json.dumps({'type': 'content', 'content': delta.content}, ensure_ascii=False)}\n\n"
+            else:
+                stream = doubao_client.client.chat.completions.create(
+                    model=doubao_client.model,
+                    messages=messages,
+                    stream=True
+                )
+                for chunk in stream:
+                    if chunk.choices and chunk.choices[0].delta.content:
+                        content = chunk.choices[0].delta.content
+                        yield f"data: {json.dumps({'type': 'content', 'content': content}, ensure_ascii=False)}\n\n"
 
             yield f"data: {json.dumps({'type': 'done'})}\n\n"
 

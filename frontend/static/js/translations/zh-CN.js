@@ -217,6 +217,11 @@ const translations_zh = {
             print: "打印",
             share: "分享"
         },
+        // Basic 二次给答案
+        reveal: {
+            hint: "先自己想一想，想好了再获取完整答案",
+            button: "我想好了，给我答案（第二次）"
+        },
         // Toast
         toast: {
             copied: "答案已复制到剪贴板",
@@ -429,6 +434,38 @@ const translations_zh = {
         startWriting: "写第一篇",
         setGoals: "设置目标",
         setGoalsDesc: "制定目标，AI帮你追踪进度"
+    },
+
+    // ===== 个性化讲解 =====
+    personalization: {
+        useProfile: "使用学习画像",
+        level: {
+            label: "讲解层级",
+            recommendedPrefix: "推荐：",
+            hint: "你可以手动选择讲解层级；基础模式首次会引导你先自己完成。",
+            auto: "自动",
+            basic: "基础",
+            standard: "标准",
+            advanced: "进阶"
+        },
+        profile: {
+            title: "个性化学习",
+            refresh: "刷新画像",
+            enable: "启用画像个性化",
+            enableDesc: "关闭后仍可手动选择讲解层级，但不会使用日记画像",
+            physicsScore: "物理自评分（0-100）",
+            chemistryScore: "化学自评分（0-100）",
+            defaultLevel: "默认讲解层级",
+            save: "保存设置",
+            summary: "学习画像摘要",
+            updatedAt: "更新时间：",
+            summaryEmpty: "暂无画像，点击“刷新画像”生成",
+            weakTopics: "薄弱点",
+            preferredStyle: "偏好",
+            pace: "节奏",
+            commonMistakes: "易错点",
+            notes: "备注"
+        }
     },
 
     // ===== 目标管理 =====

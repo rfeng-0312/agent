@@ -216,6 +216,11 @@ const translations_en = {
             print: "Print",
             share: "Share"
         },
+        // Basic reveal (second attempt)
+        reveal: {
+            hint: "Try it yourself first, then reveal the full solution",
+            button: "I'm ready, reveal the answer (2nd step)"
+        },
         // Toast
         toast: {
             copied: "Answer copied to clipboard",
@@ -428,6 +433,38 @@ const translations_en = {
         startWriting: "Write First",
         setGoals: "Set Goals",
         setGoalsDesc: "Set goals, AI will track your progress"
+    },
+
+    // ===== Personalization =====
+    personalization: {
+        useProfile: "Use learning profile",
+        level: {
+            label: "Explanation Level",
+            recommendedPrefix: "Recommended: ",
+            hint: "You can choose the explanation level. In Basic mode, the first response will guide you to try first.",
+            auto: "Auto",
+            basic: "Basic",
+            standard: "Standard",
+            advanced: "Advanced"
+        },
+        profile: {
+            title: "Personalized Learning",
+            refresh: "Refresh Profile",
+            enable: "Enable profile personalization",
+            enableDesc: "When off, you can still choose the explanation level, but diaries won't be used as a profile",
+            physicsScore: "Physics score (0-100)",
+            chemistryScore: "Chemistry score (0-100)",
+            defaultLevel: "Default explanation level",
+            save: "Save Settings",
+            summary: "Learning Profile Summary",
+            updatedAt: "Updated at:",
+            summaryEmpty: "No profile yet. Click “Refresh Profile” to generate one.",
+            weakTopics: "Weak topics",
+            preferredStyle: "Preferences",
+            pace: "Pace",
+            commonMistakes: "Common mistakes",
+            notes: "Notes"
+        }
     },
 
     // ===== Goals =====

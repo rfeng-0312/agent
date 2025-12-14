@@ -121,7 +121,13 @@ class DoubaoClient:
                 logger.error(f"备用编码方式也失败: {e2}")
                 raise
 
-    def create_chat_message_with_image(self, text: str, image_base64: str, subject: str) -> List[Dict]:
+    def create_chat_message_with_image(
+        self,
+        text: str,
+        image_base64: str,
+        subject: str,
+        system_prompt: str = None
+    ) -> List[Dict]:
         """
         创建包含图片的聊天消息
 
@@ -134,7 +140,7 @@ class DoubaoClient:
             消息列表
         """
         # 获取专业提示词
-        system_prompt = self._get_subject_prompt(subject)
+        system_prompt = system_prompt or self._get_subject_prompt(subject)
 
         messages = [
             {
@@ -178,8 +184,15 @@ class DoubaoClient:
         else:
             return GENERAL_PROMPT
 
-    def solve_with_image(self, text: str, image_path: str, subject: str,
-                        stream: bool = False, enable_search: bool = True) -> Any:
+    def solve_with_image(
+        self,
+        text: str,
+        image_path: str,
+        subject: str,
+        stream: bool = False,
+        enable_search: bool = True,
+        system_prompt: str = None
+    ) -> Any:
         """
         使用豆包解决带图片的问题
 
@@ -198,7 +211,7 @@ class DoubaoClient:
             image_base64 = self.encode_image(image_path)
 
             # 创建消息
-            messages = self.create_chat_message_with_image(text, image_base64, subject)
+            messages = self.create_chat_message_with_image(text, image_base64, subject, system_prompt=system_prompt)
 
             # 调用API
             if stream:
@@ -267,7 +280,13 @@ class DoubaoClient:
                 logger.error(f"Doubao API retry failed: {e2}")
                 raise
 
-    def stream_with_reasoning(self, text: str, image_path: str = None, subject: str = "physics") -> Generator:
+    def stream_with_reasoning(
+        self,
+        text: str,
+        image_path: str = None,
+        subject: str = "physics",
+        system_prompt: str = None
+    ) -> Generator:
         """
         使用Chat API进行流式响应，包含深度思考过程（reasoning_content）
 
@@ -283,7 +302,7 @@ class DoubaoClient:
             dict: {"type": "thinking"|"answer"|"done", "content": str}
         """
         try:
-            system_prompt = self._get_subject_prompt(subject)
+            effective_system_prompt = system_prompt or self._get_subject_prompt(subject)
 
             # 构建消息
             if image_path:
@@ -292,12 +311,13 @@ class DoubaoClient:
                 messages = self.create_chat_message_with_image(
                     text if text else "请分析这张图片中的题目并解答",
                     image_base64,
-                    subject
+                    subject,
+                    system_prompt=effective_system_prompt
                 )
             else:
                 # 纯文本
                 messages = [
-                    {"role": "system", "content": system_prompt},
+                    {"role": "system", "content": effective_system_prompt},
                     {"role": "user", "content": text}
                 ]
 
@@ -333,8 +353,14 @@ class DoubaoClient:
             logger.error(f"豆包流式调用失败: {e}")
             raise
 
-    def solve_text_only(self, text: str, subject: str,
-                       stream: bool = False, enable_search: bool = True) -> Any:
+    def solve_text_only(
+        self,
+        text: str,
+        subject: str,
+        stream: bool = False,
+        enable_search: bool = True,
+        system_prompt: str = None
+    ) -> Any:
         """
         仅文本问题解答（使用豆包）
 
@@ -348,7 +374,7 @@ class DoubaoClient:
             API响应
         """
         try:
-            system_prompt = self._get_subject_prompt(subject)
+            system_prompt = system_prompt or self._get_subject_prompt(subject)
 
             messages = [
                 {

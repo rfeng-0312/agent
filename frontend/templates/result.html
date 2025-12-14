@@ -427,6 +427,18 @@
             </button>
         </div>
 
+        <!-- Basic 二次给答案（首次不出最终答案） -->
+        <div id="revealAnswerSection" class="max-w-2xl mx-auto mt-6 hidden animate-slide-up" style="animation-delay: 0.65s">
+            <div class="bg-gradient-to-br from-amber-900/20 to-yellow-900/10 rounded-2xl p-5 border border-detectiveGold/20 text-center">
+                <p class="text-white/60 text-sm mb-3" data-i18n="result.reveal.hint">先自己想一想，想好了再获取完整答案</p>
+                <button id="revealAnswerBtn"
+                        class="px-6 py-3 rounded-xl bg-gradient-to-r from-detectiveGold to-neonCyan text-mysteryBlack font-bold hover:shadow-lg transition-all">
+                    <i class="fa-solid fa-unlock-keyhole mr-2"></i>
+                    <span data-i18n="result.reveal.button">我想好了，给我答案（第二次）</span>
+                </button>
+            </div>
+        </div>
+
         <!-- 追问对话区域 -->
         <div class="max-w-4xl mx-auto mt-8 animate-slide-up" style="animation-delay: 0.7s">
             <div class="bg-gradient-to-br from-purple-900/30 to-blue-900/30 rounded-2xl p-6 border border-purple-500/20">
@@ -477,6 +489,8 @@
         // 页面配置
         const sessionId = "{{ session_id }}";
         const subject = "{{ data.subject }}";
+        const levelEffective = {{ data.level_effective|tojson if data.level_effective is defined else 'null' }};
+        const teachingPhase = {{ data.teaching_phase|tojson if data.teaching_phase is defined else 'null' }};
 
         // 用于存储完整内容的缓冲区
         let thinkingBuffer = "";
@@ -760,6 +774,37 @@
                     const cursorSpan = answerElement.querySelector('.cursor-blink');
                     if (cursorSpan) {
                         cursorSpan.remove();
+                    }
+
+                    // Basic 首次回答完成后显示“二次给答案”按钮
+                    if (levelEffective === 'basic' && teachingPhase === 1) {
+                        const section = document.getElementById('revealAnswerSection');
+                        const btn = document.getElementById('revealAnswerBtn');
+                        if (section) section.classList.remove('hidden');
+                        if (btn && !btn.dataset.bound) {
+                            btn.dataset.bound = '1';
+                            btn.addEventListener('click', async () => {
+                                btn.disabled = true;
+                                try {
+                                    const resp = await fetch('/api/query/reveal', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ parent_session_id: sessionId })
+                                    });
+                                    const result = await resp.json();
+                                    if (result.success && result.redirect_url) {
+                                        window.location.href = result.redirect_url;
+                                        return;
+                                    }
+                                    alert(result.message || '请求失败');
+                                } catch (e) {
+                                    console.error('Reveal error:', e);
+                                    alert('网络错误，请重试');
+                                } finally {
+                                    btn.disabled = false;
+                                }
+                            });
+                        }
                     }
                     eventSource.close();
                     break;

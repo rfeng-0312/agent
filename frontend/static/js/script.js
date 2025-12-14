@@ -91,6 +91,9 @@ function switchTab(subject) {
     mainCard.style.animation = 'none';
     mainCard.offsetHeight; // 触发重排
     mainCard.style.animation = 'glow-pulse 4s ease-in-out infinite';
+
+    // 更新推荐讲解层级显示
+    updateRecommendedLevelText(currentSubject);
 }
 
 // ========== 更新粒子主题 ==========
@@ -179,6 +182,80 @@ function clearImage() {
 // ========== 深度思考模式 ==========
 let deepThinkEnabled = false;
 
+// ========== 个性化讲解（分层 + 画像）==========
+let explainLevelOverride = 'auto'; // auto|basic|standard|advanced
+let useProfileEnabled = true;
+let personalizationEnabled = true;
+let userRecommendations = null; // { physics: { recommended_level }, chemistry: { recommended_level } }
+
+function setActiveExplainLevel(level) {
+    explainLevelOverride = level || 'auto';
+    const buttons = document.querySelectorAll('.dp-level-btn');
+    buttons.forEach(btn => {
+        const isActive = btn.dataset.level === explainLevelOverride;
+        btn.classList.toggle('bg-neonCyan/20', isActive);
+        btn.classList.toggle('border-neonCyan/50', isActive);
+        btn.classList.toggle('text-white', isActive);
+        btn.classList.toggle('bg-white/5', !isActive);
+        btn.classList.toggle('border-white/10', !isActive);
+        btn.classList.toggle('text-white/70', !isActive);
+    });
+}
+
+function updateRecommendedLevelText(subject) {
+    const el = document.getElementById('recommendedLevelText');
+    if (!el) return;
+    const rec = userRecommendations?.[subject]?.recommended_level;
+    el.textContent = rec || 'auto';
+}
+
+async function fetchPersonalizationSummary() {
+    try {
+        const resp = await fetch('/api/user/personalization');
+        if (!resp.ok) return;
+        const data = await resp.json();
+        if (!data.success) return;
+
+        personalizationEnabled = !!data.settings?.personalization_enabled;
+        userRecommendations = {
+            physics: { recommended_level: data.recommendations?.physics?.recommended_level },
+            chemistry: { recommended_level: data.recommendations?.chemistry?.recommended_level }
+        };
+
+        const useProfileToggle = document.getElementById('useProfileToggle');
+        if (useProfileToggle) {
+            if (!personalizationEnabled) {
+                useProfileToggle.checked = false;
+                useProfileToggle.disabled = true;
+                useProfileEnabled = false;
+            } else {
+                useProfileToggle.disabled = false;
+                useProfileEnabled = !!useProfileToggle.checked;
+            }
+        }
+
+        const currentSubject = document.querySelector('.tab-btn.tab-active-phy') ? 'physics' : 'chemistry';
+        updateRecommendedLevelText(currentSubject);
+    } catch (e) {
+        console.error('Fetch personalization error:', e);
+    }
+}
+
+function initPersonalizationControls() {
+    setActiveExplainLevel('auto');
+
+    document.querySelectorAll('.dp-level-btn').forEach(btn => {
+        btn.addEventListener('click', () => setActiveExplainLevel(btn.dataset.level));
+    });
+
+    const useProfileToggle = document.getElementById('useProfileToggle');
+    if (useProfileToggle) {
+        useProfileToggle.addEventListener('change', () => {
+            useProfileEnabled = !!useProfileToggle.checked;
+        });
+    }
+}
+
 function initDeepThinkToggle() {
     const toggle = document.getElementById('deepThinkToggle');
     const label = document.getElementById('deepThinkLabel');
@@ -208,7 +285,7 @@ function initDeepThinkToggle() {
 // ========== 后端通信函数 ==========
 
 // 发送纯文本问题到DeepSeek API (通过Flask后端)
-async function sendTextQuery(question, subject = 'physics', deepThink = false) {
+async function sendTextQuery(question, subject = 'physics', deepThink = false, levelOverride = 'auto', useProfile = true) {
     try {
         const response = await fetch('/api/query/text', {
             method: 'POST',
@@ -218,7 +295,9 @@ async function sendTextQuery(question, subject = 'physics', deepThink = false) {
             body: JSON.stringify({
                 question: question,
                 subject: subject,
-                deep_think: deepThink
+                deep_think: deepThink,
+                level_override: levelOverride,
+                use_profile: useProfile
             })
         });
 
@@ -236,13 +315,15 @@ async function sendTextQuery(question, subject = 'physics', deepThink = false) {
 }
 
 // 发送图片问题到豆包API (通过Flask后端)
-async function sendImageQuery(imageFile, question = '', subject = 'physics', deepThink = false) {
+async function sendImageQuery(imageFile, question = '', subject = 'physics', deepThink = false, levelOverride = 'auto', useProfile = true) {
     try {
         const formData = new FormData();
         formData.append('image', imageFile);
         formData.append('question', question);
         formData.append('subject', subject);
         formData.append('deep_think', deepThink ? 'true' : 'false');
+        formData.append('level_override', levelOverride);
+        formData.append('use_profile', useProfile ? 'true' : 'false');
 
         const response = await fetch('/api/query/image', {
             method: 'POST',
@@ -311,7 +392,14 @@ async function handleQuestionSubmit() {
     try {
         if (imageFile) {
             // 有图片，使用豆包API
-            const response = await sendImageQuery(imageFile, questionText, currentSubject, deepThinkEnabled);
+            const response = await sendImageQuery(
+                imageFile,
+                questionText,
+                currentSubject,
+                deepThinkEnabled,
+                explainLevelOverride,
+                useProfileEnabled
+            );
 
             // 跳转到结果页面
             if (response.status === 'success' && response.session_id && response.redirect_url) {
@@ -322,7 +410,13 @@ async function handleQuestionSubmit() {
             }
         } else if (questionText) {
             // 纯文本，使用DeepSeek API - 跳转到结果页面
-            const response = await sendTextQuery(questionText, currentSubject, deepThinkEnabled);
+            const response = await sendTextQuery(
+                questionText,
+                currentSubject,
+                deepThinkEnabled,
+                explainLevelOverride,
+                useProfileEnabled
+            );
 
             // 跳转到结果页面
             if (response.session_id && response.redirect_url) {
@@ -491,6 +585,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 初始化深度思考开关
     initDeepThinkToggle();
+
+    // 初始化个性化讲解（层级 + 画像开关）
+    initPersonalizationControls();
+    fetchPersonalizationSummary();
 
     // 为提交按钮添加事件监听器
     const submitButton = document.getElementById('submitBtn');

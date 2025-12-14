@@ -219,6 +219,37 @@
                     </div>
                 </div>
 
+                <!-- 个性化讲解 -->
+                <div class="mb-8">
+                    <div class="p-4 bg-white/5 rounded-xl border border-white/10 space-y-4">
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-user-graduate text-xl text-detectiveGold"></i>
+                                <div>
+                                    <span class="text-sm font-semibold text-white/90" data-i18n="personalization.level.label">讲解层级</span>
+                                    <p class="text-xs text-white/50 mt-0.5">
+                                        <span data-i18n="personalization.level.recommendedPrefix">推荐：</span>
+                                        <span id="recommendedLevelText" class="text-white/70">auto</span>
+                                    </p>
+                                </div>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="useProfileToggle" class="sr-only peer" checked>
+                                <div class="w-14 h-7 bg-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-detectiveGold/70"></div>
+                                <span class="ms-3 text-sm font-medium text-white/70" data-i18n="personalization.useProfile">使用学习画像</span>
+                            </label>
+                        </div>
+
+                        <div class="grid grid-cols-4 gap-2">
+                            <button type="button" class="dp-level-btn px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-sm text-white/70 transition-all" data-level="auto" data-i18n="personalization.level.auto">自动</button>
+                            <button type="button" class="dp-level-btn px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-sm text-white/70 transition-all" data-level="basic" data-i18n="personalization.level.basic">基础</button>
+                            <button type="button" class="dp-level-btn px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-sm text-white/70 transition-all" data-level="standard" data-i18n="personalization.level.standard">标准</button>
+                            <button type="button" class="dp-level-btn px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-sm text-white/70 transition-all" data-level="advanced" data-i18n="personalization.level.advanced">进阶</button>
+                        </div>
+                        <p class="text-xs text-white/40" data-i18n="personalization.level.hint">你可以手动选择讲解层级；基础模式首次会引导你先自己完成。</p>
+                    </div>
+                </div>
+
                 <!-- 深度思考开关 -->
                 <div class="mb-8">
                     <div class="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
