@@ -52,7 +52,12 @@
     <!-- 暗角效果 -->
     <div class="vignette"></div>
 
+    <!-- Theme watermark (local images) -->
+    <div class="dp-watermark dp-watermark--top-left"
+         style="--dp-watermark-image: var(--dp-theme-img-1); --dp-watermark-opacity: 0.10;"></div>
+
     <!-- 导航栏 -->
+    <div class="relative z-10">
     <nav class="fixed top-0 left-0 right-0 z-50 nav-glass">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
@@ -183,8 +188,10 @@
     </section>
 
     <!-- 功能特色区 -->
-    <section id="features" class="py-24 relative">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="features" class="py-24 relative overflow-hidden">
+        <div class="dp-poster-bg" style="--dp-poster-image: var(--dp-theme-img-4); --dp-poster-opacity: 0.14; --dp-poster-blur: 18px;"></div>
+        <div class="dp-poster-mask" style="opacity: 0.78;"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div class="text-center mb-16" data-aos="fade-up">
                 <h2 class="section-title">
                     <i class="fa-solid fa-wand-magic-sparkles text-detectiveGold mr-3"></i>
@@ -571,5 +578,6 @@
             }
         });
     </script>
+</div>
 </body>
 </html>

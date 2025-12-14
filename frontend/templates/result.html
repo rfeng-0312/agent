@@ -266,6 +266,10 @@
     <!-- 背景星星 -->
     <div id="stars" class="fixed inset-0 overflow-hidden pointer-events-none"></div>
 
+    <!-- Theme watermark (local images) -->
+    <div class="dp-watermark dp-watermark--top-right dp-watermark--blend-multiply"
+         style="--dp-watermark-image: var(--dp-theme-img-5); --dp-watermark-opacity: 0.09;"></div>
+
     <!-- 顶部导航栏 -->
     <nav class="nav-gradient shadow-2xl text-white sticky top-0 z-50 relative">
         <div class="nav-glow-line"></div>
@@ -293,7 +297,10 @@
     </nav>
 
     <!-- 主内容区 -->
-    <main class="container mx-auto px-4 py-8 relative z-10">
+    <main class="container mx-auto px-4 py-8 relative z-10 overflow-hidden">
+        <div class="dp-poster-bg" style="--dp-poster-image: var(--dp-theme-img-3); --dp-poster-opacity: 0.13; --dp-poster-blur: 18px;"></div>
+        <div class="dp-poster-mask" style="opacity: 0.72;"></div>
+        <div class="relative z-10">
         <!-- 问题卡片 -->
         <div class="max-w-4xl mx-auto mb-8 animate-fade-in">
             <div class="glass-card p-6 rounded-xl shadow-2xl border border-white/20">
@@ -465,6 +472,7 @@
                     </button>
                 </div>
             </div>
+        </div>
         </div>
     </main>
 

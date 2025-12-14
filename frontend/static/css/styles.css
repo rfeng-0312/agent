@@ -2,6 +2,102 @@
    名侦探作业帮 - 柯南风格样式表
    ============================================ */
 
+/* ========== 主题资源（本地图片） ========== */
+:root {
+    --dp-theme-img-1: url('/static/images/theme/theme-1.png');
+    --dp-theme-img-2: url('/static/images/theme/theme-2.jpg');
+    --dp-theme-img-3: url('/static/images/theme/theme-3.jpg');
+    --dp-theme-img-4: url('/static/images/theme/theme-4.jpg');
+    --dp-theme-img-5: url('/static/images/theme/theme-5.jpg');
+}
+
+/* ========== 通用水印装饰（按需在页面中添加 DOM 或 body class 启用） ========== */
+.dp-watermark {
+    position: fixed;
+    pointer-events: none;
+    z-index: 3;
+    background-image: var(--dp-watermark-image);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    opacity: var(--dp-watermark-opacity, 0.14);
+    filter: saturate(1.05) contrast(1.05) drop-shadow(0 12px 30px rgba(0, 0, 0, 0.35));
+}
+
+.dp-watermark--blend-multiply {
+    mix-blend-mode: multiply;
+}
+
+.dp-watermark--blend-screen {
+    mix-blend-mode: screen;
+}
+
+.dp-watermark--top-left {
+    top: 110px;
+    left: 22px;
+    width: 220px;
+    height: 220px;
+}
+
+.dp-watermark--top-right {
+    top: 100px;
+    right: 22px;
+    width: 260px;
+    height: 260px;
+}
+
+.dp-watermark--bottom-left {
+    bottom: 24px;
+    left: 22px;
+    width: 260px;
+    height: 260px;
+}
+
+.dp-watermark--bottom-right {
+    bottom: 18px;
+    right: 22px;
+    width: 260px;
+    height: 260px;
+}
+
+@media (max-width: 768px) {
+    .dp-watermark {
+        opacity: var(--dp-watermark-opacity-mobile, 0.10);
+        filter: saturate(1.05) contrast(1.05) drop-shadow(0 10px 22px rgba(0, 0, 0, 0.3));
+    }
+    .dp-watermark--top-left,
+    .dp-watermark--top-right,
+    .dp-watermark--bottom-left,
+    .dp-watermark--bottom-right {
+        width: 170px;
+        height: 170px;
+    }
+}
+
+/* ========== 模糊背景海报（可用于某些页面 section） ========== */
+.dp-poster-bg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image: var(--dp-poster-image);
+    background-size: cover;
+    background-position: center;
+    opacity: var(--dp-poster-opacity, 0.22);
+    filter: blur(var(--dp-poster-blur, 10px)) saturate(1.05) contrast(1.05);
+    transform: scale(1.05);
+}
+
+.dp-poster-mask {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    background: radial-gradient(1200px 700px at 20% 15%, rgba(0, 212, 255, 0.20), rgba(0, 0, 0, 0)),
+                radial-gradient(900px 600px at 80% 75%, rgba(255, 215, 0, 0.16), rgba(0, 0, 0, 0)),
+                linear-gradient(135deg, rgba(15, 12, 41, 0.85), rgba(22, 33, 62, 0.88));
+}
+
 /* ========== 基础动画关键帧 ========== */
 @keyframes float {
     0%, 100% { transform: translateY(0px); }
