@@ -350,6 +350,8 @@ const translations_en = {
         detailPageTitle: "Diary Details | Detective Study Helper",
         title: "Today's Growth Record",
         subtitle: "Record your feelings, Xiao Ke will accompany you",
+        setGoalCta: "Set Goals",
+        setGoalCtaDesc: "Set goals so AI can track your progress in diaries",
         moodLabel: "How do you feel today?",
         contentLabel: "Write today's story",
         placeholder: "What happened today? Anything you want to share...",

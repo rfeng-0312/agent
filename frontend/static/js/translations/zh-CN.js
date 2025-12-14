@@ -351,6 +351,8 @@ const translations_zh = {
         detailPageTitle: "日记详情 | 名侦探作业帮",
         title: "今日成长记录",
         subtitle: "记录你的心情，小柯会陪伴你",
+        setGoalCta: "设定目标",
+        setGoalCtaDesc: "设定后，AI 会在日记中帮你追踪进度",
         moodLabel: "今天心情怎么样？",
         contentLabel: "写下今天的故事",
         placeholder: "今天发生了什么？有什么想说的吗...",

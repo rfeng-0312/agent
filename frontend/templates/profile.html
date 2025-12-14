@@ -200,7 +200,7 @@
             </div>
 
             <!-- 我的目标 -->
-            <div class="dp-container-card p-6 mb-6">
+            <div id="goalsSection" class="dp-container-card p-6 mb-6">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-lg font-bold">
                         <i class="fa-solid fa-bullseye text-detectiveGold mr-2"></i>
@@ -666,6 +666,19 @@
             loadDiaryStats();
             loadRecentDiaries();
             loadGoals();
+
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('openGoalModal') === '1') {
+                const goalsSection = document.getElementById('goalsSection');
+                if (goalsSection) {
+                    goalsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+                showAddGoalModal();
+
+                const url = new URL(window.location.href);
+                url.searchParams.delete('openGoalModal');
+                window.history.replaceState({}, '', url.toString());
+            }
         });
     </script>
 </body>
