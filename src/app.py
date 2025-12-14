@@ -231,7 +231,10 @@ def api_login():
             session['chemistry_score'] = result['user'].get('chemistry_score')
             session['personalization_enabled'] = bool(result['user'].get('personalization_enabled', True))
             session['default_explain_level'] = result['user'].get('default_explain_level', 'auto')
-            session['learning_profile_updated_at'] = result['user'].get('learning_profile_updated_at')
+            updated_at = result['user'].get('learning_profile_updated_at')
+            session['learning_profile_updated_at'] = (
+                updated_at.isoformat() if hasattr(updated_at, 'isoformat') else updated_at
+            )
 
         return jsonify(result)
     except Exception as e:
