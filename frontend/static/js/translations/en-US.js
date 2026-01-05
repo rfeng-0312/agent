@@ -4,7 +4,7 @@
 const translations_en = {
     // ===== Common =====
     common: {
-        appName: "Detective Study Helper",
+        appName: "Yan Jian Yi Gai",
         appSlogan: "AI-Powered Learning Platform",
         login: "Login",
         register: "Sign Up",
@@ -38,6 +38,7 @@ const translations_en = {
             title2: "So Is Learning",
             subtitle: "Based on Agent AI technology, achieving accuracy rate on International Olympiad finals of",
             accuracy: "90%",
+            nameMeaning: "\"Yan Jian Yi Gai\": concise words with complete meaning (from a Qing dynasty text).",
             tag1: "DeepSeek + Doubao Dual Engine",
             tag2: "Real-time Streaming Response",
             tag3: "Cross-validation Accuracy",
@@ -102,7 +103,7 @@ const translations_en = {
         // Footer
         footer: {
             slogan: "There's only one truth, so is learning",
-            copyright: "© 2025 Detective Study Helper. All rights reserved."
+            copyright: "© 2025 Yan Jian Yi Gai. All rights reserved."
         },
         // Login Modal
         loginModal: {
@@ -120,7 +121,7 @@ const translations_en = {
 
     // ===== App Page index.html =====
     app: {
-        title: "Detective Study Helper | Smart Problem Solving",
+        title: "Yan Jian Yi Gai | Smart Problem Solving",
         welcome: "What problem did you encounter today?",
         welcomeSubtitle: "Like a detective solving a case, let's solve it with clear logic",
         // Subject Tabs
@@ -179,8 +180,8 @@ const translations_en = {
 
     // ===== Result Page result.html =====
     result: {
-        title: "AI Solution | Detective Study Helper",
-        navTitle: "Detective Study Helper - AI Solution",
+        title: "AI Solution | Yan Jian Yi Gai",
+        navTitle: "Yan Jian Yi Gai - AI Solution",
         continueBtn: "Ask Another Question",
         // Question Card
         question: {
@@ -228,7 +229,7 @@ const translations_en = {
         },
         // Share
         share: {
-            title: "Detective Study Helper - AI Solution",
+            title: "Yan Jian Yi Gai - AI Solution",
             text: "Check out this problem solution!"
         },
         // Error
@@ -240,7 +241,7 @@ const translations_en = {
 
     // ===== Login Page login.html =====
     login: {
-        title: "Login | Detective Study Helper",
+        title: "Login | Yan Jian Yi Gai",
         heading: "Login to Your Account",
         // Form
         form: {
@@ -276,7 +277,7 @@ const translations_en = {
 
     // ===== Register Page register.html =====
     register: {
-        title: "Sign Up | Detective Study Helper",
+        title: "Sign Up | Yan Jian Yi Gai",
         heading: "Join Detective",
         subheading: "Create your account",
         // Form
@@ -318,7 +319,7 @@ const translations_en = {
 
     // ===== Reset Password Page reset_password.html =====
     resetPassword: {
-        title: "Reset Password | Detective Study Helper",
+        title: "Reset Password | Yan Jian Yi Gai",
         heading: "Reset Password",
         subheading: "Set your new password",
         // Account Info
@@ -350,9 +351,9 @@ const translations_en = {
 
     // ===== Diary =====
     diary: {
-        pageTitle: "Write Diary | Detective Study Helper",
-        listPageTitle: "My Diaries | Detective Study Helper",
-        detailPageTitle: "Diary Details | Detective Study Helper",
+        pageTitle: "Write Diary | Yan Jian Yi Gai",
+        listPageTitle: "My Diaries | Yan Jian Yi Gai",
+        detailPageTitle: "Diary Details | Yan Jian Yi Gai",
         title: "Today's Growth Record",
         subtitle: "Record your feelings, Xiao Ke will accompany you",
         setGoalCta: "Set Goals",
@@ -415,7 +416,7 @@ const translations_en = {
 
     // ===== Profile =====
     profile: {
-        pageTitle: "Profile | Detective Study Helper",
+        pageTitle: "Profile | Yan Jian Yi Gai",
         memberSince: "Member since",
         totalDiaries: "Total Diaries",
         streakDays: "Day Streak",

@@ -5,7 +5,7 @@ from werkzeug.utils import secure_filename
 import base64
 from datetime import datetime
 import json
-from openai import OpenAI
+from openai import OpenAI, AuthenticationError
 from dotenv import load_dotenv
 from prompts import get_subject_prompt
 
@@ -242,7 +242,13 @@ def stream_response(session_id):
                 json.dump(response_data, f, ensure_ascii=False, indent=2)
 
         except Exception as e:
-            yield f"data: {json.dumps({'type': 'error', 'message': str(e)}, ensure_ascii=False)}\n\n"
+            # Do not leak upstream exception details (may include masked API key)
+            msg = (
+                "AI authentication failed - please contact the administrator."
+                if isinstance(e, AuthenticationError)
+                else "Server error - please try again later."
+            )
+            yield f"data: {json.dumps({'type': 'error', 'message': msg}, ensure_ascii=False)}\n\n"
 
     return Response(generate(), mimetype='text/event-stream')
 

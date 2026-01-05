@@ -291,14 +291,17 @@
 
 /* ========== 功能卡片 ========== */
 .feature-card {
-    position: relative;
-    background: rgba(22, 33, 62, 0.6);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 24px;
-    padding: 2rem;
-    transition: all 0.4s ease;
-    overflow: hidden;
+  position: relative;
+  background: rgba(22, 33, 62, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: all 0.4s ease;
+  overflow: hidden;
 }
 
 .feature-card::before {
@@ -365,9 +368,10 @@
 }
 
 .feature-desc {
-    color: rgba(255, 255, 255, 0.6);
-    line-height: 1.7;
-    margin-bottom: 1.5rem;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.7;
+  min-height: 3.4em;
+  margin-bottom: 1.5rem;
 }
 
 .feature-list {
@@ -391,15 +395,16 @@
 }
 
 .feature-btn {
-    width: 100%;
-    padding: 0.875rem 1.5rem;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  width: 100%;
+  margin-top: auto;
+  padding: 0.875rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .feature-btn.physics {

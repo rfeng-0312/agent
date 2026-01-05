@@ -5,7 +5,7 @@
 const translations_zh = {
     // ===== 通用 =====
     common: {
-        appName: "名侦探作业帮",
+        appName: "言简意赅",
         appSlogan: "AI智能学习平台",
         login: "登录",
         register: "注册",
@@ -39,6 +39,7 @@ const translations_zh = {
             title2: "学习亦是如此",
             subtitle: "基于 Agent 智能体技术，奥林匹克国际竞赛决赛题目准确率高达",
             accuracy: "90%",
+            nameMeaning: "「言简意赅」：言辞简练而意思完备（出自清代华伟生《开国奇冤·被擒》）。",
             tag1: "DeepSeek + 豆包双引擎",
             tag2: "实时流式响应",
             tag3: "交叉验证准确性",
@@ -103,7 +104,7 @@ const translations_zh = {
         // 页脚
         footer: {
             slogan: "真相只有一个，学习亦是如此",
-            copyright: "© 2025 名侦探作业帮. All rights reserved."
+            copyright: "© 2025 言简意赅. All rights reserved."
         },
         // 登录弹窗
         loginModal: {
@@ -121,7 +122,7 @@ const translations_zh = {
 
     // ===== 问答页 index.html =====
     app: {
-        title: "名侦探作业帮 | 智慧解题",
+        title: "言简意赅 | 智慧解题",
         welcome: "今天遇到了什么难题？",
         welcomeSubtitle: "像侦探处理案件一样，逻辑清晰地解决它吧",
         // 学科切换
@@ -180,8 +181,8 @@ const translations_zh = {
 
     // ===== 结果页 result.html =====
     result: {
-        title: "AI解答结果 | 名侦探作业帮",
-        navTitle: "名侦探作业帮 - AI解答结果",
+        title: "AI解答结果 | 言简意赅",
+        navTitle: "言简意赅 - AI解答结果",
         continueBtn: "继续提问",
         // 问题卡片
         question: {
@@ -229,7 +230,7 @@ const translations_zh = {
         },
         // 分享
         share: {
-            title: "名侦探作业帮 - AI解答",
+            title: "言简意赅 - AI解答",
             text: "来看看这道题的解答吧！"
         },
         // 错误
@@ -241,7 +242,7 @@ const translations_zh = {
 
     // ===== 登录页 login.html =====
     login: {
-        title: "登录 | 名侦探作业帮",
+        title: "登录 | 言简意赅",
         heading: "登录你的账户",
         // 表单
         form: {
@@ -277,7 +278,7 @@ const translations_zh = {
 
     // ===== 注册页 register.html =====
     register: {
-        title: "注册 | 名侦探作业帮",
+        title: "注册 | 言简意赅",
         heading: "加入名侦探",
         subheading: "创建你的专属账户",
         // 表单
@@ -319,7 +320,7 @@ const translations_zh = {
 
     // ===== 重置密码页 reset_password.html =====
     resetPassword: {
-        title: "重置密码 | 名侦探作业帮",
+        title: "重置密码 | 言简意赅",
         heading: "重置密码",
         subheading: "设置你的新密码",
         // 账号信息
@@ -351,9 +352,9 @@ const translations_zh = {
 
     // ===== 日记页 =====
     diary: {
-        pageTitle: "写日记 | 名侦探作业帮",
-        listPageTitle: "我的日记 | 名侦探作业帮",
-        detailPageTitle: "日记详情 | 名侦探作业帮",
+        pageTitle: "写日记 | 言简意赅",
+        listPageTitle: "我的日记 | 言简意赅",
+        detailPageTitle: "日记详情 | 言简意赅",
         title: "今日成长记录",
         subtitle: "记录你的心情，小柯会陪伴你",
         setGoalCta: "设定目标",
@@ -416,7 +417,7 @@ const translations_zh = {
 
     // ===== 个人主页 =====
     profile: {
-        pageTitle: "个人主页 | 名侦探作业帮",
+        pageTitle: "个人主页 | 言简意赅",
         memberSince: "加入时间",
         totalDiaries: "日记总数",
         streakDays: "连续天数",

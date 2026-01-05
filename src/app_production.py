@@ -7,6 +7,7 @@
 
 import os
 import logging
+import importlib
 from logging.handlers import RotatingFileHandler
 from flask import Flask
 from flask_cors import CORS
@@ -60,12 +61,12 @@ def setup_logging(app):
     # 添加到应用日志器
     app.logger.addHandler(file_handler)
     app.logger.setLevel(getattr(logging, log_level))
-    app.logger.info('名侦探作业帮启动')
+    app.logger.info('言简意赅启动')
 
 def register_blueprints(app):
     """注册蓝图和路由"""
     # 导入路由
-    from app import *
+    importlib.import_module("app")
 
     # 健康检查端点
     @app.route('/health')

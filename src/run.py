@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-启动脚本 - 名侦探作业帮
+启动脚本 - 言简意赅
 """
 
 import subprocess
@@ -10,7 +10,7 @@ import os
 
 def main():
     print("="*60)
-    print("名侦探作业帮 - AI智能解题助手")
+    print("言简意赅 - AI智能解题助手")
     print("="*60)
     print("\n正在启动服务器...")
 

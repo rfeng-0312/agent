@@ -7,7 +7,14 @@ import base64
 from datetime import datetime
 import json
 import logging
-from openai import OpenAI
+from openai import (
+    OpenAI,
+    AuthenticationError,
+    RateLimitError,
+    APIConnectionError,
+    APITimeoutError,
+    APIStatusError,
+)
 from dotenv import load_dotenv
 from prompts import (
     get_subject_prompt, get_competition_prompt, get_verification_prompt,
@@ -45,8 +52,21 @@ from profile_builder import build_learning_profile_from_diaries
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Load environment variables
-load_dotenv()
+def _load_environment() -> None:
+    """
+    Load dotenv files into process environment.
+
+    Behavior:
+    - Always load `.env` if present (dev/local).
+    - If `FLASK_ENV=production`, also load `.env.production` and let it override `.env`.
+    - Existing OS environment variables keep priority over dotenv by default.
+    """
+    load_dotenv(override=False)
+    if (os.getenv('FLASK_ENV') or '').lower() == 'production':
+        load_dotenv('.env.production', override=True)
+
+
+_load_environment()
 
 # Get the absolute path to the project root
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -68,20 +88,124 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-here')
 # Create uploads directory if it doesn't exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# Get API keys from environment
-DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
-DEEPSEEK_BASE_URL = os.getenv('DEEPSEEK_BASE_URL', 'https://api.deepseek.com')
-DEEPSEEK_MODEL = os.getenv('DEEPSEEK_MODEL', 'deepseek-reasoner')
+_DEEPSEEK_CLIENT_CACHE = {
+    "api_key": None,
+    "base_url": None,
+    "client": None,
+    "warned_missing": False,
+}
 
-# Initialize OpenAI client for DeepSeek (only if API key is set)
-client = None
-if DEEPSEEK_API_KEY:
-    client = OpenAI(
-        api_key=DEEPSEEK_API_KEY,
-        base_url=DEEPSEEK_BASE_URL
+
+def _is_placeholder_api_key(api_key: str) -> bool:
+    v = (api_key or "").strip()
+    if not v:
+        return True
+    lowered = v.lower()
+    if lowered in {"your_deepseek_api_key_here", "your_api_key_here", "your_key_here"}:
+        return True
+    if "your_" in lowered and "api_key" in lowered:
+        return True
+    return False
+
+
+def get_deepseek_model() -> str:
+    return (os.getenv("DEEPSEEK_MODEL") or "deepseek-reasoner").strip()
+
+
+def get_deepseek_client(timeout: int | None = None):
+    """
+    Return an OpenAI-compatible client configured for DeepSeek, or None if not configured.
+
+    The client is cached but auto-refreshes if env values change.
+    """
+    api_key = (os.getenv("DEEPSEEK_API_KEY") or "").strip()
+    base_url = (os.getenv("DEEPSEEK_BASE_URL") or "https://api.deepseek.com").strip()
+
+    if _is_placeholder_api_key(api_key):
+        if not _DEEPSEEK_CLIENT_CACHE["warned_missing"]:
+            logger.warning("DEEPSEEK_API_KEY not set/placeholder - DeepSeek features will not work")
+            _DEEPSEEK_CLIENT_CACHE["warned_missing"] = True
+        return None
+
+    cached = _DEEPSEEK_CLIENT_CACHE
+    if cached["client"] and cached["api_key"] == api_key and cached["base_url"] == base_url:
+        return cached["client"]
+
+    kwargs = {"api_key": api_key, "base_url": base_url}
+    if timeout is not None:
+        kwargs["timeout"] = timeout
+    cached["client"] = OpenAI(**kwargs)
+    cached["api_key"] = api_key
+    cached["base_url"] = base_url
+    return cached["client"]
+
+
+def _msg(lang: str, zh: str, en: str) -> str:
+    return en if lang == "en-US" else zh
+
+
+def user_facing_ai_error_message(exc: Exception, *, lang: str = "zh-CN") -> str:
+    """
+    Convert upstream/AI exceptions into a safe message for end users.
+    Never include secrets (like API keys) in the returned string.
+    """
+    text = str(exc) if exc is not None else ""
+
+    if isinstance(exc, RuntimeError) and "DeepSeek is not configured" in text:
+        return _msg(
+            lang,
+            "AI 服务未配置（服务器缺少有效的 API Key），请联系管理员。",
+            "AI service is not configured (server is missing a valid API key). Please contact the administrator.",
+        )
+
+    status = getattr(exc, "status_code", None)
+
+    if isinstance(exc, AuthenticationError) or status == 401:
+        return _msg(
+            lang,
+            "AI 服务鉴权失败（服务器 API Key 无效或已过期），请联系管理员更新后重启服务。",
+            "AI authentication failed (server API key invalid/expired). Please contact the administrator.",
+        )
+
+    if isinstance(exc, RateLimitError) or status == 429:
+        return _msg(
+            lang,
+            "AI 服务繁忙（触发限流），请稍后重试。",
+            "AI service is rate-limited. Please retry later.",
+        )
+
+    if isinstance(exc, (APITimeoutError, TimeoutError)):
+        return _msg(
+            lang,
+            "AI 服务请求超时，请稍后重试。",
+            "AI request timed out. Please retry.",
+        )
+
+    if isinstance(exc, APIConnectionError):
+        return _msg(
+            lang,
+            "连接 AI 服务失败，请检查服务器网络后重试。",
+            "Failed to connect to AI service. Please check server network and retry.",
+        )
+
+    if isinstance(exc, APIStatusError) and status:
+        if 500 <= int(status) <= 599:
+            return _msg(
+                lang,
+                "AI 服务暂时不可用（上游错误），请稍后重试。",
+                "AI service is temporarily unavailable (upstream error). Please retry later.",
+            )
+        return _msg(
+            lang,
+            "AI 服务请求失败，请稍后重试。",
+            "AI request failed. Please retry later.",
+        )
+
+    return _msg(
+        lang,
+        "服务器暂时不可用，请稍后重试。",
+        "Server error. Please try again later.",
     )
-else:
-    logger.warning("DEEPSEEK_API_KEY not set - text queries will not work")
 
 # Initialize Doubao client for image queries
 doubao_client = DoubaoClient()
@@ -469,8 +593,8 @@ def api_refresh_learning_profile():
             lang=lang,
             days=days,
             limit=limit,
-            deepseek_client=client,
-            deepseek_model=DEEPSEEK_MODEL,
+            deepseek_client=get_deepseek_client(),
+            deepseek_model=get_deepseek_model(),
             doubao_client=doubao_client
         )
         if err:
@@ -1109,11 +1233,13 @@ def stream_response(session_id):
     """Stream response for both DeepSeek and Doubao queries with thinking process"""
 
     def generate():
+        lang = 'zh-CN'
         try:
             # Load session data
             with open(f'../data/sessions/{session_id}.json', 'r', encoding='utf-8') as f:
                 session_data = json.load(f)
 
+            lang = session_data.get('lang', 'zh-CN')
             query_type = session_data.get('type', 'text')
 
             # ==================== 日记AI回复模式 ====================
@@ -1244,8 +1370,12 @@ def stream_response(session_id):
             ]
 
             # Call DeepSeek API with streaming
-            stream = client.chat.completions.create(
-                model=DEEPSEEK_MODEL,
+            deepseek_client = get_deepseek_client()
+            if not deepseek_client:
+                raise RuntimeError("DeepSeek is not configured (missing/placeholder DEEPSEEK_API_KEY)")
+
+            stream = deepseek_client.chat.completions.create(
+                model=get_deepseek_model(),
                 messages=messages,
                 stream=True,
                 extra_body={"thinking": {"type": "enabled"}}
@@ -1281,8 +1411,15 @@ def stream_response(session_id):
                 json.dump(response_data, f, ensure_ascii=False, indent=2)
 
         except Exception as e:
-            logger.error(f"Stream response error: {e}")
-            yield f"data: {json.dumps({'type': 'error', 'message': str(e)}, ensure_ascii=False)}\n\n"
+            logger.exception("Stream response error")
+            yield (
+                "data: "
+                + json.dumps(
+                    {'type': 'error', 'message': user_facing_ai_error_message(e, lang=lang)},
+                    ensure_ascii=False,
+                )
+                + "\n\n"
+            )
 
     return Response(generate(), mimetype='text/event-stream')
 
@@ -1372,8 +1509,12 @@ def generate_deep_think_response(session_id, session_data):
                 {"role": "user", "content": question}
             ]
 
-            stream = client.chat.completions.create(
-                model=DEEPSEEK_MODEL,
+            deepseek_client = get_deepseek_client()
+            if not deepseek_client:
+                raise RuntimeError("DeepSeek is not configured (missing/placeholder DEEPSEEK_API_KEY)")
+
+            stream = deepseek_client.chat.completions.create(
+                model=get_deepseek_model(),
                 messages=messages,
                 stream=True,
                 extra_body={"thinking": {"type": "enabled"}}
@@ -1407,8 +1548,12 @@ def generate_deep_think_response(session_id, session_data):
                 {"role": "user", "content": verification_prompt}
             ]
 
-            stream = client.chat.completions.create(
-                model=DEEPSEEK_MODEL,
+            deepseek_client = get_deepseek_client()
+            if not deepseek_client:
+                raise RuntimeError("DeepSeek is not configured (missing/placeholder DEEPSEEK_API_KEY)")
+
+            stream = deepseek_client.chat.completions.create(
+                model=get_deepseek_model(),
                 messages=messages,
                 stream=True,
                 extra_body={"thinking": {"type": "enabled"}}
@@ -1462,8 +1607,15 @@ def generate_deep_think_response(session_id, session_data):
             json.dump(response_data, f, ensure_ascii=False, indent=2)
 
     except Exception as e:
-        logger.error(f"Deep think stream error: {e}")
-        yield f"data: {json.dumps({'type': 'error', 'message': str(e)}, ensure_ascii=False)}\n\n"
+        logger.exception("Deep think stream error")
+        yield (
+            "data: "
+            + json.dumps(
+                {'type': 'error', 'message': user_facing_ai_error_message(e, lang=lang)},
+                ensure_ascii=False,
+            )
+            + "\n\n"
+        )
 
 
 def generate_diary_ai_response(session_id, session_data):
@@ -1742,8 +1894,15 @@ Keep each analysis under 80 words. Be specific, not generic."""
             json.dump(response_data, f, ensure_ascii=False, indent=2)
 
     except Exception as e:
-        logger.error(f"Diary AI response error: {e}")
-        yield f"data: {json.dumps({'type': 'error', 'message': str(e)}, ensure_ascii=False)}\n\n"
+        logger.exception("Diary AI response error")
+        yield (
+            "data: "
+            + json.dumps(
+                {'type': 'error', 'message': user_facing_ai_error_message(e, lang=lang)},
+                ensure_ascii=False,
+            )
+            + "\n\n"
+        )
 
 
 # ==================== 追问对话API ====================
@@ -1762,6 +1921,7 @@ def chat_followup():
         return jsonify({'success': False, 'message': '缺少必要参数'}), 400
 
     def generate():
+        lang = 'zh-CN'
         try:
             # 读取原始会话数据
             session_file = f'../data/sessions/{session_id}.json'
@@ -1847,9 +2007,10 @@ def chat_followup():
             messages.append({"role": "user", "content": message})
 
             # 优先使用 DeepSeek（文字题追问更一致），否则回退到豆包
-            if not has_image and client:
-                stream = client.chat.completions.create(
-                    model=DEEPSEEK_MODEL,
+            deepseek_client = get_deepseek_client()
+            if not has_image and deepseek_client:
+                stream = deepseek_client.chat.completions.create(
+                    model=get_deepseek_model(),
                     messages=messages,
                     stream=True,
                     extra_body={"thinking": {"type": "enabled"}}
@@ -1872,8 +2033,12 @@ def chat_followup():
             yield f"data: {json.dumps({'type': 'done'})}\n\n"
 
         except Exception as e:
-            logger.error(f"Follow-up chat error: {e}")
-            yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
+            logger.exception("Follow-up chat error")
+            yield (
+                "data: "
+                + json.dumps({'type': 'error', 'message': user_facing_ai_error_message(e, lang=lang)}, ensure_ascii=False)
+                + "\n\n"
+            )
 
     return Response(generate(), mimetype='text/event-stream')
 
@@ -1882,6 +2047,58 @@ def chat_followup():
 def health_check():
     """Health check endpoint"""
     return jsonify({'status': 'healthy', 'message': 'Flask backend is running'})
+
+
+@app.route('/api/health/ai', methods=['GET'])
+def ai_health_check():
+    """
+    AI configuration/availability check (no secrets).
+
+    Use `?probe=1` to do a minimal upstream request to validate credentials.
+    """
+    lang = get_current_language()
+    probe = request.args.get('probe', '0') == '1'
+
+    deepseek_client = get_deepseek_client(timeout=30 if probe else None)
+    deepseek_model = get_deepseek_model()
+    deepseek_base_url = (os.getenv("DEEPSEEK_BASE_URL") or "https://api.deepseek.com").strip()
+
+    data = {
+        'deepseek': {
+            'configured': bool(deepseek_client),
+            'base_url': deepseek_base_url,
+            'model': deepseek_model,
+        },
+        'doubao': {
+            'configured': bool(getattr(doubao_client, 'client', None)),
+            'base_url': getattr(doubao_client, 'base_url', None),
+            'model': getattr(doubao_client, 'model', None),
+        }
+    }
+
+    if probe:
+        if not deepseek_client:
+            data['deepseek']['probe'] = 'skipped'
+            data['deepseek']['message'] = _msg(
+                lang,
+                "未配置 DEEPSEEK_API_KEY，无法探测。",
+                "DEEPSEEK_API_KEY not configured; probe skipped.",
+            )
+        else:
+            try:
+                deepseek_client.chat.completions.create(
+                    model=deepseek_model,
+                    messages=[{"role": "user", "content": "ping"}],
+                    max_tokens=1,
+                    stream=False,
+                )
+                data['deepseek']['probe'] = 'ok'
+            except Exception as e:
+                logger.exception("AI health probe failed")
+                data['deepseek']['probe'] = 'error'
+                data['deepseek']['message'] = user_facing_ai_error_message(e, lang=lang)
+
+    return jsonify({'success': True, 'data': data})
 
 if __name__ == '__main__':
     # 初始化数据库
