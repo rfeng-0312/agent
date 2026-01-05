@@ -15,7 +15,7 @@ from openai import (
     APITimeoutError,
     APIStatusError,
 )
-from dotenv import load_dotenv
+from dotenv import dotenv_values
 from prompts import (
     get_subject_prompt, get_competition_prompt, get_verification_prompt,
     get_subject_prompt_by_lang, get_competition_prompt_by_lang, get_verification_prompt_by_lang
@@ -57,13 +57,28 @@ def _load_environment() -> None:
     Load dotenv files into process environment.
 
     Behavior:
-    - Always load `.env` if present (dev/local).
-    - If `FLASK_ENV=production`, also load `.env.production` and let it override `.env`.
-    - Existing OS environment variables keep priority over dotenv by default.
+    Priority order:
+    - OS environment variables (highest)
+    - `src/.env.production` when `FLASK_ENV=production`
+    - `src/.env` (lowest)
     """
-    load_dotenv(override=False)
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+
+    env_paths = [os.path.join(base_dir, '.env')]
     if (os.getenv('FLASK_ENV') or '').lower() == 'production':
-        load_dotenv('.env.production', override=True)
+        env_paths.append(os.path.join(base_dir, '.env.production'))
+
+    merged: dict[str, str] = {}
+    for path in env_paths:
+        if not os.path.exists(path):
+            continue
+        for key, value in (dotenv_values(path) or {}).items():
+            if value is None:
+                continue
+            merged[str(key)] = str(value)
+
+    for key, value in merged.items():
+        os.environ.setdefault(key, value)
 
 
 _load_environment()
