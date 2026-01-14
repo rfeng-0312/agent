@@ -195,17 +195,20 @@
                         <label id="uploadArea" class="upload-area flex-shrink-0 cursor-pointer w-36 h-36 flex flex-col items-center justify-center text-white/50 hover:text-neonCyan group relative">
                             <i class="fa-solid fa-cloud-arrow-up text-3xl mb-2 group-hover:scale-125 transition-transform"></i>
                             <span class="text-xs" data-i18n="app.upload.hint">点击或粘贴</span>
-                            <input type="file" class="hidden" accept="image/*" onchange="previewImage(this)">
+                            <input id="imageInput" type="file" class="hidden" accept="image/*" multiple onchange="previewImage(this)">
                             <!-- 背景装饰 -->
                             <i class="fa-solid fa-fingerprint absolute -bottom-2 -right-2 text-5xl opacity-10"></i>
                         </label>
 
                         <!-- 预览区 -->
-                        <div id="previewContainer" class="hidden flex-1 h-36 bg-black/30 rounded-xl border border-white/10 relative overflow-hidden flex items-center justify-center backdrop-blur">
-                            <img id="imgPreview" class="h-full object-contain">
-                            <button onclick="clearImage()" class="absolute top-2 right-2 bg-conanRed/80 hover:bg-conanRed rounded-full w-8 h-8 flex items-center justify-center shadow-lg transition-all hover:scale-110">
-                                <i class="fa-solid fa-xmark text-white text-sm"></i>
-                            </button>
+                        <div id="previewContainer" class="hidden flex-1 min-h-36 bg-black/30 rounded-xl border border-white/10 relative overflow-hidden backdrop-blur">
+                            <div class="absolute top-2 right-2 flex items-center gap-2 z-10">
+                                <span id="imageCount" class="text-xs text-white/70 bg-black/40 px-2 py-1 rounded">0/9</span>
+                                <button id="clearImagesBtn" type="button" onclick="clearImage()" class="bg-conanRed/80 hover:bg-conanRed rounded-full w-8 h-8 flex items-center justify-center shadow-lg transition-all hover:scale-110">
+                                    <i class="fa-solid fa-xmark text-white text-sm"></i>
+                                </button>
+                            </div>
+                            <div id="previewGrid" class="preview-grid p-3"></div>
                         </div>
 
                         <!-- 提示文案 -->
@@ -215,6 +218,7 @@
                                 <span data-i18n="app.upload.hintText">复杂的电路图或化学方程式？</span>
                             </p>
                             <p class="mt-2 text-white/40"><span data-i18n="app.upload.hintSubtext">直接拍下来上传，或</span> <kbd class="px-1.5 py-0.5 bg-white/10 rounded text-xs" data-i18n="app.upload.pasteHint">Ctrl+V 粘贴截图</kbd></p>
+                            <p class="mt-2 text-white/40" data-i18n="app.upload.limit">最多9张，单张5MB</p>
                         </div>
                     </div>
                 </div>

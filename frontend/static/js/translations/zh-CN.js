@@ -142,7 +142,8 @@ const translations_zh = {
             hint: "点击或粘贴",
             hintText: "复杂的电路图或化学方程式？",
             hintSubtext: "直接拍下来上传，或",
-            pasteHint: "Ctrl+V 粘贴截图"
+            pasteHint: "Ctrl+V 粘贴截图",
+            limit: "最多9张，单张5MB"
         },
         // 深度思考
         deepThink: {
@@ -171,7 +172,9 @@ const translations_zh = {
         // 错误提示
         errors: {
             noInput: "请输入问题或上传图片！",
-            serverError: "服务器响应异常"
+            serverError: "服务器响应异常",
+            tooManyImages: "最多上传9张图片。",
+            imageTooLarge: "单张图片不能超过5MB。"
         },
         // Toast
         toast: {

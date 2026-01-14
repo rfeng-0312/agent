@@ -109,26 +109,107 @@ function updateParticleTheme(theme) {
 }
 
 // ========== 图片预览 ==========
-// 存储粘贴的图片文件
-let pastedImageFile = null;
+const MAX_IMAGE_COUNT = 9;
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+let selectedImages = [];
+
+function getI18nText(key, fallback) {
+    return window.i18n ? i18n.t(key) : fallback;
+}
 
 function previewImage(input) {
-    if (input.files && input.files[0]) {
-        showImagePreview(input.files[0]);
-        // 清除粘贴的图片（因为用户选择了文件上传）
-        pastedImageFile = null;
+    const files = Array.from(input?.files || []);
+    if (!files.length) return;
+    addImageFiles(files);
+    if (input) input.value = '';
+}
+
+function addImageFiles(files) {
+    const imageFiles = Array.from(files || []).filter(file => file && file.type && file.type.startsWith('image/'));
+    if (!imageFiles.length) return;
+
+    let added = 0;
+    let sizeError = false;
+    let countError = false;
+
+    for (const file of imageFiles) {
+        if (selectedImages.length >= MAX_IMAGE_COUNT) {
+            countError = true;
+            break;
+        }
+        if (file.size && file.size > MAX_IMAGE_SIZE) {
+            sizeError = true;
+            continue;
+        }
+        const previewUrl = URL.createObjectURL(file);
+        selectedImages.push({ file, url: previewUrl });
+        added += 1;
+    }
+
+    if (countError) {
+        alert(getI18nText('app.errors.tooManyImages', 'You can upload up to 9 images.'));
+    }
+    if (sizeError) {
+        alert(getI18nText('app.errors.imageTooLarge', 'Each image must be 5MB or smaller.'));
+    }
+
+    if (added > 0) {
+        renderImagePreviews();
     }
 }
 
-// 通用的图片预览函数
-function showImagePreview(file) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        document.getElementById('imgPreview').src = e.target.result;
-        document.getElementById('previewContainer').classList.remove('hidden');
-        document.getElementById('uploadHint').classList.add('hidden');
+function renderImagePreviews() {
+    const previewContainer = document.getElementById('previewContainer');
+    const previewGrid = document.getElementById('previewGrid');
+    const uploadHint = document.getElementById('uploadHint');
+
+    if (!previewContainer || !previewGrid || !uploadHint) return;
+
+    previewGrid.innerHTML = '';
+
+    selectedImages.forEach((item, index) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'preview-item';
+
+        const img = document.createElement('img');
+        img.src = item.url;
+        img.alt = `image-${index + 1}`;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'preview-remove';
+        removeBtn.innerHTML = '<i class="fa-solid fa-xmark text-xs"></i>';
+        removeBtn.addEventListener('click', () => removeImageAt(index));
+
+        wrapper.appendChild(img);
+        wrapper.appendChild(removeBtn);
+        previewGrid.appendChild(wrapper);
+    });
+
+    if (selectedImages.length > 0) {
+        previewContainer.classList.remove('hidden');
+        uploadHint.classList.add('hidden');
+    } else {
+        previewContainer.classList.add('hidden');
+        uploadHint.classList.remove('hidden');
     }
-    reader.readAsDataURL(file);
+
+    updateImageCount();
+}
+
+function updateImageCount() {
+    const countEl = document.getElementById('imageCount');
+    if (countEl) {
+        countEl.textContent = `${selectedImages.length}/${MAX_IMAGE_COUNT}`;
+    }
+}
+
+function removeImageAt(index) {
+    const removed = selectedImages.splice(index, 1)[0];
+    if (removed && removed.url) {
+        URL.revokeObjectURL(removed.url);
+    }
+    renderImagePreviews();
 }
 
 // ========== 粘贴图片功能 ==========
@@ -136,21 +217,22 @@ function handlePaste(e) {
     const items = e.clipboardData?.items;
     if (!items) return;
 
+    const files = [];
+
     for (let i = 0; i < items.length; i++) {
         if (items[i].type.indexOf('image') !== -1) {
-            e.preventDefault();
             const blob = items[i].getAsFile();
             if (blob) {
-                // 创建一个带有正确文件名的File对象
                 const timestamp = new Date().getTime();
-                pastedImageFile = new File([blob], `pasted_image_${timestamp}.png`, { type: blob.type });
-                showImagePreview(pastedImageFile);
-
-                // 显示粘贴成功提示
-                showPasteSuccess();
+                files.push(new File([blob], `pasted_image_${timestamp}_${i + 1}.png`, { type: blob.type }));
             }
-            break;
         }
+    }
+
+    if (files.length > 0) {
+        e.preventDefault();
+        addImageFiles(files);
+        showPasteSuccess();
     }
 }
 
@@ -158,7 +240,7 @@ function handlePaste(e) {
 function showPasteSuccess() {
     const toast = document.createElement('div');
     toast.className = 'fixed bottom-4 left-1/2 transform -translate-x-1/2 px-4 py-2 bg-green-500/90 text-white rounded-lg shadow-lg z-50 flex items-center gap-2';
-    toast.innerHTML = '<i class="fa-solid fa-check-circle"></i> 图片已粘贴';
+    toast.innerHTML = `<i class="fa-solid fa-check-circle"></i> ${getI18nText('app.toast.imagePasted', 'Image pasted')}`;
     document.body.appendChild(toast);
 
     setTimeout(() => {
@@ -170,13 +252,26 @@ function showPasteSuccess() {
 
 // ========== 清除图片 ==========
 function clearImage() {
-    document.getElementById('previewContainer').classList.add('hidden');
-    document.getElementById('uploadHint').classList.remove('hidden');
-    // 清除input的值
-    const fileInput = document.querySelector('input[type="file"]');
+    selectedImages.forEach(item => {
+        if (item.url) {
+            URL.revokeObjectURL(item.url);
+        }
+    });
+    selectedImages = [];
+
+    const previewGrid = document.getElementById('previewGrid');
+    if (previewGrid) previewGrid.innerHTML = '';
+
+    const previewContainer = document.getElementById('previewContainer');
+    if (previewContainer) previewContainer.classList.add('hidden');
+
+    const uploadHint = document.getElementById('uploadHint');
+    if (uploadHint) uploadHint.classList.remove('hidden');
+
+    const fileInput = document.getElementById('imageInput') || document.querySelector('input[type="file"]');
     if (fileInput) fileInput.value = '';
-    // 清除粘贴的图片
-    pastedImageFile = null;
+
+    updateImageCount();
 }
 
 // ========== 深度思考模式 ==========
@@ -315,10 +410,12 @@ async function sendTextQuery(question, subject = 'physics', deepThink = false, l
 }
 
 // 发送图片问题到豆包API (通过Flask后端)
-async function sendImageQuery(imageFile, question = '', subject = 'physics', deepThink = false, levelOverride = 'auto', useProfile = true) {
+async function sendImageQuery(imageFiles, question = '', subject = 'physics', deepThink = false, levelOverride = 'auto', useProfile = true) {
     try {
         const formData = new FormData();
-        formData.append('image', imageFile);
+        imageFiles.forEach(file => {
+            formData.append('image', file);
+        });
         formData.append('question', question);
         formData.append('subject', subject);
         formData.append('deep_think', deepThink ? 'true' : 'false');
@@ -375,14 +472,13 @@ async function sendBase64ImageQuery(base64Data, question = '', subject = 'physic
 
 async function handleQuestionSubmit() {
     const questionText = document.getElementById('problemInput')?.value?.trim();
-    const fileInput = document.querySelector('input[type="file"]');
+    const fileInput = document.getElementById('imageInput') || document.querySelector('input[type="file"]');
     const currentSubject = document.querySelector('.tab-btn.tab-active-phy') ? 'physics' : 'chemistry';
 
-    // 获取图片文件：优先使用文件上传，其次使用粘贴的图片
-    const imageFile = fileInput?.files?.[0] || pastedImageFile;
+    const imageFiles = selectedImages.map(item => item.file);
 
-    if (!questionText && !imageFile) {
-        alert('请输入问题或上传图片！');
+    if (!questionText && imageFiles.length === 0) {
+        alert(getI18nText('app.errors.noInput', 'Please enter a question or upload an image!'));
         return;
     }
 
@@ -390,10 +486,10 @@ async function handleQuestionSubmit() {
     showLoadingState(deepThinkEnabled);
 
     try {
-        if (imageFile) {
+        if (imageFiles.length > 0) {
             // 有图片，使用豆包API
             const response = await sendImageQuery(
-                imageFile,
+                imageFiles,
                 questionText,
                 currentSubject,
                 deepThinkEnabled,
@@ -627,9 +723,8 @@ document.addEventListener('DOMContentLoaded', function() {
             this.classList.remove('border-neonCyan', 'bg-neonCyan/10');
 
             const files = e.dataTransfer?.files;
-            if (files && files[0] && files[0].type.startsWith('image/')) {
-                showImagePreview(files[0]);
-                pastedImageFile = files[0];
+            if (files && files.length) {
+                addImageFiles(files);
             }
         });
     }

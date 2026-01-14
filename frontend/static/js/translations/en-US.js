@@ -141,7 +141,8 @@ const translations_en = {
             hint: "Click or paste",
             hintText: "Complex circuit diagrams or chemical equations?",
             hintSubtext: "Take a photo and upload, or",
-            pasteHint: "Ctrl+V to paste screenshot"
+            pasteHint: "Ctrl+V to paste screenshot",
+            limit: "Up to 9 images, 5MB each"
         },
         // Deep Think
         deepThink: {
@@ -170,7 +171,9 @@ const translations_en = {
         // Error Messages
         errors: {
             noInput: "Please enter a question or upload an image!",
-            serverError: "Server response error"
+            serverError: "Server response error",
+            tooManyImages: "You can upload up to 9 images.",
+            imageTooLarge: "Each image must be 5MB or smaller."
         },
         // Toast
         toast: {

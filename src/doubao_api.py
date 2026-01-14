@@ -124,7 +124,7 @@ class DoubaoClient:
     def create_chat_message_with_image(
         self,
         text: str,
-        image_base64: str,
+        image_base64: str | List[str],
         subject: str,
         system_prompt: str = None
     ) -> List[Dict]:
@@ -142,6 +142,23 @@ class DoubaoClient:
         # 获取专业提示词
         system_prompt = system_prompt or self._get_subject_prompt(subject)
 
+        image_list = image_base64 if isinstance(image_base64, (list, tuple)) else [image_base64]
+        content = []
+        for image_item in image_list:
+            if not image_item:
+                continue
+            content.append({
+                "type": "image_url",
+                "image_url": {
+                    "url": image_item,
+                    "detail": "low"  # ????????????????????????????????????
+                }
+            })
+        content.append({
+            "type": "text",
+            "text": text
+        })
+
         messages = [
             {
                 "role": "system",
@@ -149,19 +166,7 @@ class DoubaoClient:
             },
             {
                 "role": "user",
-                "content": [
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": image_base64,
-                            "detail": "low"  # 默认使用低精度以提高速度
-                        }
-                    },
-                    {
-                        "type": "text",
-                        "text": text
-                    }
-                ]
+                "content": content
             }
         ]
 
@@ -187,7 +192,7 @@ class DoubaoClient:
     def solve_with_image(
         self,
         text: str,
-        image_path: str,
+        image_path: str | List[str],
         subject: str,
         stream: bool = False,
         enable_search: bool = True,
@@ -207,11 +212,17 @@ class DoubaoClient:
             API响应
         """
         try:
-            # 编码图片
-            image_base64 = self.encode_image(image_path)
+            # Encode image payloads
+            image_paths = image_path if isinstance(image_path, (list, tuple)) else [image_path]
+            image_base64_list = [self.encode_image(path) for path in image_paths if path]
 
-            # 创建消息
-            messages = self.create_chat_message_with_image(text, image_base64, subject, system_prompt=system_prompt)
+            # Build messages
+            messages = self.create_chat_message_with_image(
+                text,
+                image_base64_list,
+                subject,
+                system_prompt=system_prompt
+            )
 
             # 调用API
             if stream:
@@ -283,7 +294,7 @@ class DoubaoClient:
     def stream_with_reasoning(
         self,
         text: str,
-        image_path: str = None,
+        image_paths: List[str] | None = None,
         subject: str = "physics",
         system_prompt: str = None
     ) -> Generator:
@@ -295,7 +306,7 @@ class DoubaoClient:
 
         Args:
             text: 问题文本
-            image_path: 图片路径（可选）
+            image_paths: 图片路径（可选）
             subject: 学科
 
         Yields:
@@ -305,12 +316,13 @@ class DoubaoClient:
             effective_system_prompt = system_prompt or self._get_subject_prompt(subject)
 
             # 构建消息
-            if image_path:
-                # 有图片的情况
-                image_base64 = self.encode_image(image_path)
+            if image_paths:
+                # ??????
+                path_list = image_paths if isinstance(image_paths, (list, tuple)) else [image_paths]
+                image_base64_list = [self.encode_image(path) for path in path_list if path]
                 messages = self.create_chat_message_with_image(
                     text if text else "请分析这张图片中的题目并解答",
-                    image_base64,
+                    image_base64_list,
                     subject,
                     system_prompt=effective_system_prompt
                 )

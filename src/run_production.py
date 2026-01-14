@@ -40,7 +40,7 @@ if __name__ == '__main__':
         cleanup_interval=os.getenv('CLEANUP_INTERVAL', 10),
         channel_timeout=os.getenv('CHANNEL_TIMEOUT', 120),
         send_bytes=int(os.getenv('SEND_BYTES', 1024)),
-        max_request_body_size=int(os.getenv('MAX_REQUEST_BODY_SIZE', 16777216)),  # 16MB
+        max_request_body_size=int(os.getenv('MAX_REQUEST_BODY_SIZE', 52428800)),  # 50MB
         expose_tracebacks=False,
         url_scheme='https' if os.getenv('HTTPS', 'false').lower() == 'true' else 'http'
     )

@@ -94,7 +94,9 @@ CORS(app)  # Enable CORS for frontend-backend communication
 # Configuration
 UPLOAD_FOLDER = '../data/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
-MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
+MAX_IMAGE_COUNT = 9
+MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5MB per image
+MAX_CONTENT_LENGTH = 50 * 1024 * 1024  # 50MB max request size
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
@@ -227,6 +229,25 @@ doubao_client = DoubaoClient()
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def get_upload_file_size(file_storage) -> int:
+    if not file_storage:
+        return 0
+    if file_storage.content_length is not None:
+        try:
+            return int(file_storage.content_length)
+        except (TypeError, ValueError):
+            return 0
+    try:
+        stream = file_storage.stream
+        current_pos = stream.tell()
+        stream.seek(0, os.SEEK_END)
+        size = stream.tell()
+        stream.seek(current_pos)
+        return int(size)
+    except Exception:
+        return 0
 
 
 def get_current_language():
@@ -1002,11 +1023,11 @@ def handle_image_query():
     支持深度思考模式（交叉验证）和流式响应
     """
     try:
-        # Check if image is in the request
-        if 'image' not in request.files:
+        # Check if images are in the request
+        files = request.files.getlist('image')
+        files = [f for f in files if f and f.filename]
+        if not files:
             return jsonify({'error': 'No image provided'}), 400
-
-        file = request.files['image']
         question = (request.form.get('question', '') or '').strip()
         subject = request.form.get('subject', 'physics')
         deep_think = request.form.get('deep_think', 'false').lower() == 'true'  # 深度思考模式
@@ -1043,63 +1064,74 @@ def handle_image_query():
                     else learning_profile_updated_at
                 )
 
-        if file.filename == '':
-            return jsonify({'error': 'No image selected'}), 400
+        if len(files) > MAX_IMAGE_COUNT:
+            return jsonify({'error': f'Too many images (max {MAX_IMAGE_COUNT})'}), 400
 
-        if file and allowed_file(file.filename):
-            # Save the uploaded file
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
-            filename = f"{timestamp}_{secure_filename(file.filename)}"
+        for file in files:
+            if not allowed_file(file.filename):
+                return jsonify({'error': 'File type not allowed'}), 400
+            file_size = get_upload_file_size(file)
+            if file_size > MAX_IMAGE_SIZE:
+                return jsonify({'error': f'File too large (max {MAX_IMAGE_SIZE // (1024 * 1024)}MB each)'}), 400
+
+        # Save the uploaded files
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
+        image_paths = []
+        image_filepaths = []
+
+        for index, file in enumerate(files, start=1):
+            filename = f"{timestamp}_{index}_{secure_filename(file.filename)}"
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(filepath)
+            image_paths.append(filename)
+            image_filepaths.append(filepath)
 
-            # Create session ID
-            session_id = datetime.now().strftime('%Y%m%d%H%M%S%f')
-            lang = get_current_language()  # 获取当前语言设置
+        # Create session ID
+        session_id = datetime.now().strftime('%Y%m%d%H%M%S%f')
+        lang = get_current_language()  # ????????????????????????
 
-            # Save session data with image path
-            session_data = {
-                'question': question,
-                'subject': subject,
-                'deep_think': deep_think,  # 存储深度思考标记
-                'lang': lang,  # 存储语言设置
-                'user_id': user_id,
-                'physics_score': physics_score,
-                'chemistry_score': chemistry_score,
-                'subject_score': subject_score,
-                'personalization_enabled_at_request': personalization_enabled,
-                'use_profile_requested': use_profile_requested,
-                'use_profile_effective': use_profile_effective,
-                'learning_profile': learning_profile,
-                'learning_profile_updated_at': (
-                    learning_profile_updated_at.isoformat()
-                    if hasattr(learning_profile_updated_at, 'isoformat')
-                    else learning_profile_updated_at
-                ),
-                'level_override': level_override,
-                'level_effective': level_effective,
-                'level_source': level_source,
-                'teaching_phase': teaching_phase,
-                'image_path': filename,
-                'image_filepath': filepath,  # 保存完整路径供流式API使用
-                'timestamp': str(datetime.now()),
-                'type': 'image_deep' if deep_think else 'image_stream'  # 区分查询类型
-            }
+        # Save session data with image path
+        session_data = {
+            'question': question,
+            'subject': subject,
+            'deep_think': deep_think,  # ????????????????????????
+            'lang': lang,  # ??????????????????
+            'user_id': user_id,
+            'physics_score': physics_score,
+            'chemistry_score': chemistry_score,
+            'subject_score': subject_score,
+            'personalization_enabled_at_request': personalization_enabled,
+            'use_profile_requested': use_profile_requested,
+            'use_profile_effective': use_profile_effective,
+            'learning_profile': learning_profile,
+            'learning_profile_updated_at': (
+                learning_profile_updated_at.isoformat()
+                if hasattr(learning_profile_updated_at, 'isoformat')
+                else learning_profile_updated_at
+            ),
+            'level_override': level_override,
+            'level_effective': level_effective,
+            'level_source': level_source,
+            'teaching_phase': teaching_phase,
+            'image_path': image_paths[0] if image_paths else None,
+            'image_filepath': image_filepaths[0] if image_filepaths else None,
+            'image_paths': image_paths,
+            'image_filepaths': image_filepaths,  # ???????????????????????????API??????
+            'timestamp': str(datetime.now()),
+            'type': 'image_deep' if deep_think else 'image_stream'  # ??????????????????
+        }
 
-            os.makedirs('../data/sessions', exist_ok=True)
-            with open(f'../data/sessions/{session_id}.json', 'w', encoding='utf-8') as f:
-                json.dump(session_data, f, ensure_ascii=False, indent=2)
+        os.makedirs('../data/sessions', exist_ok=True)
+        with open(f'../data/sessions/{session_id}.json', 'w', encoding='utf-8') as f:
+            json.dump(session_data, f, ensure_ascii=False, indent=2)
 
-            # 返回session ID，让前端通过SSE获取流式响应
-            return jsonify({
-                'status': 'success',
-                'type': 'image_deep' if deep_think else 'image_stream',
-                'session_id': session_id,
-                'redirect_url': f'/result/{session_id}'
-            })
-
-        else:
-            return jsonify({'error': 'File type not allowed'}), 400
+        # ??????session ID??????????????????SSE??????????????????
+        return jsonify({
+            'status': 'success',
+            'type': 'image_deep' if deep_think else 'image_stream',
+            'session_id': session_id,
+            'redirect_url': f'/result/{session_id}'
+        })
 
     except Exception as e:
         logger.error(f"Handle image query error: {e}")
@@ -1278,7 +1310,9 @@ def stream_response(session_id):
 
             # 图片流式查询 - 使用豆包API with reasoning
             if query_type == 'image_stream':
-                image_filepath = session_data.get('image_filepath', '')
+                image_filepaths = session_data.get('image_filepaths') or []
+                if not image_filepaths and session_data.get('image_filepath'):
+                    image_filepaths = [session_data.get('image_filepath')]
                 lang = session_data.get('lang', 'zh-CN')
                 level_effective = session_data.get('level_effective', 'standard')
                 teaching_phase = int(session_data.get('teaching_phase', 2))
@@ -1303,7 +1337,7 @@ def stream_response(session_id):
                 # 使用豆包的流式响应（包含思考过程）
                 for event in doubao_client.stream_with_reasoning(
                     text=question,
-                    image_path=image_filepath,
+                    image_paths=image_filepaths,
                     subject=subject,
                     system_prompt=system_prompt
                 ):
@@ -1449,7 +1483,9 @@ def generate_deep_think_response(session_id, session_data):
     question = session_data['question']
     subject = session_data['subject']
     query_type = session_data.get('type', 'text_deep')
-    image_filepath = session_data.get('image_filepath', '')
+    image_filepaths = session_data.get('image_filepaths') or []
+    if not image_filepaths and session_data.get('image_filepath'):
+        image_filepaths = [session_data.get('image_filepath')]
     lang = session_data.get('lang', 'zh-CN')  # 获取语言设置
 
     level_effective = session_data.get('level_effective', 'standard')
@@ -1488,7 +1524,7 @@ def generate_deep_think_response(session_id, session_data):
 
             for event in doubao_client.stream_with_reasoning(
                 text=question if question else "请分析这张图片中的题目并详细解答",
-                image_path=image_filepath,
+                image_paths=image_filepaths,
                 subject=subject,
                 system_prompt=solve_system_prompt
             ):
@@ -1593,7 +1629,7 @@ def generate_deep_think_response(session_id, session_data):
 
             for event in doubao_client.stream_with_reasoning(
                 text=verification_prompt,
-                image_path=None,  # 验证阶段不需要图片
+                image_paths=None,  # 验证阶段不需要图片
                 subject=subject,
                 system_prompt=verify_system_prompt
             ):
